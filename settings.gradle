@@ -1,2 +1,5 @@
 rootProject.name = 'instalerion'
 
+include 'Common'
+include 'Loader'
+include 'Publisher'
