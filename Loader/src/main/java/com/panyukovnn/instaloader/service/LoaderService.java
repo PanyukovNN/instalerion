@@ -1,125 +1,121 @@
 package com.panyukovnn.instaloader.service;
 
 import com.github.instagram4j.instagram4j.IGClient;
-import com.github.instagram4j.instagram4j.IGDevice;
 import com.github.instagram4j.instagram4j.actions.users.UserAction;
-import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
-import com.github.instagram4j.instagram4j.models.media.UploadParameters;
-import com.github.instagram4j.instagram4j.models.media.timeline.Comment;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineVideoMedia;
-import com.github.instagram4j.instagram4j.requests.IGGetRequest;
-import com.github.instagram4j.instagram4j.requests.IGRequest;
 import com.github.instagram4j.instagram4j.requests.feed.FeedUserRequest;
-import com.github.instagram4j.instagram4j.requests.upload.RuploadPhotoRequest;
-import com.github.instagram4j.instagram4j.requests.upload.RuploadVideoRequest;
-import com.github.instagram4j.instagram4j.responses.feed.FeedUserResponse;
+import com.panyukovnn.common.model.ConsumeChannel;
+import com.panyukovnn.common.model.Customer;
 import com.panyukovnn.common.model.VideoPost;
-import org.apache.commons.io.FileUtils;
+import com.panyukovnn.common.repository.CustomerRepository;
+import com.panyukovnn.common.repository.VideoPostRepository;
+import com.panyukovnn.common.service.CloudService;
+import javassist.NotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
-import java.net.URL;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
+import static com.panyukovnn.common.Constants.CUSTOMER_NOT_FOUND_ERROR_MSG;
+import static com.panyukovnn.common.Constants.TRANSFORM_TO_VIDEO_POST_ERROR_MSG;
+
+/**
+ * Service for loading posts
+ */
 @Service
+@RequiredArgsConstructor
 public class LoaderService {
 
-    @Value("${instagram.account}")
-    private String account;
+    @Value("${post.hours}")
+    private int postHours;
 
-    @Value("${instagram.password}")
-    private String password;
+    @Value("${post.limit}")
+    private int postLimit;
 
-    public List<VideoPost> load() throws IGLoginException, ExecutionException, InterruptedException {
+    private final CloudService cloudService;
+    private final EncryptionUtil encryptionUtil;
+    private final CustomerRepository customerRepository;
+    private final VideoPostRepository videoPostRepository;
+
+    /**
+     * Load video posts from customer consume channels to database
+     *
+     * @param customerId id of customer
+     * @throws IOException exception
+     * @throws ExecutionException exception
+     * @throws InterruptedException exception
+     * @throws NotFoundException exception
+     */
+    public void loadVideoPosts(String customerId) throws IOException, ExecutionException, InterruptedException, NotFoundException {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new NotFoundException(String.format(CUSTOMER_NOT_FOUND_ERROR_MSG, customerId)));
+
+        // Login to instagram account
         IGClient client = IGClient.builder()
-                .username(account)
-                .password(password)
+                .username(customer.getLogin())
+                .password(encryptionUtil.getTextEncryptor().decrypt(customer.getPassword()))
                 .login();
 
-        UserAction userAction = client.actions().users().findByUsername("garikkharlamov").get();
-
-        List<VideoPost> videoPosts = new ArrayList<>();
-
-        CompletableFuture<FeedUserResponse> future = client.sendRequest(new FeedUserRequest(userAction.getUser().getPk()));
-
-        FeedUserResponse feedUserResponse = future.get();
-
-        feedUserResponse.getItems().stream()
-                .limit(5)
-                .filter(TimelineVideoMedia.class::isInstance)
-                .map(TimelineVideoMedia.class::cast)
-                .filter(video -> Instant.ofEpochMilli(video.getTaken_at() * 1000)
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDateTime().isAfter(LocalDateTime.now().minusDays(1)))
-                .forEach(video -> {
-                    System.out.println(video);
-                    VideoPost videoPost = new VideoPost();
-                    videoPost.setDescription(video.getCaption().getText());
-                    videoPost.setUrl(video.getVideo_versions().get(0).getUrl());
-
-                    String url = video.getImage_versions2().getCandidates().get(0).getUrl();
-                    System.out.println(url);
-
-                    videoPost.setCoverUrl(url);
-
-                    videoPosts.add(videoPost);
-                });
-
-        System.out.println(videoPosts.get(0));
-
-        try (BufferedInputStream in = new BufferedInputStream(new URL(videoPosts.get(0).getUrl()).openStream());
-             BufferedInputStream in2 = new BufferedInputStream(new URL(videoPosts.get(0).getCoverUrl()).openStream());
-             ByteArrayOutputStream baos1 = new ByteArrayOutputStream();
-             ByteArrayOutputStream baos2 = new ByteArrayOutputStream()) {
-            byte[] dataBuffer = new byte[1000000];
-            int bytesRead;
-            while ((bytesRead = in.read(dataBuffer, 0, 1000000)) != -1) {
-                baos1.write(dataBuffer, 0, bytesRead);
-            }
-
-            byte[] postCover = new byte[4096];
-
-            int bytesRead2;
-            while ((bytesRead2 = in2.read(postCover, 0, 4096)) != -1) {
-                baos2.write(postCover, 0, bytesRead2);
-            }
-
-            File file = new File("img.jpg");
-
-            FileUtils.copyURLToFile(new URL(videoPosts.get(0).getCoverUrl()), file);
-
-//            client.getActions().upload().photo(postCover, "12873198749817498");
-
-//            UploadParameters uploadParameters = UploadParameters.builder()
-//                    .media_type("2")
-//                    .upload_id("yoyoyoyoyoy")
-//                    .build();
-
-//            client.getActions().upload().videoWithCover(dataBuffer, postCover, uploadParameters);
-
-//            client.actions().upload().photo(postCover, "yoyoyoyoyoyoy.jpg");
-//            client.actions().timeline().uploadVideo(dataBuffer, postCover, "video from instalerion");
-            client.actions().timeline().uploadPhoto(file, "yoyoyo.jpg");
-
-
-
-//            client.sendRequest(new RuploadPhotoRequest(file, uploadParameters)).get();
-
-
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
+        // Load posts from consume channels
+        for (ConsumeChannel consumeChannel : customer.getConsumeChannels()) {
+            processConsumeChannel(client, consumeChannel);
         }
 
+        customerRepository.save(customer);
+    }
 
-        return videoPosts;
+    private void processConsumeChannel(IGClient client, ConsumeChannel consumeChannel) throws InterruptedException, ExecutionException, IOException {
+        String consumeChannelName = consumeChannel.getName();
+
+        UserAction userAction = client.actions().users().findByUsername(consumeChannelName).get();
+
+        List<TimelineVideoMedia> timelineVideoMedias = client.sendRequest(new FeedUserRequest(userAction.getUser().getPk()))
+                .get()
+                .getItems()
+                .stream()
+                .limit(postLimit)
+                .filter(TimelineVideoMedia.class::isInstance)
+                .map(TimelineVideoMedia.class::cast)
+                .filter(video -> getDateTime(video.getTaken_at() * 1000)
+                        .isAfter(LocalDateTime.now().minusHours(postHours)))
+                .collect(Collectors.toList());
+
+        List<VideoPost> videoPosts = timelineVideoMedias.stream()
+                .map(this::getVideoPost)
+                .collect(Collectors.toList());
+
+        cloudService.saveVideoPosts(videoPosts);
+
+        consumeChannel.setVideoPosts(videoPosts);
+    }
+
+    private LocalDateTime getDateTime(long mills) {
+        return Instant.ofEpochMilli(mills)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+    }
+
+    private VideoPost getVideoPost(TimelineVideoMedia video) {
+        VideoPost videoPost = new VideoPost();
+
+        try {
+            videoPost.setCode(video.getCode());
+            videoPost.setDescription(video.getCaption().getText());
+            videoPost.setUrl(video.getVideo_versions().get(0).getUrl());
+            videoPost.setCoverUrl(video.getImage_versions2().getCandidates().get(0).getUrl());
+        } catch (Exception e) {
+            System.out.println(String.format(TRANSFORM_TO_VIDEO_POST_ERROR_MSG, e.getMessage()));
+        }
+
+        videoPostRepository.save(videoPost);
+
+        return videoPost;
     }
 }

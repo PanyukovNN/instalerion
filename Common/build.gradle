@@ -1,3 +1,11 @@
 
+dependencies {
+    implementation rootProject.ext.library.mongo
+    implementation rootProject.ext.library.springBootDataMongo
+
+    // Для использования FileUtils
+    implementation 'commons-io:commons-io:2.8.0'
+}
+
 jar.enabled = true
 

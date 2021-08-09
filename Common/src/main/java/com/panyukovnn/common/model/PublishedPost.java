@@ -1,20 +1,20 @@
-package com.panyukovnn.instalerion.module;
+package com.panyukovnn.common.model;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
-public class Customer {
+@Document(collection = "published_post")
+public class PublishedPost {
 
     @Id
-    public String id;
+    private String id;
 
-    public String name;
-    public String password;
 }

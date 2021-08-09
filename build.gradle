@@ -10,6 +10,8 @@ subprojects {
     apply plugin: 'io.spring.dependency-management'
 }
 
+apply from: 'ext.gradle'
+
 allprojects {
     group 'com.panyukovnn'
     version '1.0-SNAPSHOT'
@@ -38,18 +40,10 @@ allprojects {
     }
 }
 
-ext.library = [
-        'mongo' : 'org.springframework.boot:spring-boot-starter-data-mongodb'
-]
-
 dependencies {
-    implementation "org.springframework.boot:spring-boot-starter-web"
-    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
-    implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.3'
     implementation library.mongo
+    implementation library.springBootWeb
+    implementation library.springBootDataJpa
 
-    implementation project(":Loader")
-    implementation project(":Publisher")
-
-    testCompileOnly group: 'junit', name: 'junit', version: '4.12'
+    testCompileOnly libraryTest.junit
 }

@@ -1,13 +1,17 @@
 
 dependencies {
     implementation rootProject.ext.library.mongo
-    implementation ('com.github.instagram4j:instagram4j:2.0.5') {
+    implementation rootProject.ext.library.jasypt
+    implementation rootProject.ext.library.springBootWeb
+    implementation rootProject.ext.library.springBootDataJpa
+    implementation rootProject.ext.library.springBootDataMongo
+    implementation rootProject.ext.library.springSecurity
+    implementation (rootProject.ext.library.instagram4j) {
         exclude group: 'com.squareup.okhttp3', module: 'okhttp'
     }
-    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.9.1'
-    implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.3'
+    implementation rootProject.ext.library.okhttp
+
     implementation project(':Common')
-    implementation 'commons-io:commons-io:2.8.0'
 }
 
 jar.enabled = true
