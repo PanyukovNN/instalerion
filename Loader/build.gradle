@@ -2,6 +2,7 @@
 dependencies {
     implementation rootProject.ext.library.mongo
     implementation rootProject.ext.library.jasypt
+    implementation rootProject.ext.library.springKafka
     implementation rootProject.ext.library.springBootWeb
     implementation rootProject.ext.library.springBootDataJpa
     implementation rootProject.ext.library.springBootDataMongo

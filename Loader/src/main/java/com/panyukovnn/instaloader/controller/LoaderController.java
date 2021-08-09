@@ -8,6 +8,6 @@ public class LoaderController {
 
     @GetMapping("/")
     public String getLoader() {
-        return "yo from loader";
+        return "hello from loader";
     }
 }

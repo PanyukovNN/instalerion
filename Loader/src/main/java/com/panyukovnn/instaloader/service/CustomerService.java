@@ -3,6 +3,7 @@ package com.panyukovnn.instaloader.service;
 import com.panyukovnn.common.model.ConsumeChannel;
 import com.panyukovnn.common.model.Customer;
 import com.panyukovnn.common.repository.CustomerRepository;
+import com.panyukovnn.common.service.EncryptionUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

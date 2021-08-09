@@ -1,4 +1,13 @@
 package com.panyukovnn.instapublisher.controller;
 
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
 public class PublisherController {
+
+    @PostMapping("/upload")
+    public void postUploadVideo() {
+
+    }
 }

@@ -10,6 +10,7 @@ import com.panyukovnn.common.model.VideoPost;
 import com.panyukovnn.common.repository.CustomerRepository;
 import com.panyukovnn.common.repository.VideoPostRepository;
 import com.panyukovnn.common.service.CloudService;
+import com.panyukovnn.common.service.EncryptionUtil;
 import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

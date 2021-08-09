@@ -1,4 +1,4 @@
-package com.panyukovnn.instaloader.service;
+package com.panyukovnn.common.service;
 
 import lombok.Getter;
 import org.jasypt.util.text.AES256TextEncryptor;

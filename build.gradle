@@ -42,8 +42,12 @@ allprojects {
 
 dependencies {
     implementation library.mongo
+    implementation library.springKafka
     implementation library.springBootWeb
     implementation library.springBootDataJpa
+    implementation library.kafkaClients
+    implementation library.kafkaCommon
+    implementation project(":Common")
 
     testCompileOnly libraryTest.junit
 }

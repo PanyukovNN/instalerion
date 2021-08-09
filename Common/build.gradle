@@ -1,7 +1,9 @@
 
 dependencies {
     implementation rootProject.ext.library.mongo
+    implementation rootProject.ext.library.springKafka
     implementation rootProject.ext.library.springBootDataMongo
+    implementation rootProject.ext.library.jasypt
 
     // Для использования FileUtils
     implementation 'commons-io:commons-io:2.8.0'

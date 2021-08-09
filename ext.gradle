@@ -1,16 +1,21 @@
 
 ext.library = [
-        'mongo' : 'org.springframework.boot:spring-boot-starter-data-mongodb',
+        'mongo':'org.springframework.boot:spring-boot-starter-data-mongodb',
 
-        'springBootWeb' : 'org.springframework.boot:spring-boot-starter-web',
-        'springBootDataJpa' : 'org.springframework.boot:spring-boot-starter-data-jpa',
-        'springBootDataMongo' : 'org.springframework.boot:spring-boot-starter-data-mongodb',
-        'springSecurity' : 'org.springframework.security:spring-security-core:5.5.1',
+        'springBootWeb':'org.springframework.boot:spring-boot-starter-web',
+        'springBootDataJpa':'org.springframework.boot:spring-boot-starter-data-jpa',
+        'springBootDataMongo':'org.springframework.boot:spring-boot-starter-data-mongodb',
+        'springSecurity':'org.springframework.security:spring-security-core:5.5.1',
 
-        'jasypt' : 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.3',
+        'jasypt':'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.3',
 
-        'instagram4j' : 'com.github.instagram4j:instagram4j:2.0.5',
-        'okhttp' : 'com.squareup.okhttp3:okhttp:4.9.1'
+        'instagram4j':'com.github.instagram4j:instagram4j:2.0.5',
+        'okhttp':'com.squareup.okhttp3:okhttp:4.9.1',
+
+        'kafkaClients':'org.apache.kafka:kafka-clients:2.8.0',
+        'kafkaCommon':'org.apache.kafka:kafka_2.13:2.8.0',
+
+        'springKafka':'org.springframework.kafka:spring-kafka:2.7.5',
 ]
 
 ext.libraryTest = [
