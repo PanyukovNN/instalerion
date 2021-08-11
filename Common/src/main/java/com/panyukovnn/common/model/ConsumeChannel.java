@@ -1,12 +1,10 @@
 package com.panyukovnn.common.model;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -16,8 +14,9 @@ import java.util.List;
 @Setter
 @ToString
 @NoArgsConstructor
+@AllArgsConstructor
 @Document(collection = "consume_channel")
-public class ConsumeChannel {
+public class ConsumeChannel{
 
     @Id
     private String id;

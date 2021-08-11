@@ -66,13 +66,13 @@ public class LoaderService {
 
         // Load posts from consume channels
         for (ConsumeChannel consumeChannel : customer.getConsumeChannels()) {
-            processConsumeChannel(client, consumeChannel);
+            processConsumeChannel(customer, client, consumeChannel);
         }
 
         customerRepository.save(customer);
     }
 
-    private void processConsumeChannel(IGClient client, ConsumeChannel consumeChannel) throws InterruptedException, ExecutionException, IOException {
+    private void processConsumeChannel(Customer customer, IGClient client, ConsumeChannel consumeChannel) throws InterruptedException, ExecutionException, IOException {
         String consumeChannelName = consumeChannel.getName();
 
         UserAction userAction = client.actions().users().findByUsername(consumeChannelName).get();
@@ -89,7 +89,10 @@ public class LoaderService {
                 .collect(Collectors.toList());
 
         List<VideoPost> videoPosts = timelineVideoMedias.stream()
-                .map(this::getVideoPost)
+                .map(videoPost -> getVideoPost(customer, videoPost))
+                // TODO find more effective way
+                .filter(videoPost -> !videoPostRepository.existsByCodeAndCustomerId(videoPost.getCode(), customer.getId()))
+                .map(videoPostRepository::save)
                 .collect(Collectors.toList());
 
         cloudService.saveVideoPosts(videoPosts);
@@ -103,19 +106,24 @@ public class LoaderService {
                 .toLocalDateTime();
     }
 
-    private VideoPost getVideoPost(TimelineVideoMedia video) {
+    private VideoPost getVideoPost(Customer customer, TimelineVideoMedia video) {
         VideoPost videoPost = new VideoPost();
 
         try {
             videoPost.setCode(video.getCode());
-            videoPost.setDescription(video.getCaption().getText());
+
+            if (video.getCaption() != null) {
+                videoPost.setDescription(video.getCaption().getText());
+            } else {
+                videoPost.setDescription("");
+            }
+
             videoPost.setUrl(video.getVideo_versions().get(0).getUrl());
             videoPost.setCoverUrl(video.getImage_versions2().getCandidates().get(0).getUrl());
+            videoPost.setCustomerId(customer.getId());
         } catch (Exception e) {
             System.out.println(String.format(TRANSFORM_TO_VIDEO_POST_ERROR_MSG, e.getMessage()));
         }
-
-        videoPostRepository.save(videoPost);
 
         return videoPost;
     }

@@ -1,5 +1,7 @@
 package com.panyukovnn.instalerion.service.kafka;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.panyukovnn.common.model.request.LoadVideoPostsRequest;
 import com.panyukovnn.common.model.request.UploadVideoRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -7,7 +9,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
+
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -19,19 +22,24 @@ public class KafkaSender {
     @Value("${kafka.publisher.topic}")
     private String PUBLISHER_TOPIC_NAME;
 
-    private final KafkaTemplate<String, String> kafkaCustomerIdTemplate;
-    private final KafkaTemplate<String, UploadVideoRequest> kafkaUploadVideoTemplate;
+    private final ObjectMapper objectMapper;
+    private final KafkaTemplate<String, Map<String, Object>> kafkaTemplate;
 
-    public void loaderCustomerIdSend(String customerId) {
-        ListenableFuture<SendResult<String, String>> future = kafkaCustomerIdTemplate.send(LOADER_TOPIC_NAME, customerId);
+    public void loaderCustomerIdSend(LoadVideoPostsRequest request) {
+        Map<String, Object> mapRequest = objectMapper.convertValue(request, Map.class);
 
-        future.addCallback(new TextCallback(customerId));
+        ListenableFuture<SendResult<String, Map<String, Object>>> future =
+                kafkaTemplate.send(LOADER_TOPIC_NAME, mapRequest);
+
+        future.addCallback(new MapCallback(mapRequest));
     }
 
     public void publisherUploadVideoSend(UploadVideoRequest request) {
-        ListenableFuture<SendResult<String, UploadVideoRequest>> future =
-                kafkaUploadVideoTemplate.send(PUBLISHER_TOPIC_NAME, request);
+        Map<String, Object> mapRequest = objectMapper.convertValue(request, Map.class);
 
-        future.addCallback(new UploadVideoCallback(request));
+        ListenableFuture<SendResult<String, Map<String, Object>>> future =
+                kafkaTemplate.send(PUBLISHER_TOPIC_NAME, mapRequest);
+
+        future.addCallback(new MapCallback(mapRequest));
     }
 }

@@ -9,4 +9,16 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface VideoPostRepository extends MongoRepository<VideoPost, String> {
+
+    boolean existsByCodeAndCustomerId(String code, String customerId);
+
+    /**
+     * Find first unpublished video post by customer id
+     *
+     * @param customerId customer id
+     * @return video post
+     */
+    VideoPost findFirstByCustomerIdAndPublishDateTimeIsNull(String customerId);
+
+
 }

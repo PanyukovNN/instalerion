@@ -1,7 +1,7 @@
 package com.panyukovnn.instaloader;
 
 import com.panyukovnn.common.repository.CustomerRepository;
-import com.panyukovnn.instaloader.controller.LoaderKafkaListener;
+import com.panyukovnn.instaloader.kafka.LoaderKafkaListener;
 import com.panyukovnn.instaloader.service.LoaderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;

@@ -1,12 +1,10 @@
 package com.panyukovnn.common.model;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -16,11 +14,17 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 @NoArgsConstructor
+@AllArgsConstructor
 @Document(collection = "video_post")
 public class VideoPost {
 
     @Id
     private String id;
+
+    /**
+     * Customer id
+     */
+    private String customerId;
 
     /**
      * Url of a video
