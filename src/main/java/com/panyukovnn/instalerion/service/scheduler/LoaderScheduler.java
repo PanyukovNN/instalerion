@@ -14,8 +14,8 @@ public class LoaderScheduler {
 
     @Scheduled(fixedRateString = "${loader.scheduler.fixed.rate.mills}")
     public void scheduleLoaderKafkaSend() {
-//        String customerId = "6110322f8f21ee113e916f85";
-        String customerId = "61142789176ee50133a93609";
+        String customerId = "6110322f8f21ee113e916f85";
+//        String customerId = "61142789176ee50133a93609";
 
         LoadVideoPostsRequest request = new LoadVideoPostsRequest(customerId);
 

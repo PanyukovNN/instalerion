@@ -4,12 +4,12 @@ import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
 import com.panyukovnn.common.Constants;
 import com.panyukovnn.common.model.Customer;
-import com.panyukovnn.common.model.VideoPost;
+import com.panyukovnn.common.model.post.VideoPost;
 import com.panyukovnn.common.model.request.UploadVideoRequest;
 import com.panyukovnn.common.repository.CustomerRepository;
 import com.panyukovnn.common.repository.VideoPostRepository;
 import com.panyukovnn.common.service.CloudService;
-import com.panyukovnn.common.service.EncryptionUtil;
+import com.panyukovnn.common.service.InstaService;
 import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ import static com.panyukovnn.common.Constants.*;
 public class PublisherService {
 
     private final CloudService cloudService;
-    private final EncryptionUtil encryptionUtil;
+    private final InstaService instaService;
     private final CustomerRepository customerRepository;
     private final VideoPostRepository videoPostRepository;
 
@@ -47,10 +47,7 @@ public class PublisherService {
                 .orElseThrow(() -> new NotFoundException(String.format(Constants.CUSTOMER_NOT_FOUND_ERROR_MSG, videoPost.getCustomerId())));
 
         // Login to instagram account
-        IGClient client = IGClient.builder()
-                .username(customer.getLogin())
-                .password(encryptionUtil.getTextEncryptor().decrypt(customer.getPassword()))
-                .login();
+        IGClient client = instaService.getClient(customer);
 
         File videoFile = cloudService.getVideoFileByCode(videoPost.getCode());
         File coverFile = cloudService.getPhotoFileByCode(videoPost.getCode());

@@ -1,4 +1,4 @@
-package com.panyukovnn.instalerion.exception;
+package com.panyukovnn.common.exception;
 
 public class RequestException extends InstalerionException {
 

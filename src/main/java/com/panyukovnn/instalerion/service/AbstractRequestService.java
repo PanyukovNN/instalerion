@@ -2,7 +2,7 @@ package com.panyukovnn.instalerion.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.panyukovnn.instalerion.exception.RequestException;
+import com.panyukovnn.common.exception.RequestException;
 import org.springframework.http.*;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;

@@ -1,6 +1,7 @@
 package com.panyukovnn.common.service;
 
-import com.panyukovnn.common.model.VideoPost;
+import com.panyukovnn.common.model.post.ImagePost;
+import com.panyukovnn.common.model.post.VideoPost;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
 
@@ -29,9 +30,9 @@ public class CloudService {
     }
 
     /**
-     * Save a video post
+     * Save video posts files
      *
-     * @param videoPosts video post
+     * @param videoPosts list of video posts
      * @throws IOException exception
      */
     public void saveVideoPosts(List<VideoPost> videoPosts) throws IOException {
@@ -39,8 +40,20 @@ public class CloudService {
             // Сохраняем видео
             saveByUrl(videoPost.getUrl(), videoPost.getCode() + ".mp4");
 
-            // Сохраняем фото
-            saveByUrl(videoPost.getCoverUrl(),  videoPost.getCode() + ".jpg");
+            // Сохраняем фото обложки
+            saveByUrl(videoPost.getCoverUrl(), videoPost.getCode() + ".jpg");
+        }
+    }
+
+    /**
+     * Save image posts files
+     *
+     * @param imagePosts list of image posts
+     * @throws IOException exception
+     */
+    public void saveImagePosts(List<ImagePost> imagePosts) throws IOException {
+        for (ImagePost imagePost : imagePosts) {
+            saveByUrl(imagePost.getUrl(), imagePost.getUrl() + ".jpg");
         }
     }
 

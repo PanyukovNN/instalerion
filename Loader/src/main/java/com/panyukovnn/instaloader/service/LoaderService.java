@@ -2,15 +2,19 @@ package com.panyukovnn.instaloader.service;
 
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.actions.users.UserAction;
+import com.github.instagram4j.instagram4j.models.media.timeline.TimelineImageMedia;
+import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineVideoMedia;
 import com.github.instagram4j.instagram4j.requests.feed.FeedUserRequest;
 import com.panyukovnn.common.model.ConsumeChannel;
 import com.panyukovnn.common.model.Customer;
-import com.panyukovnn.common.model.VideoPost;
+import com.panyukovnn.common.model.post.ImagePost;
+import com.panyukovnn.common.model.post.PostMediaType;
+import com.panyukovnn.common.model.post.VideoPost;
 import com.panyukovnn.common.repository.CustomerRepository;
-import com.panyukovnn.common.repository.VideoPostRepository;
+import com.panyukovnn.common.repository.PostRepository;
 import com.panyukovnn.common.service.CloudService;
-import com.panyukovnn.common.service.EncryptionUtil;
+import com.panyukovnn.common.service.InstaService;
 import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,8 +28,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import static com.panyukovnn.common.Constants.CUSTOMER_NOT_FOUND_ERROR_MSG;
-import static com.panyukovnn.common.Constants.TRANSFORM_TO_VIDEO_POST_ERROR_MSG;
+import static com.panyukovnn.common.Constants.*;
 
 /**
  * Service for loading posts
@@ -41,9 +44,9 @@ public class LoaderService {
     private int postLimit;
 
     private final CloudService cloudService;
-    private final EncryptionUtil encryptionUtil;
+    private final InstaService instaService;
+    private final PostRepository postRepository;
     private final CustomerRepository customerRepository;
-    private final VideoPostRepository videoPostRepository;
 
     /**
      * Load video posts from customer consume channels to database
@@ -59,10 +62,7 @@ public class LoaderService {
                 .orElseThrow(() -> new NotFoundException(String.format(CUSTOMER_NOT_FOUND_ERROR_MSG, customerId)));
 
         // Login to instagram account
-        IGClient client = IGClient.builder()
-                .username(customer.getLogin())
-                .password(encryptionUtil.getTextEncryptor().decrypt(customer.getPassword()))
-                .login();
+        IGClient client = instaService.getClient(customer);
 
         // Load posts from consume channels
         for (ConsumeChannel consumeChannel : customer.getConsumeChannels()) {
@@ -77,27 +77,43 @@ public class LoaderService {
 
         UserAction userAction = client.actions().users().findByUsername(consumeChannelName).get();
 
-        List<TimelineVideoMedia> timelineVideoMedias = client.sendRequest(new FeedUserRequest(userAction.getUser().getPk()))
+        List<TimelineMedia> timelineItems = client.sendRequest(new FeedUserRequest(userAction.getUser().getPk()))
                 .get()
                 .getItems()
                 .stream()
                 .limit(postLimit)
-                .filter(TimelineVideoMedia.class::isInstance)
-                .map(TimelineVideoMedia.class::cast)
-                .filter(video -> getDateTime(video.getTaken_at() * 1000)
+                .filter(item -> getDateTime(item.getTaken_at() * 1000)
                         .isAfter(LocalDateTime.now().minusHours(postHours)))
+                // TODO find more effective way
+                .filter(videoPost -> !postRepository.existsByCodeAndCustomerId(videoPost.getCode(), customer.getId()))
                 .collect(Collectors.toList());
 
-        List<VideoPost> videoPosts = timelineVideoMedias.stream()
-                .map(videoPost -> getVideoPost(customer, videoPost))
-                // TODO find more effective way
-                .filter(videoPost -> !videoPostRepository.existsByCodeAndCustomerId(videoPost.getCode(), customer.getId()))
-                .map(videoPostRepository::save)
+        processVideoPosts(customer, consumeChannel, timelineItems);
+        processImagePosts(customer, consumeChannel, timelineItems);
+    }
+
+    private void processVideoPosts(Customer customer, ConsumeChannel consumeChannel, List<TimelineMedia> timelineItems) throws IOException {
+        List<VideoPost> videoPosts = timelineItems.stream()
+                .filter(TimelineVideoMedia.class::isInstance)
+                .map(TimelineVideoMedia.class::cast)
+                .map(videoItem -> getVideoPost(customer, videoItem))
+                .map(postRepository::save)
                 .collect(Collectors.toList());
 
         cloudService.saveVideoPosts(videoPosts);
-
         consumeChannel.setVideoPosts(videoPosts);
+    }
+
+    private void processImagePosts(Customer customer, ConsumeChannel consumeChannel, List<TimelineMedia> timelineItems) throws IOException {
+        List<ImagePost> imagePosts = timelineItems.stream()
+                .filter(TimelineImageMedia.class::isInstance)
+                .map(TimelineImageMedia.class::cast)
+                .map(imageItem -> getImagePost(customer, imageItem))
+                .map(postRepository::save)
+                .collect(Collectors.toList());
+
+        cloudService.saveImagePosts(imagePosts);
+        consumeChannel.setImagePosts(imagePosts);
     }
 
     private LocalDateTime getDateTime(long mills) {
@@ -118,6 +134,7 @@ public class LoaderService {
                 videoPost.setDescription("");
             }
 
+            videoPost.setPostMediaType(PostMediaType.VIDEO);
             videoPost.setUrl(video.getVideo_versions().get(0).getUrl());
             videoPost.setCoverUrl(video.getImage_versions2().getCandidates().get(0).getUrl());
             videoPost.setCustomerId(customer.getId());
@@ -126,5 +143,27 @@ public class LoaderService {
         }
 
         return videoPost;
+    }
+
+    private ImagePost getImagePost(Customer customer, TimelineImageMedia image) {
+        ImagePost imagePost = new ImagePost();
+
+        try {
+            imagePost.setCode(image.getCode());
+
+            if (image.getCaption() != null) {
+                imagePost.setDescription(image.getCaption().getText());
+            } else {
+                imagePost.setDescription("");
+            }
+
+            imagePost.setPostMediaType(PostMediaType.IMAGE);
+            imagePost.setUrl(image.getImage_versions2().getCandidates().get(0).getUrl());
+            imagePost.setCustomerId(customer.getId());
+        } catch (Exception e) {
+            System.out.println(String.format(TRANSFORM_TO_IMAGE_POST_ERROR_MSG, e.getMessage()));
+        }
+
+        return imagePost;
     }
 }
