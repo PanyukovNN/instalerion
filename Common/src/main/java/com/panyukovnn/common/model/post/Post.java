@@ -1,9 +1,13 @@
 package com.panyukovnn.common.model.post;
 
 import lombok.*;
+import org.springframework.data.annotation.Id;
 
 import java.time.LocalDateTime;
 
+/**
+ * Base class of posts
+ */
 @Getter
 @Setter
 @ToString
@@ -11,10 +15,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public abstract class Post {
 
+    @Id
+    private String id;
+
     /**
-     * Customer id
+     * Producing channel id
      */
-    private String customerId;
+    private String producingChannelId;
 
     /**
      * Url of a file
@@ -37,4 +44,16 @@ public abstract class Post {
      * Date time of the post publishing
      */
     private LocalDateTime publishDateTime;
+
+    /**
+     * Number of publishing errors
+     */
+    private int publishingErrorCount;
+
+    /**
+     * Increase publishing errors counter
+     */
+    public void increasePublishingErrors() {
+        this.publishingErrorCount++;
+    }
 }

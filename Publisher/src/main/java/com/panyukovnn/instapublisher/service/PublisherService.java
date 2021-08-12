@@ -2,72 +2,145 @@ package com.panyukovnn.instapublisher.service;
 
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
+import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
 import com.panyukovnn.common.Constants;
-import com.panyukovnn.common.model.Customer;
+import com.panyukovnn.common.exception.NotFoundException;
+import com.panyukovnn.common.exception.RequestException;
+import com.panyukovnn.common.model.ProducingChannel;
+import com.panyukovnn.common.model.post.ImagePost;
+import com.panyukovnn.common.model.post.Post;
+import com.panyukovnn.common.model.post.PostMediaType;
 import com.panyukovnn.common.model.post.VideoPost;
-import com.panyukovnn.common.model.request.UploadVideoRequest;
-import com.panyukovnn.common.repository.CustomerRepository;
-import com.panyukovnn.common.repository.VideoPostRepository;
+import com.panyukovnn.common.model.request.PublishPostRequest;
+import com.panyukovnn.common.repository.PostRepository;
+import com.panyukovnn.common.repository.ProducingChannelRepository;
 import com.panyukovnn.common.service.CloudService;
+import com.panyukovnn.common.service.DateTimeHelper;
 import com.panyukovnn.common.service.InstaService;
-import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.util.concurrent.ExecutionException;
 
 import static com.panyukovnn.common.Constants.*;
 
+/**
+ * Post publishing service
+ */
 @Service
 @RequiredArgsConstructor
 public class PublisherService {
 
+    @Value("${min.publishing.period.minutes}")
+    private int minPublishingPeriod;
+    @Value("${publishing.errors.limit}")
+    private int publishingErrorsLimit;
+
     private final CloudService cloudService;
     private final InstaService instaService;
-    private final CustomerRepository customerRepository;
-    private final VideoPostRepository videoPostRepository;
+    private final PostRepository postRepository;
+    private final DateTimeHelper dateTimeHelper;
+    private final ProducingChannelRepository producingChannelRepository;
 
-    public void uploadVideo(UploadVideoRequest request) throws NotFoundException, IGLoginException {
-        VideoPost videoPost = videoPostRepository.findById(request.getVideoPostId()).orElse(null);
+    /**
+     * Publish post on producing channel
+     *
+     * @param request publish post request
+     * @throws IGLoginException instagram4j login exception
+     */
+    public void publish(PublishPostRequest request) throws IGLoginException, ExecutionException, InterruptedException {
+        Post post = postRepository.findById(request.getPostId()).orElse(null);
 
-        if (videoPost == null) {
-            System.out.println(String.format(VIDEO_POST_NOT_FOUND_ERROR_MSG, request.getVideoPostId()));
+        checkPost(request, post);
 
-            return;
-        }
+        ProducingChannel producingChannel = producingChannelRepository.findById(post.getProducingChannelId())
+                .orElseThrow(() -> new NotFoundException(String.format(Constants.CUSTOMER_NOT_FOUND_ERROR_MSG, post.getProducingChannelId())));
 
-        if (videoPost.getPublishDateTime() != null) {
-            System.out.println(VIDEO_POST_ALREADY_PUBLISHED_ERROR_MSG);
-
-            return;
-        }
-
-        Customer customer = customerRepository.findById(videoPost.getCustomerId())
-                .orElseThrow(() -> new NotFoundException(String.format(Constants.CUSTOMER_NOT_FOUND_ERROR_MSG, videoPost.getCustomerId())));
+        checkOftenRequests(producingChannel);
 
         // Login to instagram account
-        IGClient client = instaService.getClient(customer);
+        IGClient client = instaService.getClient(producingChannel);
 
-        File videoFile = cloudService.getVideoFileByCode(videoPost.getCode());
-        File coverFile = cloudService.getPhotoFileByCode(videoPost.getCode());
-
-        if (!videoFile.exists() || !coverFile.exists()) {
-            System.out.println(String.format(VIDEO_FILE_NOT_FOUND_ERROR_MSG, videoPost.getCode()));
-
-            return;
+        MediaResponse.MediaConfigureTimelineResponse response = null;
+        if (post.getPostMediaType() == PostMediaType.IMAGE) {
+            response = publishImage((ImagePost) post, client);
+        } else if (post.getPostMediaType() == PostMediaType.VIDEO) {
+            response = publishVideo((VideoPost) post, client);
         }
 
-        String descriptionWithSource = videoPost.getDescription() + getSource(videoPost.getCode());
+        checkResponse(post, response);
 
-        client.actions().timeline().uploadVideo(videoFile, coverFile, descriptionWithSource);
-
-        //TODO change to update query
-        videoPost.setPublishDateTime(LocalDateTime.now());
-        videoPostRepository.save(videoPost);
+        post.setPublishDateTime(LocalDateTime.now());
+        postRepository.save(post);
     }
 
-    private String getSource(String code) {
-        return String.format("\n\nИсточник: https://www.instagram.com/p/%s/", code);
+    private void checkResponse(Post post, MediaResponse.MediaConfigureTimelineResponse response) {
+        if (response == null) {
+            post.increasePublishingErrors();
+            postRepository.save(post);
+
+            throw new RequestException(NO_PUBLISHING_ANSWER_FROM_INSTAGRAM_ERROR_MSG);
+        }
+
+        if (response.getStatusCode() != 200) {
+            post.increasePublishingErrors();
+            postRepository.save(post);
+
+            throw new RequestException(String.format(PUBLISHING_ERROR, response.getMessage()));
+        }
+    }
+
+    private void checkOftenRequests(ProducingChannel producingChannel) {
+        if (producingChannel.getLastPostingDateTime() != null) {
+            int minutesDiff = dateTimeHelper.minuteFromNow(producingChannel.getLastPostingDateTime());
+            if (minPublishingPeriod > minutesDiff) {
+                throw new RequestException(TOO_OFTEN_PUBLISHING_REQUESTS_ERROR_MSG);
+            }
+        }
+    }
+
+    private void checkPost(PublishPostRequest request, Post post) {
+        if (post == null) {
+            throw new RequestException(String.format(POST_NOT_FOUND_ERROR_MSG, request.getPostId()));
+        }
+
+        if (post.getPublishDateTime() != null) {
+            throw new RequestException(POST_ALREADY_PUBLISHED_ERROR_MSG);
+        }
+
+        if (post.getPublishingErrorCount() > publishingErrorsLimit) {
+            throw new RequestException(POST_TOO_MANY_PUBLISHING_ERRORS);
+        }
+    }
+
+    private MediaResponse.MediaConfigureTimelineResponse publishImage(ImagePost imagePost, IGClient client) throws ExecutionException, InterruptedException {
+        File imageFile = cloudService.getImageFileByCode(imagePost.getCode());
+
+        if (!imageFile.exists()) {
+            throw new RequestException(String.format(FILE_NOT_FOUND_ERROR_MSG, imagePost.getCode()));
+        }
+
+        return client.actions().timeline().uploadPhoto(imageFile, getCaption(imagePost)).get();
+    }
+
+    private MediaResponse.MediaConfigureTimelineResponse publishVideo(VideoPost videoPost, IGClient client) throws ExecutionException, InterruptedException {
+        File videoFile = cloudService.getVideoFileByCode(videoPost.getCode());
+        File coverFile = cloudService.getImageFileByCode(videoPost.getCode());
+
+        if (!videoFile.exists() || !coverFile.exists()) {
+            throw new RequestException(String.format(FILE_NOT_FOUND_ERROR_MSG, videoPost.getCode()));
+        }
+
+        return client.actions().timeline().uploadVideo(videoFile, coverFile, getCaption(videoPost)).get();
+    }
+
+    private String getCaption(Post post) {
+        return post.getDescription();
+//        StringUtils.hasText(post.getDescription())
+//                ? post.getDescription() + "\n\n" + String.format(SOURCE_STRING_TEMPLATE, post.getCode())
+//                : String.format(SOURCE_STRING_TEMPLATE, post.getCode());
     }
 }

@@ -1,8 +1,9 @@
 package com.panyukovnn.instalerion.service.kafka;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.panyukovnn.common.model.request.LoadVideoPostsRequest;
-import com.panyukovnn.common.model.request.UploadVideoRequest;
+import com.panyukovnn.common.model.request.LoadPostsRequest;
+import com.panyukovnn.common.model.request.PublishPostRequest;
+import com.panyukovnn.common.service.kafka.KafkaHelper;
+import com.panyukovnn.common.service.kafka.MapCallback;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -18,15 +19,19 @@ public class KafkaSender {
 
     @Value("${kafka.loader.topic}")
     private String LOADER_TOPIC_NAME;
-
     @Value("${kafka.publisher.topic}")
     private String PUBLISHER_TOPIC_NAME;
 
-    private final ObjectMapper objectMapper;
+    private final KafkaHelper kafkaHelper;
     private final KafkaTemplate<String, Map<String, Object>> kafkaTemplate;
 
-    public void loaderCustomerIdSend(LoadVideoPostsRequest request) {
-        Map<String, Object> mapRequest = objectMapper.convertValue(request, Map.class);
+    /**
+     * Send load posts request to kafka LOADER topic
+     *
+     * @param request load posts request
+     */
+    public void sendLoadPosts(LoadPostsRequest request) {
+        Map<String, Object> mapRequest = kafkaHelper.serialize(request);
 
         ListenableFuture<SendResult<String, Map<String, Object>>> future =
                 kafkaTemplate.send(LOADER_TOPIC_NAME, mapRequest);
@@ -34,8 +39,13 @@ public class KafkaSender {
         future.addCallback(new MapCallback(mapRequest));
     }
 
-    public void publisherUploadVideoSend(UploadVideoRequest request) {
-        Map<String, Object> mapRequest = objectMapper.convertValue(request, Map.class);
+    /**
+     * Send publish post request to kafka PUBLISHER topic
+     *
+     * @param request publish post request
+     */
+    public void sendPublishPost(PublishPostRequest request) {
+        Map<String, Object> mapRequest = kafkaHelper.serialize(request);
 
         ListenableFuture<SendResult<String, Map<String, Object>>> future =
                 kafkaTemplate.send(PUBLISHER_TOPIC_NAME, mapRequest);

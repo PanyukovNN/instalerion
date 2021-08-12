@@ -1,5 +1,8 @@
 package com.panyukovnn.common.exception;
 
+/**
+ * Instance not found exception
+ */
 public class NotFoundException extends InstalerionException {
 
     public NotFoundException(String message) {

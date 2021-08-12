@@ -1,9 +1,8 @@
 package com.panyukovnn.instalerion;
 
-import com.panyukovnn.common.model.ConsumeChannel;
-import com.panyukovnn.common.model.Customer;
-import com.panyukovnn.common.repository.CustomerRepository;
-import com.panyukovnn.common.service.CustomerService;
+import com.panyukovnn.common.model.ConsumingChannel;
+import com.panyukovnn.common.repository.ProducingChannelRepository;
+import com.panyukovnn.common.service.ProducingChannelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -13,20 +12,18 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @EnableScheduling
-@EnableMongoRepositories(basePackageClasses = {CustomerRepository.class})
+@EnableMongoRepositories(basePackageClasses = {ProducingChannelRepository.class})
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class}, scanBasePackages = {"com.panyukovnn.instalerion", "com.panyukovnn.common"})
 public class InstalerionApplication implements CommandLineRunner {
 
     @Autowired
-    private CustomerRepository customerRepository;
+    private ProducingChannelRepository producingChannelRepository;
 
     @Autowired
-    private CustomerService customerService;
+    private ProducingChannelService producingChannelService;
 
     public static void main(String[] args) {
         SpringApplication.run(InstalerionApplication.class);
@@ -34,5 +31,13 @@ public class InstalerionApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        ConsumingChannel consumingChannel = new ConsumingChannel();
+        consumingChannel.setName("garikkharlamov");
+
+        ConsumingChannel consumingChannel2 = new ConsumingChannel();
+        consumingChannel2.setName("valley_video");
+        List<ConsumingChannel> consumingChannelList = Arrays.asList(consumingChannel, consumingChannel2);
+
+        producingChannelService.save("insta_rus_love", "instalerion2021", consumingChannelList);
     }
 }

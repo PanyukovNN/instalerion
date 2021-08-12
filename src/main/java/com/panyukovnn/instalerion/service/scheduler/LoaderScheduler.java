@@ -1,6 +1,6 @@
 package com.panyukovnn.instalerion.service.scheduler;
 
-import com.panyukovnn.common.model.request.LoadVideoPostsRequest;
+import com.panyukovnn.common.model.request.LoadPostsRequest;
 import com.panyukovnn.instalerion.service.kafka.KafkaSender;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,11 +14,10 @@ public class LoaderScheduler {
 
     @Scheduled(fixedRateString = "${loader.scheduler.fixed.rate.mills}")
     public void scheduleLoaderKafkaSend() {
-        String customerId = "6110322f8f21ee113e916f85";
-//        String customerId = "61142789176ee50133a93609";
+        String customerId = "6115880fe732f957a46fb24e";
 
-        LoadVideoPostsRequest request = new LoadVideoPostsRequest(customerId);
+        LoadPostsRequest request = new LoadPostsRequest(customerId);
 
-        kafkaSender.loaderCustomerIdSend(request);
+        kafkaSender.sendLoadPosts(request);
     }
 }

@@ -3,7 +3,10 @@ package com.panyukovnn.common.exception;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class InstalerionException extends RuntimeException {
+/**
+ * Base application exception
+ */
+public abstract class InstalerionException extends RuntimeException {
 
     private static final Logger LOG = LoggerFactory.getLogger(InstalerionException.class);
 

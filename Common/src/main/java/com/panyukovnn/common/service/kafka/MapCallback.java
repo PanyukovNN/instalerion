@@ -1,4 +1,4 @@
-package com.panyukovnn.instalerion.service.kafka;
+package com.panyukovnn.common.service.kafka;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.support.SendResult;

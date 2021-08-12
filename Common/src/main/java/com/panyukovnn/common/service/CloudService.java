@@ -73,7 +73,7 @@ public class CloudService {
      * @param code unique instagram code
      * @return photo file
      */
-    public File getPhotoFileByCode(String code) {
+    public File getImageFileByCode(String code) {
         return new File(CLOUD_PATH + code + ".jpg");
     }
 }

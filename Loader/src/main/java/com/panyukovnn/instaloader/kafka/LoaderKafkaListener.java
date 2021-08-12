@@ -1,6 +1,6 @@
 package com.panyukovnn.instaloader.kafka;
 
-import com.panyukovnn.common.model.request.LoadVideoPostsRequest;
+import com.panyukovnn.common.model.request.LoadPostsRequest;
 import com.panyukovnn.common.service.kafka.KafkaHelper;
 import com.panyukovnn.instaloader.service.LoaderService;
 import lombok.RequiredArgsConstructor;
@@ -14,21 +14,23 @@ import static com.panyukovnn.common.Constants.LOAD_POSTS_REQUEST_RECEIVED_MSG;
 @RequiredArgsConstructor
 public class LoaderKafkaListener {
 
+    private final KafkaHelper kafkaHelper;
     private final LoaderService loaderService;
 
     @KafkaListener(topics = "${kafka.loader.topic}", groupId = "${kafka.group}")
     public void listenInstalerion(String request) {
         try {
-            LoadVideoPostsRequest loadVideoPostsRequest = KafkaHelper.deserialize(request, LoadVideoPostsRequest.class);
+            LoadPostsRequest loadPostsRequest = kafkaHelper.deserialize(request, LoadPostsRequest.class);
 
-            System.out.println(String.format(LOAD_POSTS_REQUEST_RECEIVED_MSG, loadVideoPostsRequest.getConsumerId()));
+            System.out.println(String.format(LOAD_POSTS_REQUEST_RECEIVED_MSG, loadPostsRequest.getConsumerId()));
 
-            loaderService.loadVideoPosts(loadVideoPostsRequest.getConsumerId());
+            loaderService.load(loadPostsRequest.getConsumerId());
         } catch (Exception e) {
             System.out.println(String.format(ERROR_WHILE_LOADING, request));
 
+            //TODO send error message to topic PUBLISHER_ERRORS
+
             e.printStackTrace();
         }
-
     }
 }

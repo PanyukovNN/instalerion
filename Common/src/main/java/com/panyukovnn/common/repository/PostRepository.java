@@ -10,13 +10,20 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PostRepository extends MongoRepository<Post, String> {
 
-    boolean existsByCodeAndCustomerId(String code, String customerId);
+    /**
+     * Check post existence
+     *
+     * @param code unique code of post
+     * @param producingChannelId id of producing channel
+     * @return exists
+     */
+    boolean existsByCodeAndProducingChannelId(String code, String producingChannelId);
 
     /**
      * Find first unpublished video post by customer id
      *
-     * @param customerId customer id
+     * @param producingChannelId producing channel id
      * @return video post
      */
-    Post findFirstByCustomerIdAndPublishDateTimeIsNull(String customerId);
+    Post findFirstByProducingChannelIdAndPublishDateTimeIsNull(String producingChannelId);
 }

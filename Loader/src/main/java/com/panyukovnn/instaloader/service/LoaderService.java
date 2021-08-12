@@ -6,19 +6,23 @@ import com.github.instagram4j.instagram4j.models.media.timeline.TimelineImageMed
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineVideoMedia;
 import com.github.instagram4j.instagram4j.requests.feed.FeedUserRequest;
-import com.panyukovnn.common.model.ConsumeChannel;
-import com.panyukovnn.common.model.Customer;
+import com.panyukovnn.common.exception.RequestException;
+import com.panyukovnn.common.model.ConsumingChannel;
+import com.panyukovnn.common.model.ProducingChannel;
 import com.panyukovnn.common.model.post.ImagePost;
 import com.panyukovnn.common.model.post.PostMediaType;
 import com.panyukovnn.common.model.post.VideoPost;
-import com.panyukovnn.common.repository.CustomerRepository;
+import com.panyukovnn.common.repository.ConsumingChannelRepository;
+import com.panyukovnn.common.repository.ProducingChannelRepository;
 import com.panyukovnn.common.repository.PostRepository;
 import com.panyukovnn.common.service.CloudService;
+import com.panyukovnn.common.service.DateTimeHelper;
 import com.panyukovnn.common.service.InstaService;
 import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -32,6 +36,7 @@ import static com.panyukovnn.common.Constants.*;
 
 /**
  * Service for loading posts
+ * TODO add verbose javadoc
  */
 @Service
 @RequiredArgsConstructor
@@ -39,44 +44,64 @@ public class LoaderService {
 
     @Value("${post.hours}")
     private int postHours;
-
     @Value("${post.limit}")
     private int postLimit;
+    @Value("${min.loading.period.minutes}")
+    private int minLoadingPeriod;
 
     private final CloudService cloudService;
     private final InstaService instaService;
     private final PostRepository postRepository;
-    private final CustomerRepository customerRepository;
+    private final DateTimeHelper dateTimeHelper;
+    private final ProducingChannelRepository producingChannelRepository;
+    private final ConsumingChannelRepository consumingChannelRepository;
 
     /**
-     * Load video posts from customer consume channels to database
+     * Load posts from consuming channels to database and cloud
      *
-     * @param customerId id of customer
+     * @param customerId id of producing channel
      * @throws IOException exception
      * @throws ExecutionException exception
      * @throws InterruptedException exception
      * @throws NotFoundException exception
      */
-    public void loadVideoPosts(String customerId) throws IOException, ExecutionException, InterruptedException, NotFoundException {
-        Customer customer = customerRepository.findById(customerId)
+    @Transactional
+    public void load(String customerId) throws IOException, ExecutionException, InterruptedException, NotFoundException {
+        ProducingChannel producingChannel = producingChannelRepository.findById(customerId)
                 .orElseThrow(() -> new NotFoundException(String.format(CUSTOMER_NOT_FOUND_ERROR_MSG, customerId)));
 
+        checkOftenRequests(producingChannel);
+
         // Login to instagram account
-        IGClient client = instaService.getClient(customer);
+        IGClient client = instaService.getClient(producingChannel);
+
+        List<ConsumingChannel> consumingChannels = producingChannel.getConsumingChannels();
 
         // Load posts from consume channels
-        for (ConsumeChannel consumeChannel : customer.getConsumeChannels()) {
-            processConsumeChannel(customer, client, consumeChannel);
+        for (ConsumingChannel consumingChannel : consumingChannels) {
+            processConsumeChannel(producingChannel, client, consumingChannel);
         }
 
-        customerRepository.save(customer);
+        producingChannel.setLastLoadingDateTime(LocalDateTime.now());
+        consumingChannelRepository.saveAll(consumingChannels);
+        producingChannelRepository.save(producingChannel);
     }
 
-    private void processConsumeChannel(Customer customer, IGClient client, ConsumeChannel consumeChannel) throws InterruptedException, ExecutionException, IOException {
-        String consumeChannelName = consumeChannel.getName();
+    private void checkOftenRequests(ProducingChannel producingChannel) {
+        if (producingChannel.getLastPostingDateTime() != null) {
+            int minutesDiff = dateTimeHelper.minuteFromNow(producingChannel.getLastLoadingDateTime());
+            if (minLoadingPeriod > minutesDiff) {
+                throw new RequestException(TOO_OFTEN_LOADING_REQUESTS_ERROR_MSG);
+            }
+        }
+    }
+
+    private void processConsumeChannel(ProducingChannel producingChannel, IGClient client, ConsumingChannel consumingChannel) throws InterruptedException, ExecutionException, IOException {
+        String consumeChannelName = consumingChannel.getName();
 
         UserAction userAction = client.actions().users().findByUsername(consumeChannelName).get();
 
+        // TODO переделать с sendRequest на нативную реализацию
         List<TimelineMedia> timelineItems = client.sendRequest(new FeedUserRequest(userAction.getUser().getPk()))
                 .get()
                 .getItems()
@@ -85,35 +110,35 @@ public class LoaderService {
                 .filter(item -> getDateTime(item.getTaken_at() * 1000)
                         .isAfter(LocalDateTime.now().minusHours(postHours)))
                 // TODO find more effective way
-                .filter(videoPost -> !postRepository.existsByCodeAndCustomerId(videoPost.getCode(), customer.getId()))
+                .filter(videoPost -> !postRepository.existsByCodeAndProducingChannelId(videoPost.getCode(), producingChannel.getId()))
                 .collect(Collectors.toList());
 
-        processVideoPosts(customer, consumeChannel, timelineItems);
-        processImagePosts(customer, consumeChannel, timelineItems);
+        processVideoPosts(producingChannel, consumingChannel, timelineItems);
+        processImagePosts(producingChannel, consumingChannel, timelineItems);
     }
 
-    private void processVideoPosts(Customer customer, ConsumeChannel consumeChannel, List<TimelineMedia> timelineItems) throws IOException {
+    private void processVideoPosts(ProducingChannel producingChannel, ConsumingChannel consumingChannel, List<TimelineMedia> timelineItems) throws IOException {
         List<VideoPost> videoPosts = timelineItems.stream()
                 .filter(TimelineVideoMedia.class::isInstance)
                 .map(TimelineVideoMedia.class::cast)
-                .map(videoItem -> getVideoPost(customer, videoItem))
+                .map(videoItem -> getVideoPost(producingChannel, videoItem))
                 .map(postRepository::save)
                 .collect(Collectors.toList());
 
         cloudService.saveVideoPosts(videoPosts);
-        consumeChannel.setVideoPosts(videoPosts);
+        consumingChannel.setVideoPosts(videoPosts);
     }
 
-    private void processImagePosts(Customer customer, ConsumeChannel consumeChannel, List<TimelineMedia> timelineItems) throws IOException {
+    private void processImagePosts(ProducingChannel producingChannel, ConsumingChannel consumingChannel, List<TimelineMedia> timelineItems) throws IOException {
         List<ImagePost> imagePosts = timelineItems.stream()
                 .filter(TimelineImageMedia.class::isInstance)
                 .map(TimelineImageMedia.class::cast)
-                .map(imageItem -> getImagePost(customer, imageItem))
+                .map(imageItem -> getImagePost(producingChannel, imageItem))
                 .map(postRepository::save)
                 .collect(Collectors.toList());
 
         cloudService.saveImagePosts(imagePosts);
-        consumeChannel.setImagePosts(imagePosts);
+        consumingChannel.setImagePosts(imagePosts);
     }
 
     private LocalDateTime getDateTime(long mills) {
@@ -122,7 +147,7 @@ public class LoaderService {
                 .toLocalDateTime();
     }
 
-    private VideoPost getVideoPost(Customer customer, TimelineVideoMedia video) {
+    private VideoPost getVideoPost(ProducingChannel producingChannel, TimelineVideoMedia video) {
         VideoPost videoPost = new VideoPost();
 
         try {
@@ -137,7 +162,7 @@ public class LoaderService {
             videoPost.setPostMediaType(PostMediaType.VIDEO);
             videoPost.setUrl(video.getVideo_versions().get(0).getUrl());
             videoPost.setCoverUrl(video.getImage_versions2().getCandidates().get(0).getUrl());
-            videoPost.setCustomerId(customer.getId());
+            videoPost.setProducingChannelId(producingChannel.getId());
         } catch (Exception e) {
             System.out.println(String.format(TRANSFORM_TO_VIDEO_POST_ERROR_MSG, e.getMessage()));
         }
@@ -145,7 +170,7 @@ public class LoaderService {
         return videoPost;
     }
 
-    private ImagePost getImagePost(Customer customer, TimelineImageMedia image) {
+    private ImagePost getImagePost(ProducingChannel producingChannel, TimelineImageMedia image) {
         ImagePost imagePost = new ImagePost();
 
         try {
@@ -159,7 +184,7 @@ public class LoaderService {
 
             imagePost.setPostMediaType(PostMediaType.IMAGE);
             imagePost.setUrl(image.getImage_versions2().getCandidates().get(0).getUrl());
-            imagePost.setCustomerId(customer.getId());
+            imagePost.setProducingChannelId(producingChannel.getId());
         } catch (Exception e) {
             System.out.println(String.format(TRANSFORM_TO_IMAGE_POST_ERROR_MSG, e.getMessage()));
         }

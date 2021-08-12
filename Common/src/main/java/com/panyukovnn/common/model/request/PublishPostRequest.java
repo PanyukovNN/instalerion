@@ -2,12 +2,15 @@ package com.panyukovnn.common.model.request;
 
 import lombok.*;
 
+/**
+ * Request to run publisher module
+ */
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class UploadVideoRequest {
+public class PublishPostRequest {
 
-    private String videoPostId;
+    private String postId;
 }
