@@ -7,6 +7,8 @@ import com.panyukovnn.common.service.ProducingChannelService;
 import com.panyukovnn.instalerion.service.kafka.LoaderKafkaSender;
 import com.panyukovnn.instalerion.service.kafka.PublisherKafkaSender;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,8 @@ import static com.panyukovnn.common.Constants.PUBLICATION_CHANNEL_NOT_FOUND_ERRO
 @RequiredArgsConstructor
 public class Processor {
 
+    private final Logger logger = LoggerFactory.getLogger(Processor.class);
+
     private final CustomerService customerService;
     private final LoaderKafkaSender loaderKafkaSender;
     private final PublisherKafkaSender publisherKafkaSender;
@@ -31,7 +35,7 @@ public class Processor {
     public void schedule() {
         // skip night time
 //        if (dateTimeHelper.isNight()) {
-//            System.out.println(WORKING_ON_PAUSE_IN_NIGHT_MSG);
+//            logger.info(WORKING_ON_PAUSE_IN_NIGHT_MSG);
 //
 //            return;
 //        }
@@ -46,7 +50,7 @@ public class Processor {
                         .orElse(new ProducingChannel());
 
                 if (producingChannel.getId() == null) {
-                    System.out.println(String.format(PUBLICATION_CHANNEL_NOT_FOUND_ERROR_MSG, producingChannelId));
+                    logger.info(String.format(PUBLICATION_CHANNEL_NOT_FOUND_ERROR_MSG, producingChannelId));
 
                     continue;
                 }

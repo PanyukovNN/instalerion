@@ -17,6 +17,8 @@ import com.panyukovnn.common.repository.PostRepository;
 import com.panyukovnn.common.service.*;
 import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +40,8 @@ import static com.panyukovnn.common.Constants.*;
 @Service
 @RequiredArgsConstructor
 public class LoaderService {
+
+    private final Logger logger = LoggerFactory.getLogger(LoaderService.class);
 
     @Value("${post.days}")
     private int postDays;
@@ -77,8 +81,7 @@ public class LoaderService {
             try {
                 processConsumeChannel(producingChannel, client, consumingChannel);
             } catch (Exception e) {
-                e.printStackTrace();
-                System.out.println(String.format(ERROR_WHILE_CONSUME_CHANNEL_LOADING, consumingChannel.getName()));
+                logger.error(String.format(ERROR_WHILE_CONSUME_CHANNEL_LOADING, consumingChannel.getName()), e);
             }
         }
 
@@ -199,7 +202,7 @@ public class LoaderService {
             videoPost.setCoverUrl(video.getImage_versions2().getCandidates().get(0).getUrl());
             videoPost.setProducingChannelId(producingChannel.getId());
         } catch (Exception e) {
-            System.out.println(String.format(TRANSFORM_TO_VIDEO_POST_ERROR_MSG, e.getMessage()));
+            logger.error(String.format(TRANSFORM_TO_VIDEO_POST_ERROR_MSG, e.getMessage()), e);
         }
 
         return videoPost;
@@ -228,7 +231,7 @@ public class LoaderService {
             imagePost.setUrl(image.getImage_versions2().getCandidates().get(0).getUrl());
             imagePost.setProducingChannelId(producingChannel.getId());
         } catch (Exception e) {
-            System.out.println(String.format(TRANSFORM_TO_IMAGE_POST_ERROR_MSG, e.getMessage()));
+            logger.error(String.format(TRANSFORM_TO_IMAGE_POST_ERROR_MSG, e.getMessage()), e);
         }
 
         return imagePost;

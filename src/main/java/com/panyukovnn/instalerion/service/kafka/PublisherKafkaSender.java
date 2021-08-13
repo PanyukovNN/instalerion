@@ -6,6 +6,8 @@ import com.panyukovnn.common.repository.PostRepository;
 import com.panyukovnn.common.service.kafka.KafkaHelper;
 import com.panyukovnn.common.service.kafka.PublisherCallback;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
@@ -19,6 +21,8 @@ import static com.panyukovnn.common.Constants.POST_FOR_PUBLICATION_NOT_FOUND_ERR
 @Service
 @RequiredArgsConstructor
 public class PublisherKafkaSender implements KafkaSender {
+
+    private final Logger logger = LoggerFactory.getLogger(PublisherKafkaSender.class);
 
     @Value("${pubilshing.error.count.limit}")
     private int errorCountLimit;
@@ -34,7 +38,7 @@ public class PublisherKafkaSender implements KafkaSender {
         Post post = postRepository.findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThanEqual(producingChannelId, errorCountLimit);
 
         if (post == null) {
-            System.out.println(POST_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG);
+            logger.info(POST_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG);
 
             return;
         }

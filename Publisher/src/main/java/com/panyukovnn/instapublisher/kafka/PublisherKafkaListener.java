@@ -4,6 +4,8 @@ import com.panyukovnn.common.model.request.PublishPostRequest;
 import com.panyukovnn.common.service.kafka.KafkaHelper;
 import com.panyukovnn.instapublisher.service.PublisherService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,8 @@ import static com.panyukovnn.common.Constants.UPLOAD_POST_REQUEST_RECEIVED_MSG;
 @RequiredArgsConstructor
 public class PublisherKafkaListener {
 
+    private final Logger logger = LoggerFactory.getLogger(PublisherKafkaListener.class);
+
     private final KafkaHelper kafkaHelper;
     private final PublisherService publisherService;
 
@@ -25,11 +29,11 @@ public class PublisherKafkaListener {
         try {
             PublishPostRequest uploadVideoRequest = kafkaHelper.deserialize(request, PublishPostRequest.class);
 
-            System.out.println(String.format(UPLOAD_POST_REQUEST_RECEIVED_MSG, uploadVideoRequest.getPostId()));
+            logger.info(String.format(UPLOAD_POST_REQUEST_RECEIVED_MSG, uploadVideoRequest.getPostId()));
 
             publisherService.publish(uploadVideoRequest);
         } catch (Exception e) {
-            System.out.println(String.format(ERROR_WHILE_PUBLICATION, request));
+            logger.error(String.format(ERROR_WHILE_PUBLICATION, request), e);
 
             //TODO send error message to topic PUBLISHER_ERRORS
 

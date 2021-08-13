@@ -1,6 +1,8 @@
 package com.panyukovnn.common.service.kafka;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
@@ -12,15 +14,17 @@ import static com.panyukovnn.common.Constants.LOADER_REQUEST_SUCCESSFULLY_SENT;
 @RequiredArgsConstructor
 public class LoaderCallback implements ListenableFutureCallback<SendResult<String, Map<String, Object>>> {
 
+    private final Logger logger = LoggerFactory.getLogger(LoaderCallback.class);
+
     private final Map<String, Object> map;
 
     @Override
     public void onFailure(Throwable ex) {
-        System.out.println(String.format(ERROR_WHILE_LOADER_REQUEST_SENDING, map, ex.getMessage()));
+        logger.info(String.format(ERROR_WHILE_LOADER_REQUEST_SENDING, map, ex.getMessage()));
     }
 
     @Override
     public void onSuccess(SendResult<String, Map<String, Object>> result) {
-        System.out.println(String.format(LOADER_REQUEST_SUCCESSFULLY_SENT, map));
+        logger.info(String.format(LOADER_REQUEST_SUCCESSFULLY_SENT, map));
     }
 }
