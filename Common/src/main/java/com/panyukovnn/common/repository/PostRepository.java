@@ -17,6 +17,7 @@ public interface PostRepository extends MongoRepository<Post, String> {
      * @param producingChannelId id of producing channel
      * @return exists
      */
+    // TODO create index
     boolean existsByCodeAndProducingChannelId(String code, String producingChannelId);
 
     /**

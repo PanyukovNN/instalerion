@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.panyukovnn.common.Constants.CUSTOMER_NOT_FOUND_ERROR_MSG;
 
@@ -24,8 +25,16 @@ public class ProducingChannelService {
     private final ConsumingChannelService consumingChannelService;
     private final ProducingChannelRepository producingChannelRepository;
 
+    public Optional<ProducingChannel> findById(String producingChannelId) {
+        return producingChannelRepository.findById(producingChannelId);
+    }
+
+    public ProducingChannel save(ProducingChannel producingChannel) {
+        return producingChannelRepository.save(producingChannel);
+    }
+
     @Transactional
-    public void save(String login, String password, List<ConsumingChannel> consumingChannels) {
+    public void create(String login, String password, List<ConsumingChannel> consumingChannels) {
         ProducingChannel producingChannel = new ProducingChannel();
         producingChannel.setLogin(login);
         producingChannel.setPassword(encryptionUtil.getTextEncryptor().encrypt(password));

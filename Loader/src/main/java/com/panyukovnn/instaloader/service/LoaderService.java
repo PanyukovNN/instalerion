@@ -6,18 +6,15 @@ import com.github.instagram4j.instagram4j.models.media.timeline.TimelineImageMed
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineVideoMedia;
 import com.github.instagram4j.instagram4j.requests.feed.FeedUserRequest;
+import com.github.instagram4j.instagram4j.responses.feed.FeedUserResponse;
 import com.panyukovnn.common.exception.RequestException;
 import com.panyukovnn.common.model.ConsumingChannel;
 import com.panyukovnn.common.model.ProducingChannel;
 import com.panyukovnn.common.model.post.ImagePost;
 import com.panyukovnn.common.model.post.PostMediaType;
 import com.panyukovnn.common.model.post.VideoPost;
-import com.panyukovnn.common.repository.ConsumingChannelRepository;
-import com.panyukovnn.common.repository.ProducingChannelRepository;
 import com.panyukovnn.common.repository.PostRepository;
-import com.panyukovnn.common.service.CloudService;
-import com.panyukovnn.common.service.DateTimeHelper;
-import com.panyukovnn.common.service.InstaService;
+import com.panyukovnn.common.service.*;
 import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +25,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -36,14 +34,13 @@ import static com.panyukovnn.common.Constants.*;
 
 /**
  * Service for loading posts
- * TODO add verbose javadoc
  */
 @Service
 @RequiredArgsConstructor
 public class LoaderService {
 
-    @Value("${post.hours}")
-    private int postHours;
+    @Value("${post.days}")
+    private int postDays;
     @Value("${post.limit}")
     private int postLimit;
     @Value("${min.loading.period.minutes}")
@@ -53,21 +50,19 @@ public class LoaderService {
     private final InstaService instaService;
     private final PostRepository postRepository;
     private final DateTimeHelper dateTimeHelper;
-    private final ProducingChannelRepository producingChannelRepository;
-    private final ConsumingChannelRepository consumingChannelRepository;
+    private final ProducingChannelService producingChannelService;
+    private final ConsumingChannelService consumingChannelService;
 
     /**
      * Load posts from consuming channels to database and cloud
      *
      * @param customerId id of producing channel
      * @throws IOException exception
-     * @throws ExecutionException exception
-     * @throws InterruptedException exception
      * @throws NotFoundException exception
      */
     @Transactional
-    public void load(String customerId) throws IOException, ExecutionException, InterruptedException, NotFoundException {
-        ProducingChannel producingChannel = producingChannelRepository.findById(customerId)
+    public void load(String customerId) throws IOException, NotFoundException {
+        ProducingChannel producingChannel = producingChannelService.findById(customerId)
                 .orElseThrow(() -> new NotFoundException(String.format(CUSTOMER_NOT_FOUND_ERROR_MSG, customerId)));
 
         checkOftenRequests(producingChannel);
@@ -79,16 +74,21 @@ public class LoaderService {
 
         // Load posts from consume channels
         for (ConsumingChannel consumingChannel : consumingChannels) {
-            processConsumeChannel(producingChannel, client, consumingChannel);
+            try {
+                processConsumeChannel(producingChannel, client, consumingChannel);
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println(String.format(ERROR_WHILE_CONSUME_CHANNEL_LOADING, consumingChannel.getName()));
+            }
         }
 
         producingChannel.setLastLoadingDateTime(LocalDateTime.now());
-        consumingChannelRepository.saveAll(consumingChannels);
-        producingChannelRepository.save(producingChannel);
+        consumingChannelService.saveAll(consumingChannels);
+        producingChannelService.save(producingChannel);
     }
 
     private void checkOftenRequests(ProducingChannel producingChannel) {
-        if (producingChannel.getLastPostingDateTime() != null) {
+        if (producingChannel.getLastLoadingDateTime() != null) {
             int minutesDiff = dateTimeHelper.minuteFromNow(producingChannel.getLastLoadingDateTime());
             if (minLoadingPeriod > minutesDiff) {
                 throw new RequestException(TOO_OFTEN_LOADING_REQUESTS_ERROR_MSG);
@@ -97,24 +97,56 @@ public class LoaderService {
     }
 
     private void processConsumeChannel(ProducingChannel producingChannel, IGClient client, ConsumingChannel consumingChannel) throws InterruptedException, ExecutionException, IOException {
+        List<TimelineMedia> timelineItems = loadConsumingChannelPosts(producingChannel, client, consumingChannel);
+
+        processVideoPosts(producingChannel, consumingChannel, timelineItems);
+        processImagePosts(producingChannel, consumingChannel, timelineItems);
+    }
+
+    private List<TimelineMedia> loadConsumingChannelPosts(ProducingChannel producingChannel, IGClient client, ConsumingChannel consumingChannel) throws InterruptedException, ExecutionException {
         String consumeChannelName = consumingChannel.getName();
 
         UserAction userAction = client.actions().users().findByUsername(consumeChannelName).get();
 
-        // TODO переделать с sendRequest на нативную реализацию
-        List<TimelineMedia> timelineItems = client.sendRequest(new FeedUserRequest(userAction.getUser().getPk()))
-                .get()
-                .getItems()
-                .stream()
-                .limit(postLimit)
-                .filter(item -> getDateTime(item.getTaken_at() * 1000)
-                        .isAfter(LocalDateTime.now().minusHours(postHours)))
-                // TODO find more effective way
-                .filter(videoPost -> !postRepository.existsByCodeAndProducingChannelId(videoPost.getCode(), producingChannel.getId()))
-                .collect(Collectors.toList());
+        List<TimelineMedia> timelineItems = new ArrayList<>();
 
-        processVideoPosts(producingChannel, consumingChannel, timelineItems);
-        processImagePosts(producingChannel, consumingChannel, timelineItems);
+        // id of last loaded post for pagination
+        String maxId = null;
+        int leftToLoadPosts = postLimit;
+        boolean continueLoading = true;
+
+        // while has posts to load or loading is allowed
+        while(leftToLoadPosts > 0 && continueLoading) {
+            // Loads first 12 posts
+            FeedUserResponse feedUserResponse = client
+                    .sendRequest(new FeedUserRequest(userAction.getUser().getPk(), maxId))
+                    .get();
+
+            // Set max_id for next pagination request
+            maxId = feedUserResponse.getNext_max_id();
+            continueLoading = feedUserResponse.isMore_available();
+
+            List<TimelineMedia> responseItems = feedUserResponse.getItems();
+
+            // filter posts by time and existing in database
+            List<TimelineMedia> filteredResponseItems = responseItems.stream()
+                    .filter(item -> getDateTime(item.getTaken_at() * 1000)
+                            .isAfter(LocalDateTime.now().minusDays(postDays)))
+                    .filter(videoPost -> !postRepository.existsByCodeAndProducingChannelId(videoPost.getCode(), producingChannel.getId()))
+                    .collect(Collectors.toList());
+
+            timelineItems.addAll(filteredResponseItems);
+
+            // if even one post is filtered - stop loading
+            if (responseItems.size() > filteredResponseItems.size()) {
+                break;
+            }
+
+            // decrease number of posts, which needs to be loaded
+            leftToLoadPosts -= responseItems.size();
+        }
+
+        return timelineItems;
     }
 
     private void processVideoPosts(ProducingChannel producingChannel, ConsumingChannel consumingChannel, List<TimelineMedia> timelineItems) throws IOException {
@@ -122,6 +154,7 @@ public class LoaderService {
                 .filter(TimelineVideoMedia.class::isInstance)
                 .map(TimelineVideoMedia.class::cast)
                 .map(videoItem -> getVideoPost(producingChannel, videoItem))
+                .filter(videoPost -> videoPost.getCode() != null)
                 .map(postRepository::save)
                 .collect(Collectors.toList());
 
@@ -134,6 +167,7 @@ public class LoaderService {
                 .filter(TimelineImageMedia.class::isInstance)
                 .map(TimelineImageMedia.class::cast)
                 .map(imageItem -> getImagePost(producingChannel, imageItem))
+                .filter(imagePost -> imagePost.getCode() != null)
                 .map(postRepository::save)
                 .collect(Collectors.toList());
 
@@ -141,12 +175,13 @@ public class LoaderService {
         consumingChannel.setImagePosts(imagePosts);
     }
 
-    private LocalDateTime getDateTime(long mills) {
-        return Instant.ofEpochMilli(mills)
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime();
-    }
-
+    /**
+     * Creates video post from TimelineVideoMedia
+     *
+     * @param producingChannel producing channel
+     * @param video timeline video media item
+     * @return VideoPost
+     */
     private VideoPost getVideoPost(ProducingChannel producingChannel, TimelineVideoMedia video) {
         VideoPost videoPost = new VideoPost();
 
@@ -170,6 +205,13 @@ public class LoaderService {
         return videoPost;
     }
 
+    /**
+     * Creates image post from TimelineImageMedia
+     *
+     * @param producingChannel producing channel
+     * @param image timeline image media item
+     * @return ImagePost
+     */
     private ImagePost getImagePost(ProducingChannel producingChannel, TimelineImageMedia image) {
         ImagePost imagePost = new ImagePost();
 
@@ -190,5 +232,17 @@ public class LoaderService {
         }
 
         return imagePost;
+    }
+
+    /**
+     * Get localDateTime from post taken_at time
+     *
+     * @param mills milli seconds
+     * @return localDateTime
+     */
+    private LocalDateTime getDateTime(long mills) {
+        return Instant.ofEpochMilli(mills)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
     }
 }

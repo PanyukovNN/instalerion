@@ -53,7 +53,7 @@ public class CloudService {
      */
     public void saveImagePosts(List<ImagePost> imagePosts) throws IOException {
         for (ImagePost imagePost : imagePosts) {
-            saveByUrl(imagePost.getUrl(), imagePost.getUrl() + ".jpg");
+            saveByUrl(imagePost.getUrl(), imagePost.getCode() + ".jpg");
         }
     }
 

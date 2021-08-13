@@ -23,6 +23,7 @@ public class Constants {
     public static final String TOO_OFTEN_LOADING_REQUESTS_ERROR_MSG = "Загрузка постов отменена из-за слишком частых запросов.";
     public static final String NO_PUBLISHING_ANSWER_FROM_INSTAGRAM_ERROR_MSG = "Нет ответа о публикации от сервера инстаграм";
     public static final String PUBLISHING_ERROR = "Ошибка публикации: %s";
+    public static final String ERROR_WHILE_CONSUME_CHANNEL_LOADING = "Ошибка загрузки постов с канала %s";
 
     /**
      * Messages

@@ -20,9 +20,6 @@ import java.util.List;
 public class InstalerionApplication implements CommandLineRunner {
 
     @Autowired
-    private ProducingChannelRepository producingChannelRepository;
-
-    @Autowired
     private ProducingChannelService producingChannelService;
 
     public static void main(String[] args) {
@@ -31,13 +28,5 @@ public class InstalerionApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        ConsumingChannel consumingChannel = new ConsumingChannel();
-        consumingChannel.setName("garikkharlamov");
-
-        ConsumingChannel consumingChannel2 = new ConsumingChannel();
-        consumingChannel2.setName("valley_video");
-        List<ConsumingChannel> consumingChannelList = Arrays.asList(consumingChannel, consumingChannel2);
-
-        producingChannelService.save("insta_rus_love", "instalerion2021", consumingChannelList);
     }
 }
