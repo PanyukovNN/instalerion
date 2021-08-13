@@ -8,11 +8,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.panyukovnn.common.Constants.CUSTOMER_NOT_FOUND_ERROR_MSG;
+import static com.panyukovnn.common.Constants.PUBLICATION_CHANNEL_NOT_FOUND_ERROR_MSG;
 
 /**
  * Producing channels service
@@ -22,6 +23,7 @@ import static com.panyukovnn.common.Constants.CUSTOMER_NOT_FOUND_ERROR_MSG;
 public class ProducingChannelService {
 
     private final EncryptionUtil encryptionUtil;
+    private final DateTimeHelper dateTimeHelper;
     private final ConsumingChannelService consumingChannelService;
     private final ProducingChannelRepository producingChannelRepository;
 
@@ -46,9 +48,9 @@ public class ProducingChannelService {
     }
 
     @Transactional
-    public void addConsumeChannels(String customerId, List<ConsumingChannel> consumingChannels) {
-        ProducingChannel producingChannel = producingChannelRepository.findById(customerId)
-                .orElseThrow(() -> new NotFoundException(CUSTOMER_NOT_FOUND_ERROR_MSG));
+    public void addConsumeChannels(String producingChannelId, List<ConsumingChannel> consumingChannels) {
+        ProducingChannel producingChannel = producingChannelRepository.findById(producingChannelId)
+                .orElseThrow(() -> new NotFoundException(PUBLICATION_CHANNEL_NOT_FOUND_ERROR_MSG));
 
         if (producingChannel.getConsumingChannels() == null) {
             producingChannel.setConsumingChannels(new ArrayList<>());
@@ -67,5 +69,47 @@ public class ProducingChannelService {
         producingChannel.setConsumingChannels(savedConsumingChannels);
 
         producingChannelRepository.save(producingChannel);
+    }
+
+    /**
+     * Is it time to publish post
+     *
+     * @param producingChannel producing channel
+     * @return is publishing time
+     */
+    public boolean isPublishingTime(ProducingChannel producingChannel) {
+        int prosingPeriod = producingChannel.getPostingPeriod();
+
+        LocalDateTime lastPostingDateTime = producingChannel.getLastPostingDateTime();
+
+        // if first publication
+        if (lastPostingDateTime == null) {
+            return true;
+        }
+
+        int minutesFromLastPosting = dateTimeHelper.minuteFromNow(lastPostingDateTime);
+
+        return minutesFromLastPosting >= prosingPeriod;
+    }
+
+    /**
+     * Is it time to load posts
+     *
+     * @param producingChannel producing channel
+     * @return is loading time
+     */
+    public boolean isLoadingTime(ProducingChannel producingChannel) {
+        int prosingPeriod = producingChannel.getPostingPeriod() * 2 / 3;
+
+        LocalDateTime lastLoadingDateTime = producingChannel.getLastLoadingDateTime();
+
+        // if first loading
+        if (lastLoadingDateTime == null) {
+            return true;
+        }
+
+        int minutesFromLastLoading = dateTimeHelper.minuteFromNow(lastLoadingDateTime);
+
+        return minutesFromLastLoading >= prosingPeriod;
     }
 }

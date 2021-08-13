@@ -49,4 +49,9 @@ public class ProducingChannel {
      * Date time of last loading
      */
     private LocalDateTime lastLoadingDateTime;
+
+    /**
+     * Posting period in minutes
+     */
+    private int postingPeriod;
 }

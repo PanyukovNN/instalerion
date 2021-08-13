@@ -21,10 +21,10 @@ public interface PostRepository extends MongoRepository<Post, String> {
     boolean existsByCodeAndProducingChannelId(String code, String producingChannelId);
 
     /**
-     * Find first unpublished video post by customer id
+     * Find first unpublished video post by producing channel id
      *
      * @param producingChannelId producing channel id
      * @return video post
      */
-    Post findFirstByProducingChannelIdAndPublishDateTimeIsNull(String producingChannelId);
+    Post findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThanEqual(String producingChannelId, int errorCountLimit);
 }

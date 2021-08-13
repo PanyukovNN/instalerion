@@ -14,4 +14,15 @@ public class DateTimeHelper {
     public int minuteFromNow(LocalDateTime dateTime) {
         return (int) dateTime.until(LocalDateTime.now(), ChronoUnit.MINUTES);
     }
+
+    /**
+     * Returns true between 23:00 and 9:00
+     *
+     * @return is night now
+     */
+    public boolean isNight() {
+        LocalDateTime now = LocalDateTime.now();
+
+        return now.getHour() > 22 || now.getHour() < 8;
+    }
 }

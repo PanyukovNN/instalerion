@@ -56,14 +56,14 @@ public class LoaderService {
     /**
      * Load posts from consuming channels to database and cloud
      *
-     * @param customerId id of producing channel
+     * @param producingChannelId id of producing channel
      * @throws IOException exception
      * @throws NotFoundException exception
      */
     @Transactional
-    public void load(String customerId) throws IOException, NotFoundException {
-        ProducingChannel producingChannel = producingChannelService.findById(customerId)
-                .orElseThrow(() -> new NotFoundException(String.format(CUSTOMER_NOT_FOUND_ERROR_MSG, customerId)));
+    public void load(String producingChannelId) throws IOException, NotFoundException {
+        ProducingChannel producingChannel = producingChannelService.findById(producingChannelId)
+                .orElseThrow(() -> new NotFoundException(String.format(PUBLICATION_CHANNEL_NOT_FOUND_ERROR_MSG, producingChannelId)));
 
         checkOftenRequests(producingChannel);
 
