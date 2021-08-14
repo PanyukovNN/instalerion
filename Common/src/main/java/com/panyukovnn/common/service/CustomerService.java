@@ -25,4 +25,8 @@ public class CustomerService {
     public Optional<Customer> findById(String customerId) {
         return customerRepository.findById(customerId);
     }
+
+    public void remove(Customer customer) {
+        customerRepository.delete(customer);
+    }
 }

@@ -3,6 +3,7 @@ package com.panyukovnn.common.service;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 /**
@@ -10,6 +11,8 @@ import java.time.temporal.ChronoUnit;
  */
 @Service
 public class DateTimeHelper {
+
+    public static final DateTimeFormatter FRONT_DATE_TIME = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
 
     public int minuteFromNow(LocalDateTime dateTime) {
         return (int) dateTime.until(LocalDateTime.now(), ChronoUnit.MINUTES);

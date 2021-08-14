@@ -66,7 +66,7 @@ public class LoaderService {
     @Transactional
     public void load(String producingChannelId) throws IOException, NotFoundException {
         ProducingChannel producingChannel = producingChannelService.findById(producingChannelId)
-                .orElseThrow(() -> new NotFoundException(String.format(PUBLICATION_CHANNEL_NOT_FOUND_ERROR_MSG, producingChannelId)));
+                .orElseThrow(() -> new NotFoundException(String.format(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, producingChannelId)));
 
         checkOftenRequests(producingChannel);
 

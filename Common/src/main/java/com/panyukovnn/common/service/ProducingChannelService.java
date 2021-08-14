@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.panyukovnn.common.Constants.PUBLICATION_CHANNEL_NOT_FOUND_ERROR_MSG;
+import static com.panyukovnn.common.Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG;
 
 /**
  * Producing channels service
@@ -37,12 +37,19 @@ public class ProducingChannelService {
     }
 
     @Transactional
-    public void create(String login,
-                       String password,
-                       List<ConsumingChannel> consumingChannels,
-                       int postingPeriod,
-                       Customer customer) {
+    public void createOrUpdate(String producingChannelId,
+                               String login,
+                               String password,
+                               List<ConsumingChannel> consumingChannels,
+                               int postingPeriod,
+                               Customer customer) {
         ProducingChannel producingChannel = new ProducingChannel();
+        if (producingChannelId != null) {
+            ProducingChannel producingChannelFromDb = producingChannelRepository.findById(producingChannelId)
+                    .orElseThrow(() -> new NotFoundException(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG));
+            producingChannel.setId(producingChannelFromDb.getId());
+        }
+
         producingChannel.setLogin(login);
         producingChannel.setPassword(encryptionUtil.getTextEncryptor().encrypt(password));
 
@@ -58,7 +65,7 @@ public class ProducingChannelService {
     @Transactional
     public void addConsumeChannels(String producingChannelId, List<ConsumingChannel> consumingChannels) {
         ProducingChannel producingChannel = producingChannelRepository.findById(producingChannelId)
-                .orElseThrow(() -> new NotFoundException(PUBLICATION_CHANNEL_NOT_FOUND_ERROR_MSG));
+                .orElseThrow(() -> new NotFoundException(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG));
 
         if (producingChannel.getConsumingChannels() == null) {
             producingChannel.setConsumingChannels(new ArrayList<>());
@@ -123,5 +130,13 @@ public class ProducingChannelService {
 
     public List<ProducingChannel> findAll() {
         return producingChannelRepository.findAll();
+    }
+
+    public void remove(ProducingChannel producingChannel) {
+        producingChannelRepository.delete(producingChannel);
+    }
+
+    public List<ProducingChannel> findByConsumer(Customer customer) {
+        return producingChannelRepository.findByCustomer(customer);
     }
 }

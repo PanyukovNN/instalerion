@@ -3,6 +3,7 @@ package com.panyukovnn.instalerion.service;
 import com.panyukovnn.common.model.Customer;
 import com.panyukovnn.common.model.ProducingChannel;
 import com.panyukovnn.common.service.CustomerService;
+import com.panyukovnn.common.service.DateTimeHelper;
 import com.panyukovnn.common.service.ProducingChannelService;
 import com.panyukovnn.instalerion.kafka.LoaderKafkaSender;
 import com.panyukovnn.instalerion.kafka.PublisherKafkaSender;
@@ -13,9 +14,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Set;
 
-import static com.panyukovnn.common.Constants.PUBLICATION_CHANNEL_NOT_FOUND_ERROR_MSG;
+import static com.panyukovnn.common.Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG;
+import static com.panyukovnn.common.Constants.WORKING_ON_PAUSE_IN_NIGHT_MSG;
 
 /**
  * Main processor
@@ -26,6 +27,7 @@ public class Processor {
 
     private final Logger logger = LoggerFactory.getLogger(Processor.class);
 
+    private final DateTimeHelper dateTimeHelper;
     private final CustomerService customerService;
     private final LoaderKafkaSender loaderKafkaSender;
     private final PublisherKafkaSender publisherKafkaSender;
@@ -34,23 +36,20 @@ public class Processor {
     @Scheduled(fixedRateString = "${processor.scheduler.fixed.rate.mills}")
     public void schedule() {
         // skip night time
-//        if (dateTimeHelper.isNight()) {
-//            logger.info(WORKING_ON_PAUSE_IN_NIGHT_MSG);
-//
-//            return;
-//        }
+        if (dateTimeHelper.isNight()) {
+            logger.info(WORKING_ON_PAUSE_IN_NIGHT_MSG);
+
+            return;
+        }
 
         List<Customer> customers = customerService.findAll();
 
         for (Customer customer : customers) {
-            Set<String> producingChannelIds = customer.getProducingChannelIds();
+            List<ProducingChannel> producingChannels = producingChannelService.findByConsumer(customer);
 
-            for (String producingChannelId : producingChannelIds) {
-                ProducingChannel producingChannel = producingChannelService.findById(producingChannelId)
-                        .orElse(new ProducingChannel());
-
+            for (ProducingChannel producingChannel: producingChannels) {
                 if (producingChannel.getId() == null) {
-                    logger.info(String.format(PUBLICATION_CHANNEL_NOT_FOUND_ERROR_MSG, producingChannelId));
+                    logger.info(String.format(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, producingChannel.getId()));
 
                     continue;
                 }

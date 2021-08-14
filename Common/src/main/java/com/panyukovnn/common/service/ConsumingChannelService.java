@@ -49,4 +49,12 @@ public class ConsumingChannelService {
     public List<ConsumingChannel> findAll() {
         return consumingChannelRepository.findAll();
     }
+
+    public void remove(ConsumingChannel consumingChannel) {
+        consumingChannelRepository.delete(consumingChannel);
+    }
+
+    public void removeAll(List<ConsumingChannel> consumingChannels) {
+        consumingChannelRepository.deleteAll(consumingChannels);
+    }
 }

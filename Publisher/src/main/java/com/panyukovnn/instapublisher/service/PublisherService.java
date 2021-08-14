@@ -57,7 +57,7 @@ public class PublisherService {
         checkPost(request, post);
 
         ProducingChannel producingChannel = producingChannelRepository.findById(post.getProducingChannelId())
-                .orElseThrow(() -> new NotFoundException(String.format(Constants.PUBLICATION_CHANNEL_NOT_FOUND_ERROR_MSG, post.getProducingChannelId())));
+                .orElseThrow(() -> new NotFoundException(String.format(Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, post.getProducingChannelId())));
 
         checkOftenRequests(producingChannel);
 
