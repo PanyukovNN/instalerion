@@ -2,5 +2,6 @@
 /.idea/
 /password
 /run-commands
+/jenkins-pipeline
 **.jar
 build/

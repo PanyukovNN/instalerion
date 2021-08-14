@@ -47,6 +47,7 @@ dependencies {
     implementation library.jasypt
     implementation library.springKafka
     implementation library.springBootWeb
+    implementation library.springBootActuator
     implementation library.springBootDataJpa
     implementation library.springBootDevTools
     implementation library.kafkaClients

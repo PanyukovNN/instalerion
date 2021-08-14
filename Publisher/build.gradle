@@ -4,6 +4,7 @@ dependencies {
     implementation rootProject.ext.library.jasypt
     implementation rootProject.ext.library.springKafka
     implementation rootProject.ext.library.springBootWeb
+    implementation rootProject.ext.library.springBootActuator
     implementation rootProject.ext.library.springBootDataJpa
     implementation rootProject.ext.library.springBootDataMongo
     implementation rootProject.ext.library.springSecurity
