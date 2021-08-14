@@ -1,4 +1,4 @@
-package com.panyukovnn.instalerion.service.kafka;
+package com.panyukovnn.instalerion.kafka;
 
 public interface KafkaSender {
 

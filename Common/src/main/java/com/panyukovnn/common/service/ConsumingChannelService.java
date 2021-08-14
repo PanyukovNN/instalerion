@@ -45,4 +45,8 @@ public class ConsumingChannelService {
                 .map(this::save)
                 .collect(Collectors.toList());
     }
+
+    public List<ConsumingChannel> findAll() {
+        return consumingChannelRepository.findAll();
+    }
 }

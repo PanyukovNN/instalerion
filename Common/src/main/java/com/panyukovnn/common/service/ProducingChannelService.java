@@ -2,6 +2,7 @@ package com.panyukovnn.common.service;
 
 import com.panyukovnn.common.exception.NotFoundException;
 import com.panyukovnn.common.model.ConsumingChannel;
+import com.panyukovnn.common.model.Customer;
 import com.panyukovnn.common.model.ProducingChannel;
 import com.panyukovnn.common.repository.ProducingChannelRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,13 +37,20 @@ public class ProducingChannelService {
     }
 
     @Transactional
-    public void create(String login, String password, List<ConsumingChannel> consumingChannels) {
+    public void create(String login,
+                       String password,
+                       List<ConsumingChannel> consumingChannels,
+                       int postingPeriod,
+                       Customer customer) {
         ProducingChannel producingChannel = new ProducingChannel();
         producingChannel.setLogin(login);
         producingChannel.setPassword(encryptionUtil.getTextEncryptor().encrypt(password));
 
         List<ConsumingChannel> savedConsumingChannels = consumingChannelService.saveAll(consumingChannels);
         producingChannel.setConsumingChannels(savedConsumingChannels);
+
+        producingChannel.setPostingPeriod(postingPeriod);
+        producingChannel.setCustomer(customer);
 
         producingChannelRepository.save(producingChannel);
     }
@@ -111,5 +119,9 @@ public class ProducingChannelService {
         int minutesFromLastLoading = dateTimeHelper.minuteFromNow(lastLoadingDateTime);
 
         return minutesFromLastLoading >= prosingPeriod;
+    }
+
+    public List<ProducingChannel> findAll() {
+        return producingChannelRepository.findAll();
     }
 }

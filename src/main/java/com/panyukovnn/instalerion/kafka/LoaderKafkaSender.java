@@ -1,4 +1,4 @@
-package com.panyukovnn.instalerion.service.kafka;
+package com.panyukovnn.instalerion.kafka;
 
 import com.panyukovnn.common.model.request.LoadPostsRequest;
 import com.panyukovnn.common.service.kafka.KafkaHelper;

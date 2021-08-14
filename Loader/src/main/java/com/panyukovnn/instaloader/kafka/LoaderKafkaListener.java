@@ -33,8 +33,6 @@ public class LoaderKafkaListener {
             logger.error(String.format(ERROR_WHILE_LOADING, request), e);
 
             //TODO send error message to topic PUBLISHER_ERRORS
-
-            e.printStackTrace();
         }
     }
 }

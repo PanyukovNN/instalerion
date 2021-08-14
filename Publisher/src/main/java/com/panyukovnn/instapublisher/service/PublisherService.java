@@ -12,11 +12,11 @@ import com.panyukovnn.common.model.post.Post;
 import com.panyukovnn.common.model.post.PostMediaType;
 import com.panyukovnn.common.model.post.VideoPost;
 import com.panyukovnn.common.model.request.PublishPostRequest;
-import com.panyukovnn.common.repository.PostRepository;
 import com.panyukovnn.common.repository.ProducingChannelRepository;
 import com.panyukovnn.common.service.CloudService;
 import com.panyukovnn.common.service.DateTimeHelper;
 import com.panyukovnn.common.service.InstaService;
+import com.panyukovnn.common.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -39,9 +39,9 @@ public class PublisherService {
     @Value("${publishing.errors.limit}")
     private int publishingErrorsLimit;
 
+    private final PostService postService;
     private final CloudService cloudService;
     private final InstaService instaService;
-    private final PostRepository postRepository;
     private final DateTimeHelper dateTimeHelper;
     private final ProducingChannelRepository producingChannelRepository;
 
@@ -52,7 +52,7 @@ public class PublisherService {
      * @throws IGLoginException instagram4j login exception
      */
     public void publish(PublishPostRequest request) throws IGLoginException, ExecutionException, InterruptedException {
-        Post post = postRepository.findById(request.getPostId()).orElse(null);
+        Post post = postService.findById(request.getPostId()).orElse(null);
 
         checkPost(request, post);
 
@@ -74,20 +74,20 @@ public class PublisherService {
         checkResponse(post, response);
 
         post.setPublishDateTime(LocalDateTime.now());
-        postRepository.save(post);
+        postService.save(post);
     }
 
     private void checkResponse(Post post, MediaResponse.MediaConfigureTimelineResponse response) {
         if (response == null) {
             post.increasePublishingErrors();
-            postRepository.save(post);
+            postService.save(post);
 
             throw new RequestException(NO_PUBLISHING_ANSWER_FROM_INSTAGRAM_ERROR_MSG);
         }
 
         if (response.getStatusCode() != 200) {
             post.increasePublishingErrors();
-            postRepository.save(post);
+            postService.save(post);
 
             throw new RequestException(String.format(PUBLISHING_ERROR, response.getMessage()));
         }

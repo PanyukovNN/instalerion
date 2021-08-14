@@ -54,4 +54,10 @@ public class ProducingChannel {
      * Posting period in minutes
      */
     private int postingPeriod;
+
+    /**
+     * Customer
+     */
+    @DBRef
+    private Customer customer;
 }

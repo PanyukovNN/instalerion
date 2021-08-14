@@ -1,10 +1,8 @@
 package com.panyukovnn.instalerion;
 
-import com.panyukovnn.common.model.ConsumingChannel;
-import com.panyukovnn.common.model.Customer;
-import com.panyukovnn.common.model.ProducingChannel;
 import com.panyukovnn.common.repository.CustomerRepository;
 import com.panyukovnn.common.repository.ProducingChannelRepository;
+import com.panyukovnn.common.service.EncryptionUtil;
 import com.panyukovnn.common.service.ProducingChannelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -13,8 +11,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
-
-import java.util.*;
 
 @EnableScheduling
 @EnableMongoRepositories(basePackageClasses = {ProducingChannelRepository.class})
@@ -26,6 +22,9 @@ public class InstalerionApplication implements CommandLineRunner {
 
     @Autowired
     private CustomerRepository customerRepository;
+
+    @Autowired
+    private EncryptionUtil encryptionUtil;
 
     public static void main(String[] args) {
         SpringApplication.run(InstalerionApplication.class);

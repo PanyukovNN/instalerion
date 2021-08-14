@@ -31,9 +31,4 @@ public class Customer {
      * User password
      */
     private String password;
-
-    /**
-     * Set of producing channels ids
-     */
-    private Set<String> producingChannelIds;
 }

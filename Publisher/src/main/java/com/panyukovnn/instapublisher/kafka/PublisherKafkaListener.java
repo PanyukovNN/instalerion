@@ -36,8 +36,6 @@ public class PublisherKafkaListener {
             logger.error(String.format(ERROR_WHILE_PUBLICATION, request), e);
 
             //TODO send error message to topic PUBLISHER_ERRORS
-
-            e.printStackTrace();
         }
     }
 }

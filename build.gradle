@@ -42,9 +42,11 @@ allprojects {
 
 dependencies {
     implementation library.mongo
+    implementation library.jasypt
     implementation library.springKafka
     implementation library.springBootWeb
     implementation library.springBootDataJpa
+    implementation library.springBootDevTools
     implementation library.kafkaClients
     implementation library.kafkaCommon
     implementation project(":Common")

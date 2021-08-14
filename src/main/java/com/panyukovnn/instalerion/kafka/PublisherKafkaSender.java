@@ -1,8 +1,8 @@
-package com.panyukovnn.instalerion.service.kafka;
+package com.panyukovnn.instalerion.kafka;
 
 import com.panyukovnn.common.model.post.Post;
 import com.panyukovnn.common.model.request.PublishPostRequest;
-import com.panyukovnn.common.repository.PostRepository;
+import com.panyukovnn.common.service.PostService;
 import com.panyukovnn.common.service.kafka.KafkaHelper;
 import com.panyukovnn.common.service.kafka.PublisherCallback;
 import lombok.RequiredArgsConstructor;
@@ -24,18 +24,17 @@ public class PublisherKafkaSender implements KafkaSender {
 
     private final Logger logger = LoggerFactory.getLogger(PublisherKafkaSender.class);
 
-    @Value("${pubilshing.error.count.limit}")
-    private int errorCountLimit;
     @Value("${kafka.publisher.topic}")
     private String PUBLISHER_TOPIC_NAME;
 
     private final KafkaHelper kafkaHelper;
-    private final PostRepository postRepository;
+    private final PostService postService;
     private final KafkaTemplate<String, Map<String, Object>> kafkaTemplate;
 
     @Override
     public void send(String producingChannelId) {
-        Post post = postRepository.findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThanEqual(producingChannelId, errorCountLimit);
+        Post post = postService.findAnyForPublication(producingChannelId)
+                .orElse(null);
 
         if (post == null) {
             logger.info(POST_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG);

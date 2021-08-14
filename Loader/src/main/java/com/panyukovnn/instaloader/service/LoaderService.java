@@ -13,7 +13,6 @@ import com.panyukovnn.common.model.ProducingChannel;
 import com.panyukovnn.common.model.post.ImagePost;
 import com.panyukovnn.common.model.post.PostMediaType;
 import com.panyukovnn.common.model.post.VideoPost;
-import com.panyukovnn.common.repository.PostRepository;
 import com.panyukovnn.common.service.*;
 import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -50,9 +49,9 @@ public class LoaderService {
     @Value("${min.loading.period.minutes}")
     private int minLoadingPeriod;
 
+    private final PostService postService;
     private final CloudService cloudService;
     private final InstaService instaService;
-    private final PostRepository postRepository;
     private final DateTimeHelper dateTimeHelper;
     private final ProducingChannelService producingChannelService;
     private final ConsumingChannelService consumingChannelService;
@@ -135,7 +134,7 @@ public class LoaderService {
             List<TimelineMedia> filteredResponseItems = responseItems.stream()
                     .filter(item -> getDateTime(item.getTaken_at() * 1000)
                             .isAfter(LocalDateTime.now().minusDays(postDays)))
-                    .filter(videoPost -> !postRepository.existsByCodeAndProducingChannelId(videoPost.getCode(), producingChannel.getId()))
+                    .filter(videoPost -> !postService.exists(videoPost.getCode(), producingChannel.getId()))
                     .collect(Collectors.toList());
 
             timelineItems.addAll(filteredResponseItems);
@@ -158,11 +157,13 @@ public class LoaderService {
                 .map(TimelineVideoMedia.class::cast)
                 .map(videoItem -> getVideoPost(producingChannel, videoItem))
                 .filter(videoPost -> videoPost.getCode() != null)
-                .map(postRepository::save)
+                .map(postService::save)
                 .collect(Collectors.toList());
 
         cloudService.saveVideoPosts(videoPosts);
         consumingChannel.setVideoPosts(videoPosts);
+
+        logger.info(String.format(SAVED_VIDEOS_FROM_CHANNEL_MSG, videoPosts.size(), consumingChannel.getName()));
     }
 
     private void processImagePosts(ProducingChannel producingChannel, ConsumingChannel consumingChannel, List<TimelineMedia> timelineItems) throws IOException {
@@ -171,11 +172,13 @@ public class LoaderService {
                 .map(TimelineImageMedia.class::cast)
                 .map(imageItem -> getImagePost(producingChannel, imageItem))
                 .filter(imagePost -> imagePost.getCode() != null)
-                .map(postRepository::save)
+                .map(postService::save)
                 .collect(Collectors.toList());
 
         cloudService.saveImagePosts(imagePosts);
         consumingChannel.setImagePosts(imagePosts);
+
+        logger.info(String.format(SAVED_IMAGES_FROM_CHANNEL_MSG, imagePosts.size(), consumingChannel.getName()));
     }
 
     /**
