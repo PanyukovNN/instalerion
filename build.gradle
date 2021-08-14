@@ -14,19 +14,16 @@ apply from: 'ext.gradle'
 
 allprojects {
     group 'com.panyukovnn'
-    version '1.0-SNAPSHOT'
+    version '1.0'
 
     repositories {
         mavenCentral()
     }
 
+    sourceSets.main.java.srcDirs = ['src/main/java']
+
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
-    }
-
-    bootJar {
-        archiveVersion = ''
-        mainClass = 'com.panyukovnn.instaloader.InstalerionApplication'
     }
 
     configurations {
@@ -38,6 +35,11 @@ allprojects {
     dependencies {
         annotationProcessor 'org.projectlombok:lombok:1.18.20'
     }
+}
+
+bootJar {
+    archiveVersion = ''
+    mainClass = 'com.panyukovnn.instalerion.InstalerionApplication'
 }
 
 dependencies {

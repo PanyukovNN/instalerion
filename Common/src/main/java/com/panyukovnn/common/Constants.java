@@ -43,4 +43,5 @@ public class Constants {
      * Other
      */
     public static final String SOURCE_STRING_TEMPLATE = "Источник: https://www.instagram.com/p/%s/";
+    public static final int PUBLISHING_ERROR_COUNT_LIMIT = 3;
 }

@@ -5,18 +5,16 @@ import com.panyukovnn.common.model.post.Post;
 import com.panyukovnn.common.model.post.VideoPost;
 import com.panyukovnn.common.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+import static com.panyukovnn.common.Constants.PUBLISHING_ERROR_COUNT_LIMIT;
+
 @Service
 @RequiredArgsConstructor
 public class PostService {
-
-    @Value("${pubilshing.error.count.limit}")
-    private int errorCountLimit;
 
     public final PostRepository postRepository;
 
@@ -45,6 +43,6 @@ public class PostService {
     }
 
     public Optional<Post> findAnyForPublication(String producingChannelId) {
-        return postRepository.findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThanEqual(producingChannelId, errorCountLimit);
+        return postRepository.findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThanEqual(producingChannelId, PUBLISHING_ERROR_COUNT_LIMIT);
     }
 }

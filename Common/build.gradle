@@ -15,5 +15,7 @@ dependencies {
     implementation 'commons-io:commons-io:2.8.0'
 }
 
+bootJar.enabled = false
+
 jar.enabled = true
 

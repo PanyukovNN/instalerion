@@ -15,4 +15,9 @@ dependencies {
     implementation project(':Common')
 }
 
+bootJar {
+    archiveVersion = ''
+    mainClass = 'com.panyukovnn.instaloader.InstaloaderApplication'
+}
+
 jar.enabled = true

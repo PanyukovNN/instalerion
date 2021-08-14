@@ -1,3 +1,6 @@
 /.gradle/
 /.idea/
 /password
+/run-commands
+**.jar
+build/

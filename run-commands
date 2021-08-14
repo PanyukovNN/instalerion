@@ -1,0 +1,11 @@
+tail -n 100 publisher-log.txt
+
+nohup java -jar -Djasypt.encryptor.password=instalerionzylex Loader.jar > loader-log.txt &
+nohup java -jar -Djasypt.encryptor.password=instalerionzylex Publisher.jar > publisher-log.txt &
+nohup java -jar -Djasypt.encryptor.password=instalerionzylex instalerion.jar > instalerion-log.txt &
+
+# Вывести запущенные процессы
+sudo netstat -plten |grep java
+
+# Завершить процесс по пиду
+kill -d <pid>
