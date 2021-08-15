@@ -5,3 +5,9 @@
 /jenkins-pipeline
 **.jar
 build/
+/Loader/Dockerfile
+/Publisher/Dockerfile
+/Publisher/Dockerfile
+/Dockerfile
+/DockerfileLoader
+/DockerfilePublisher

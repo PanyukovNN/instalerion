@@ -44,8 +44,14 @@ public class Processor {
 
         List<Customer> customers = customerService.findAll();
 
+        // TODO выводить сообщение если нет пользователей
+
         for (Customer customer : customers) {
+            // TODO выводить сообщение какой пользователь взят в работу
+
             List<ProducingChannel> producingChannels = producingChannelService.findByConsumer(customer);
+
+            // TODO выводить сообщение если нет каналов публикации
 
             for (ProducingChannel producingChannel: producingChannels) {
                 if (producingChannel.getId() == null) {

@@ -18,8 +18,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class InstaService {
 
-    @Value("${device.number}")
-    public int deviceNumber = 0;
+    @Value("${device.number:0}")
+    public int deviceNumber;
 
     private final Map<String, IGClient> clientContext = new HashMap<>();
 
