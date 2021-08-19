@@ -70,8 +70,8 @@ public class LoaderService {
 
         checkOftenRequests(producingChannel);
 
-        // Login to instagram account
-        IGClient client = instaService.getClient(producingChannel);
+        // Login to access instagram account
+        IGClient client = instaService.getAccessClient();
 
         List<ConsumingChannel> consumingChannels = producingChannel.getConsumingChannels();
 
