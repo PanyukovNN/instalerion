@@ -1,5 +1,4 @@
-rootProject.name = 'instalerion'
 
 include 'Common'
-include 'Loader'
-include 'Publisher'
+include 'Promoter'
+include 'Instalerion'
