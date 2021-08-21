@@ -27,12 +27,12 @@ public class RequestHelper {
      *
      * @param lastRequestDateTime date time of last request
      */
-    public void checkOftenRequests(LocalDateTime lastRequestDateTime) {
+    public void checkOftenRequests(LocalDateTime lastRequestDateTime, String topicName) {
         if (lastRequestDateTime != null) {
             int minutesDiff = dateTimeHelper.minuteFromNow(lastRequestDateTime);
 
             if (minRequestPeriod > minutesDiff) {
-                throw new RequestException(TOO_OFTEN_REQUESTS_ERROR_MSG);
+                throw new RequestException(String.format(TOO_OFTEN_REQUESTS_ERROR_MSG, topicName));
             }
         }
     }

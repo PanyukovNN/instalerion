@@ -1,4 +1,4 @@
-package org.union.promoter.requestprocessor;
+package org.union.promoter.service.requestprocessor;
 
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
@@ -36,6 +36,8 @@ public class PublisherRequestProcessor {
 
     @Value("${publishing.errors.limit}")
     private int publishingErrorsLimit;
+    @Value("${kafka.publisher.topic}")
+    private String topicName;
 
     private final PostService postService;
     private final CloudService cloudService;
@@ -57,7 +59,7 @@ public class PublisherRequestProcessor {
         ProducingChannel producingChannel = producingChannelRepository.findById(post.getProducingChannelId())
                 .orElseThrow(() -> new NotFoundException(String.format(Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, post.getProducingChannelId())));
 
-        requestHelper.checkOftenRequests(producingChannel.getLastPostingDateTime());
+        requestHelper.checkOftenRequests(producingChannel.getLastPostingDateTime(), topicName);
 
         // Login to instagram account
         IGClient client = instaService.getClient(producingChannel);

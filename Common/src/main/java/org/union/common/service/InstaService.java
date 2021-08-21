@@ -25,7 +25,7 @@ public class InstaService {
 
     private final EncryptionUtil encryptionUtil;
 
-    public IGClient getClient(ProducingChannel producingChannel) throws IGLoginException {
+    public synchronized IGClient getClient(ProducingChannel producingChannel) throws IGLoginException {
         IGClient client = clientContext.get(producingChannel.getId());
 
         if (client == null || !client.isLoggedIn()) {

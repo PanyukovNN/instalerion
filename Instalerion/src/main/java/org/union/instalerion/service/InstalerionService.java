@@ -35,12 +35,13 @@ public class InstalerionService {
 
     @Scheduled(fixedRateString = "${processor.scheduler.fixed.rate.mills}")
     public void schedule() {
+        // TODO add property to enable night publication
         // skip night time
-        if (dateTimeHelper.isNight()) {
-            logger.info(WORKING_ON_PAUSE_IN_NIGHT_MSG);
-
-            return;
-        }
+//        if (dateTimeHelper.isNight()) {
+//            logger.info(WORKING_ON_PAUSE_IN_NIGHT_MSG);
+//
+//            return;
+//        }
 
         List<Customer> customers = customerService.findAll();
 

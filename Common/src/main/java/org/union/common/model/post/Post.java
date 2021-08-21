@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public abstract class Post {
+public class Post {
 
     @Id
     private String id;

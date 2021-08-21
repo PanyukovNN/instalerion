@@ -2,7 +2,7 @@ package org.union.promoter.kafka;
 
 import org.union.common.model.request.PublishPostRequest;
 import org.union.common.service.kafka.KafkaHelper;
-import org.union.promoter.requestprocessor.PublisherRequestProcessor;
+import org.union.promoter.service.requestprocessor.PublisherRequestProcessor;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

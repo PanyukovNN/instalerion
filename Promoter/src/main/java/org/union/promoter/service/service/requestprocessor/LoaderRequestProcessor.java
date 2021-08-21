@@ -1,4 +1,4 @@
-package org.union.promoter.requestprocessor;
+package org.union.promoter.service.requestprocessor;
 
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.actions.users.UserAction;
@@ -46,6 +46,8 @@ public class LoaderRequestProcessor {
     private int postDays;
     @Value("${post.limit}")
     private int postLimit;
+    @Value("${kafka.loader.topic}")
+    private String topicName;
 
     private final PostService postService;
     private final CloudService cloudService;
@@ -66,7 +68,7 @@ public class LoaderRequestProcessor {
         ProducingChannel producingChannel = producingChannelService.findById(producingChannelId)
                 .orElseThrow(() -> new NotFoundException(String.format(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, producingChannelId)));
 
-        requestHelper.checkOftenRequests(producingChannel.getLastLoadingDateTime());
+        requestHelper.checkOftenRequests(producingChannel.getLastLoadingDateTime(), topicName);
 
         // Login to access instagram account
         IGClient client = instaService.getClient(producingChannel);

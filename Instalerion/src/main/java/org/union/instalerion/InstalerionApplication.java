@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableScheduling
-@EnableMongoRepositories
+@EnableMongoRepositories(basePackages = "org.union.common.repository")
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class}, scanBasePackages = {"org.union.instalerion", "org.union.common"})
 public class InstalerionApplication implements CommandLineRunner {
 
