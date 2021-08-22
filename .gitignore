@@ -8,6 +8,5 @@ build/
 /Promoter/build
 /Promoter/Dockerfile
 /Dockerfile
-/DockerfileLoader
-/DockerfilePublisher
+/DockerfilePromoter
 /cloud/

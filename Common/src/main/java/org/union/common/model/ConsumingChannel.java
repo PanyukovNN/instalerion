@@ -1,11 +1,10 @@
 package org.union.common.model;
 
-import org.union.common.model.post.ImagePost;
-import org.union.common.model.post.VideoPost;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.union.common.model.post.Post;
 
 import java.util.List;
 
@@ -32,13 +31,13 @@ public class ConsumingChannel {
      * List of video posts
      */
     @DBRef
-    private List<VideoPost> videoPosts;
+    private List<Post> videoPosts;
 
     /**
      * List of image posts
      */
     @DBRef
-    private List<ImagePost> imagePosts;
+    private List<Post> imagePosts;
 
     /**
      * ctor

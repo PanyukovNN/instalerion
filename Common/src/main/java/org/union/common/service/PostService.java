@@ -1,8 +1,6 @@
 package org.union.common.service;
 
-import org.union.common.model.post.ImagePost;
 import org.union.common.model.post.Post;
-import org.union.common.model.post.VideoPost;
 import org.union.common.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,14 +19,6 @@ public class PostService {
         return postRepository.existsByCodeAndProducingChannelId(code, producingChannelId);
     }
 
-    public VideoPost save(VideoPost post) {
-        return postRepository.save(post);
-    }
-
-    public ImagePost save(ImagePost post) {
-        return postRepository.save(post);
-    }
-
     public Post save(Post post) {
         return postRepository.save(post);
     }
@@ -42,6 +32,10 @@ public class PostService {
     }
 
     public Optional<Post> findAnyForPublication(String producingChannelId) {
-        return postRepository.findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThanEqual(producingChannelId, Constants.PUBLISHING_ERROR_COUNT_LIMIT);
+        return postRepository.findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThan(producingChannelId, Constants.PUBLISHING_ERROR_COUNT_LIMIT);
+    }
+
+    public void removeAll() {
+        postRepository.deleteAll();
     }
 }

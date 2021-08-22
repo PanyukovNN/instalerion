@@ -1,9 +1,10 @@
 package org.union.common.service;
 
-import org.union.common.model.post.ImagePost;
-import org.union.common.model.post.VideoPost;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
+import org.union.common.model.post.ImagePost;
+import org.union.common.model.post.Post;
+import org.union.common.model.post.VideoPost;
 
 import java.io.File;
 import java.io.IOException;

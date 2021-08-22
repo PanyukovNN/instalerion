@@ -23,6 +23,6 @@ dependencies {
 
 bootJar {
     archiveVersion = ''
-    mainClass = 'org.union.instalerion.ProcessorApplication'
+    mainClass = 'org.union.instalerion.InstalerionApplication'
 }
 

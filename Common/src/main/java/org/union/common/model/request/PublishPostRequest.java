@@ -13,4 +13,5 @@ import lombok.*;
 public class PublishPostRequest {
 
     private String postId;
+    private String mediaType;
 }

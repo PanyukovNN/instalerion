@@ -1,13 +1,13 @@
 package org.union.common.repository;
 
-import org.union.common.model.post.Post;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
+import org.union.common.model.post.Post;
 
 import java.util.Optional;
 
 /**
- * Video posts repository
+ * Posts repository
  */
 @Repository
 public interface PostRepository extends MongoRepository<Post, String> {
@@ -28,5 +28,5 @@ public interface PostRepository extends MongoRepository<Post, String> {
      * @param producingChannelId producing channel id
      * @return video post
      */
-    Optional<Post> findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThanEqual(String producingChannelId, int errorCountLimit);
+    Optional<Post> findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThan(String producingChannelId, int errorCountLimit);
 }

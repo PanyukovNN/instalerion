@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Setter
 @ToString
 @NoArgsConstructor
+//@AllArgsConstructor
 @Document(collection = "post")
 public class ImagePost extends Post {
 }

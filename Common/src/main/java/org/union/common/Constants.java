@@ -26,6 +26,10 @@ public class Constants {
     public static final String ERROR_WHILE_LOADER_REQUEST_SENDING = "Произошла ошибка во время отправки запроса на загрузку постов %s: %s";
     public static final String ERROR_WHILE_PUBLISHER_REQUEST_SENDING = "Произошла ошибка во время отправки запроса на публикацию поста %s: %s";
     public static final String CUSTOMER_NOT_FOUND_ERROR_MSG = "Не найден пользователь с id %s";
+    public static final String UNRECOGNIZED_MEDIA_TYPE_ERROR_MSG = "Не определён медиа тип поста с id %s";
+    public static final String IMAGE_POST_NOT_FOUND_ERROR_MSG = "Не найден iamge пост с id %s";
+    public static final String VIDEO_POST_NOT_FOUND_ERROR_MSG = "Не найден video пост с id %s";
+    public static final String TOO_LONG_VIDEO_ERROR_MSG = "Слишком длинное видео на публикацию (продолжительность ролика не должна превышать 60 секунд)";
 
     /**
      * Messages
@@ -42,5 +46,5 @@ public class Constants {
      * Other
      */
     public static final String SOURCE_STRING_TEMPLATE = "Источник: https://www.instagram.com/p/%s/";
-    public static final int PUBLISHING_ERROR_COUNT_LIMIT = 3;
+    public static final int PUBLISHING_ERROR_COUNT_LIMIT = 1;
 }

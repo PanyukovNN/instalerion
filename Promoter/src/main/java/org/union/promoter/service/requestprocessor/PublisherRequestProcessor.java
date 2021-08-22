@@ -3,28 +3,27 @@ package org.union.promoter.service.requestprocessor;
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
 import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.union.common.Constants;
 import org.union.common.exception.NotFoundException;
 import org.union.common.exception.RequestException;
 import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.ImagePost;
+import org.union.common.model.post.MediaType;
 import org.union.common.model.post.Post;
-import org.union.common.model.post.PostMediaType;
 import org.union.common.model.post.VideoPost;
 import org.union.common.model.request.PublishPostRequest;
 import org.union.common.repository.ProducingChannelRepository;
-import org.union.common.service.CloudService;
-import org.union.common.service.InstaService;
-import org.union.common.service.PostService;
+import org.union.common.service.*;
 import org.union.promoter.service.RequestHelper;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.concurrent.ExecutionException;
 
+import static org.apache.logging.log4j.util.Strings.EMPTY;
 import static org.union.common.Constants.*;
 
 /**
@@ -34,12 +33,12 @@ import static org.union.common.Constants.*;
 @RequiredArgsConstructor
 public class PublisherRequestProcessor {
 
-    @Value("${publishing.errors.limit}")
-    private int publishingErrorsLimit;
     @Value("${kafka.publisher.topic}")
     private String topicName;
 
     private final PostService postService;
+    private final ImagePostService imagePostService;
+    private final VideoPostService videoPostService;
     private final CloudService cloudService;
     private final InstaService instaService;
     private final RequestHelper requestHelper;
@@ -56,39 +55,42 @@ public class PublisherRequestProcessor {
 
         checkPost(request, post);
 
-        ProducingChannel producingChannel = producingChannelRepository.findById(post.getProducingChannelId())
-                .orElseThrow(() -> new NotFoundException(String.format(Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, post.getProducingChannelId())));
+        try {
+            ProducingChannel producingChannel = producingChannelRepository.findById(post.getProducingChannelId())
+                    .orElseThrow(() -> new NotFoundException(String.format(Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, post.getProducingChannelId())));
 
-        requestHelper.checkOftenRequests(producingChannel.getLastPostingDateTime(), topicName);
+            requestHelper.checkOftenRequests(producingChannel.getLastPostingDateTime(), topicName);
 
-        // Login to instagram account
-        IGClient client = instaService.getClient(producingChannel);
+            // Login to instagram account
+            IGClient client = instaService.getClient(producingChannel);
 
-        MediaResponse.MediaConfigureTimelineResponse response = null;
-        if (post.getPostMediaType() == PostMediaType.IMAGE) {
-            response = publishImage((ImagePost) post, client);
-        } else if (post.getPostMediaType() == PostMediaType.VIDEO) {
-            response = publishVideo((VideoPost) post, client);
-        }
+            MediaResponse.MediaConfigureTimelineResponse response = null;
+            if (post.getMediaType().equals(MediaType.IMAGE.getValue())) {
+                response = publishImage(post.getId(), client);
+            } else if (post.getMediaType().equals(MediaType.VIDEO.getValue())) {
+                response = publishVideo(post.getId(), client);
+            } else {
+                throw new RequestException(String.format(UNRECOGNIZED_MEDIA_TYPE_ERROR_MSG, post.getId()));
+            }
 
-        checkResponse(post, response);
+            checkResponse(response);
 
-        post.setPublishDateTime(LocalDateTime.now());
-        postService.save(post);
-    }
-
-    private void checkResponse(Post post, MediaResponse.MediaConfigureTimelineResponse response) {
-        if (response == null) {
+            post.setPublishDateTime(LocalDateTime.now());
+            postService.save(post);
+        } catch (Exception e) {
             post.increasePublishingErrors();
             postService.save(post);
 
+            throw e;
+        }
+    }
+
+    private void checkResponse(MediaResponse.MediaConfigureTimelineResponse response) {
+        if (response == null) {
             throw new RequestException(NO_PUBLISHING_ANSWER_FROM_INSTAGRAM_ERROR_MSG);
         }
 
         if (response.getStatusCode() != 200) {
-            post.increasePublishingErrors();
-            postService.save(post);
-
             throw new RequestException(String.format(PUBLISHING_ERROR, response.getMessage()));
         }
     }
@@ -102,12 +104,15 @@ public class PublisherRequestProcessor {
             throw new RequestException(POST_ALREADY_PUBLISHED_ERROR_MSG);
         }
 
-        if (post.getPublishingErrorCount() > publishingErrorsLimit) {
+        if (post.getPublishingErrorCount() >= PUBLISHING_ERROR_COUNT_LIMIT) {
             throw new RequestException(POST_TOO_MANY_PUBLISHING_ERRORS);
         }
     }
 
-    private MediaResponse.MediaConfigureTimelineResponse publishImage(ImagePost imagePost, IGClient client) throws ExecutionException, InterruptedException {
+    private MediaResponse.MediaConfigureTimelineResponse publishImage(String postId, IGClient client) throws ExecutionException, InterruptedException {
+        ImagePost imagePost = imagePostService.findById(postId)
+                .orElseThrow(() -> new NotFoundException(String.format(IMAGE_POST_NOT_FOUND_ERROR_MSG, postId)));
+
         File imageFile = cloudService.getImageFileByCode(imagePost.getCode());
 
         if (!imageFile.exists()) {
@@ -117,7 +122,14 @@ public class PublisherRequestProcessor {
         return client.actions().timeline().uploadPhoto(imageFile, getCaption(imagePost)).get();
     }
 
-    private MediaResponse.MediaConfigureTimelineResponse publishVideo(VideoPost videoPost, IGClient client) throws ExecutionException, InterruptedException {
+    private MediaResponse.MediaConfigureTimelineResponse publishVideo(String postId, IGClient client) throws ExecutionException, InterruptedException {
+        VideoPost videoPost = videoPostService.findById(postId)
+                .orElseThrow(() -> new NotFoundException(String.format(VIDEO_POST_NOT_FOUND_ERROR_MSG, postId)));
+
+        if (videoPost.getDuration() > 60) {
+            throw new RequestException(TOO_LONG_VIDEO_ERROR_MSG);
+        }
+
         File videoFile = cloudService.getVideoFileByCode(videoPost.getCode());
         File coverFile = cloudService.getImageFileByCode(videoPost.getCode());
 
@@ -125,11 +137,16 @@ public class PublisherRequestProcessor {
             throw new RequestException(String.format(FILE_NOT_FOUND_ERROR_MSG, videoPost.getCode()));
         }
 
-        return client.actions().timeline().uploadVideo(videoFile, coverFile, getCaption(videoPost)).get();
+        return client
+                .actions()
+                .timeline()
+                .uploadVideo(videoFile, coverFile, getCaption(videoPost))
+                .get();
     }
 
     private String getCaption(Post post) {
-        return post.getDescription();
+        return EMPTY;
+        //post.getDescription();
 //        StringUtils.hasText(post.getDescription())
 //                ? post.getDescription() + "\n\n" + String.format(SOURCE_STRING_TEMPLATE, post.getCode())
 //                : String.format(SOURCE_STRING_TEMPLATE, post.getCode());

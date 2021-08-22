@@ -42,7 +42,7 @@ public class PublisherKafkaSender implements KafkaSender {
             return;
         }
 
-        PublishPostRequest request = new PublishPostRequest(post.getId());
+        PublishPostRequest request = new PublishPostRequest(post.getId(), post.getMediaType());
 
         Map<String, Object> mapRequest = kafkaHelper.serialize(request);
 

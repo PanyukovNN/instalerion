@@ -14,11 +14,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "post")
 public class VideoPost extends Post {
 
-//    @Id
-//    private String id;
-
     /**
      * Url of a cover
      */
     private String coverUrl;
+
+    private long duration;
 }

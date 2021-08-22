@@ -2,6 +2,7 @@ package org.union.common.model.post;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
@@ -38,7 +39,12 @@ public class Post {
      */
     private String code;
 
-    private PostMediaType postMediaType;
+    /**
+     * From instagram4j
+     * 1 - image
+     * 2 - video
+     */
+    private String mediaType;
 
     /**
      * Date time of the post publishing

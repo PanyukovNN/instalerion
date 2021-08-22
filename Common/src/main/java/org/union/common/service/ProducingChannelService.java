@@ -45,7 +45,7 @@ public class ProducingChannelService {
         ProducingChannel producingChannel = new ProducingChannel();
         if (producingChannelId != null) {
             ProducingChannel producingChannelFromDb = producingChannelRepository.findById(producingChannelId)
-                    .orElseThrow(() -> new NotFoundException(Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG));
+                    .orElseThrow(() -> new NotFoundException(String.format(Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, producingChannelId)));
             producingChannel.setId(producingChannelFromDb.getId());
         }
 
@@ -64,7 +64,7 @@ public class ProducingChannelService {
     @Transactional
     public void addConsumeChannels(String producingChannelId, List<ConsumingChannel> consumingChannels) {
         ProducingChannel producingChannel = producingChannelRepository.findById(producingChannelId)
-                .orElseThrow(() -> new NotFoundException(Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG));
+                .orElseThrow(() -> new NotFoundException(String.format(Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, producingChannelId)));
 
         if (producingChannel.getConsumingChannels() == null) {
             producingChannel.setConsumingChannels(new ArrayList<>());

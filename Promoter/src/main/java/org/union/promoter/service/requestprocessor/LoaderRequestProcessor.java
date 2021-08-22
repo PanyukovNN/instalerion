@@ -7,12 +7,6 @@ import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineVideoMedia;
 import com.github.instagram4j.instagram4j.requests.feed.FeedUserRequest;
 import com.github.instagram4j.instagram4j.responses.feed.FeedUserResponse;
-import org.union.common.model.ConsumingChannel;
-import org.union.common.model.ProducingChannel;
-import org.union.common.model.post.ImagePost;
-import org.union.common.model.post.PostMediaType;
-import org.union.common.model.post.VideoPost;
-import org.union.promoter.service.RequestHelper;
 import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -20,7 +14,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.union.common.model.ConsumingChannel;
+import org.union.common.model.ProducingChannel;
+import org.union.common.model.post.ImagePost;
+import org.union.common.model.post.MediaType;
+import org.union.common.model.post.Post;
+import org.union.common.model.post.VideoPost;
 import org.union.common.service.*;
+import org.union.promoter.service.RequestHelper;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -50,6 +51,8 @@ public class LoaderRequestProcessor {
     private String topicName;
 
     private final PostService postService;
+    private final VideoPostService videoPostService;
+    private final ImagePostService imagePostService;
     private final CloudService cloudService;
     private final InstaService instaService;
     private final RequestHelper requestHelper;
@@ -147,12 +150,13 @@ public class LoaderRequestProcessor {
                 .filter(TimelineVideoMedia.class::isInstance)
                 .map(TimelineVideoMedia.class::cast)
                 .map(videoItem -> getVideoPost(producingChannel, videoItem))
+                .filter(videoPost -> videoPost.getMediaType().equals(MediaType.VIDEO.getValue()))
                 .filter(videoPost -> videoPost.getCode() != null)
-                .map(postService::save)
+                .map(videoPostService::save)
                 .collect(Collectors.toList());
 
         cloudService.saveVideoPosts(videoPosts);
-        consumingChannel.setVideoPosts(videoPosts);
+        addVideoPostsToConsumingChannel(consumingChannel, videoPosts);
 
         logger.info(String.format(SAVED_VIDEOS_FROM_CHANNEL_MSG, videoPosts.size(), consumingChannel.getName()));
     }
@@ -162,14 +166,35 @@ public class LoaderRequestProcessor {
                 .filter(TimelineImageMedia.class::isInstance)
                 .map(TimelineImageMedia.class::cast)
                 .map(imageItem -> getImagePost(producingChannel, imageItem))
+                .filter(videoPost -> videoPost.getMediaType().equals(MediaType.IMAGE.getValue()))
                 .filter(imagePost -> imagePost.getCode() != null)
-                .map(postService::save)
+                .map(imagePostService::save)
                 .collect(Collectors.toList());
 
         cloudService.saveImagePosts(imagePosts);
-        consumingChannel.setImagePosts(imagePosts);
+        addImagePostsToConsumingChannel(consumingChannel, imagePosts);
 
         logger.info(String.format(SAVED_IMAGES_FROM_CHANNEL_MSG, imagePosts.size(), consumingChannel.getName()));
+    }
+
+    private void addVideoPostsToConsumingChannel(ConsumingChannel consumingChannel, List<VideoPost> postsToAdd) {
+        List<Post> posts = consumingChannel.getVideoPosts();
+
+        if (posts == null) {
+            consumingChannel.setVideoPosts(new ArrayList<>());
+        }
+
+        consumingChannel.getVideoPosts().addAll(postsToAdd);
+    }
+
+    private void addImagePostsToConsumingChannel(ConsumingChannel consumingChannel, List<ImagePost> postsToAdd) {
+        List<Post> posts = consumingChannel.getImagePosts();
+
+        if (posts == null) {
+            consumingChannel.setImagePosts(new ArrayList<>());
+        }
+
+        consumingChannel.getImagePosts().addAll(postsToAdd);
     }
 
     /**
@@ -191,7 +216,8 @@ public class LoaderRequestProcessor {
                 videoPost.setDescription("");
             }
 
-            videoPost.setPostMediaType(PostMediaType.VIDEO);
+            videoPost.setMediaType(video.getMedia_type());
+            videoPost.setDuration(video.getVideo_duration());
             videoPost.setUrl(video.getVideo_versions().get(0).getUrl());
             videoPost.setCoverUrl(video.getImage_versions2().getCandidates().get(0).getUrl());
             videoPost.setProducingChannelId(producingChannel.getId());
@@ -221,7 +247,7 @@ public class LoaderRequestProcessor {
                 imagePost.setDescription("");
             }
 
-            imagePost.setPostMediaType(PostMediaType.IMAGE);
+            imagePost.setMediaType(image.getMedia_type());
             imagePost.setUrl(image.getImage_versions2().getCandidates().get(0).getUrl());
             imagePost.setProducingChannelId(producingChannel.getId());
         } catch (Exception e) {
