@@ -22,7 +22,8 @@ import java.util.stream.Collectors;
 import static org.union.common.Constants.CUSTOMER_NOT_FOUND_ERROR_MSG;
 import static org.union.common.Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG;
 
-@RestController("/post")
+@RestController
+@RequestMapping("/post")
 @RequiredArgsConstructor
 public class PostController {
 
@@ -33,10 +34,10 @@ public class PostController {
         return postService.findAll();
     }
 
-    @GetMapping("/removeAll")
+    @GetMapping("/remove-all")
     public String removeAllPosts() {
         postService.removeAll();
 
-        return "All posts successfully removed";
+        return "All posts removed successfully.";
     }
 }

@@ -8,7 +8,6 @@ import org.union.common.model.ConsumingChannel;
 import org.union.common.model.Customer;
 import org.union.common.model.ProducingChannel;
 import org.union.common.model.dto.ProducingChannelDto;
-import org.union.common.model.post.Post;
 import org.union.common.model.request.ChangeConsumingChannelsRequest;
 import org.union.common.model.request.CreateUpdateProducingChannelRequest;
 import org.union.common.service.ConsumingChannelService;
@@ -26,7 +25,6 @@ import static org.union.common.Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG;
 @RequiredArgsConstructor
 public class InstalerionController {
 
-    private final PostService postService;
     private final CustomerService customerService;
     private final ProducingChannelService producingChannelService;
     private final ConsumingChannelService consumingChannelService;
@@ -46,11 +44,6 @@ public class InstalerionController {
     @GetMapping("/consuming-channel/all")
     public List<ConsumingChannel> getAllConsumingChannel() {
         return consumingChannelService.findAll();
-    }
-
-    @GetMapping("/post/all")
-    public List<Post> getAllPosts() {
-        return postService.findAll();
     }
 
     @PostMapping("/user/create")
