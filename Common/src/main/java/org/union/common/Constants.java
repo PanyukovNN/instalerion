@@ -21,7 +21,7 @@ public class Constants {
     public static final String NULL_CONSUMING_CHANNEL_ERROR_MSG = "Consuming channel is null";
     public static final String TOO_OFTEN_REQUESTS_ERROR_MSG = "Выполнение %s отменено из-за слишком частых запросов.";
     public static final String NO_PUBLISHING_ANSWER_FROM_INSTAGRAM_ERROR_MSG = "Нет ответа о публикации от сервера инстаграм";
-    public static final String PUBLISHING_ERROR = "Ошибка публикации: %s";
+    public static final String PUBLISHING_STATUS_ERROR = "Публикация неудачна, получен ответ от instagram со статусом %s, сообщение: %s";
     public static final String ERROR_WHILE_CONSUME_CHANNEL_LOADING = "Ошибка загрузки постов с канала %s";
     public static final String ERROR_WHILE_LOADER_REQUEST_SENDING = "Произошла ошибка во время отправки запроса на загрузку постов %s: %s";
     public static final String ERROR_WHILE_PUBLISHER_REQUEST_SENDING = "Произошла ошибка во время отправки запроса на публикацию поста %s: %s";
@@ -30,6 +30,8 @@ public class Constants {
     public static final String IMAGE_POST_NOT_FOUND_ERROR_MSG = "Не найден iamge пост с id %s";
     public static final String VIDEO_POST_NOT_FOUND_ERROR_MSG = "Не найден video пост с id %s";
     public static final String TOO_LONG_VIDEO_ERROR_MSG = "Слишком длинное видео на публикацию (продолжительность ролика не должна превышать 60 секунд)";
+    public static final String NO_POST_MEDIA_INFO_ERROR_MSG = "В ответе от instagram отсутствует media информация о публикации %s";
+    public static final String POST_PUBLICATION_NOT_CONFIRMED_ERROR_MSG = "Публикация поста не подтверждена. Нет информации о посте %s";
 
     /**
      * Messages
@@ -41,6 +43,7 @@ public class Constants {
     public static final String PUBLISHER_REQUEST_SUCCESSFULLY_SENT = "Запрос на публикацию поста успешно отправлен: %s";
     public static final String SAVED_IMAGES_FROM_CHANNEL_MSG = "Сохранено %d фото с канала %s";
     public static final String SAVED_VIDEOS_FROM_CHANNEL_MSG = "Сохранено %d видео с канала %s";
+    public static final String PRODUCING_CHANNEL_DISABLED_MSG = "Канал публикации %s отключен.";
 
     /**
      * Other

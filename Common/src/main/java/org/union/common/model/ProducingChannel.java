@@ -60,4 +60,9 @@ public class ProducingChannel {
      */
     @DBRef
     private Customer customer;
+
+    /**
+     * Is enabled
+     */
+    private boolean enabled = true;
 }

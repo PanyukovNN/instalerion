@@ -56,6 +56,7 @@ public class LoaderRequestProcessor {
     private final CloudService cloudService;
     private final InstaService instaService;
     private final RequestHelper requestHelper;
+    private final DateTimeHelper dateTimeHelper;
     private final ProducingChannelService producingChannelService;
     private final ConsumingChannelService consumingChannelService;
 
@@ -87,7 +88,7 @@ public class LoaderRequestProcessor {
             }
         }
 
-        producingChannel.setLastLoadingDateTime(LocalDateTime.now());
+        producingChannel.setLastLoadingDateTime(dateTimeHelper.getCurrentDateTime());
         consumingChannelService.saveAll(consumingChannels);
         producingChannelService.save(producingChannel);
     }
@@ -127,8 +128,9 @@ public class LoaderRequestProcessor {
             // filter posts by time and existing in database
             List<TimelineMedia> filteredResponseItems = responseItems.stream()
                     .filter(item -> getDateTime(item.getTaken_at() * 1000)
-                            .isAfter(LocalDateTime.now().minusDays(postDays)))
-                    .filter(videoPost -> !postService.exists(videoPost.getCode(), producingChannel.getId()))
+                            .isAfter(dateTimeHelper.getCurrentDateTime().minusDays(postDays)))
+                    .filter(post -> !postService.exists(post.getCode(), producingChannel.getId()))
+                    .filter(post -> post.getCaption().getText() != null )
                     .collect(Collectors.toList());
 
             timelineItems.addAll(filteredResponseItems);
@@ -150,6 +152,7 @@ public class LoaderRequestProcessor {
                 .filter(TimelineVideoMedia.class::isInstance)
                 .map(TimelineVideoMedia.class::cast)
                 .map(videoItem -> getVideoPost(producingChannel, videoItem))
+                .filter(videoPost -> videoPost.getDuration() <= 60)
                 .filter(videoPost -> videoPost.getMediaType().equals(MediaType.VIDEO.getValue()))
                 .filter(videoPost -> videoPost.getCode() != null)
                 .map(videoPostService::save)

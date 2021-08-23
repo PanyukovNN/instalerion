@@ -15,8 +15,7 @@ import org.union.instalerion.kafka.PublisherKafkaSender;
 
 import java.util.List;
 
-import static org.union.common.Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG;
-import static org.union.common.Constants.WORKING_ON_PAUSE_IN_NIGHT_MSG;
+import static org.union.common.Constants.*;
 
 /**
  * Main processor
@@ -36,11 +35,11 @@ public class InstalerionService {
     @Scheduled(fixedRateString = "${processor.scheduler.fixed.rate.mills}")
     public void schedule() {
         // skip night time
-//        if (dateTimeHelper.isNight()) {
-//            logger.info(WORKING_ON_PAUSE_IN_NIGHT_MSG);
-//
-//            return;
-//        }
+        if (dateTimeHelper.isNight()) {
+            logger.info(WORKING_ON_PAUSE_IN_NIGHT_MSG);
+
+            return;
+        }
 
         List<Customer> customers = customerService.findAll();
 
@@ -54,6 +53,12 @@ public class InstalerionService {
             // TODO выводить сообщение если нет каналов публикации
 
             for (ProducingChannel producingChannel: producingChannels) {
+                if (!producingChannel.isEnabled()) {
+                    logger.info(String.format(PRODUCING_CHANNEL_DISABLED_MSG, producingChannel.getId()));
+
+                    continue;
+                }
+
                 if (producingChannel.getId() == null) {
                     logger.info(String.format(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, producingChannel.getId()));
 
