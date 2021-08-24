@@ -1,5 +1,6 @@
 package org.union.common.service;
 
+import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import org.union.common.model.post.Post;
 import org.union.common.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,11 +32,25 @@ public class PostService {
         return postRepository.findById(postId);
     }
 
-    public Optional<Post> findAnyForPublication(String producingChannelId) {
-        return postRepository.findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThan(producingChannelId, Constants.PUBLISHING_ERROR_COUNT_LIMIT);
+    /**
+     * Returns unpublished post with highest rating
+     *
+     * @param producingChannelId id of producing channel
+     * @return optional of post
+     */
+    public Optional<Post> findMostRated(String producingChannelId) {
+        return postRepository.findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThanOrderByRatingDesc(producingChannelId, Constants.PUBLISHING_ERROR_COUNT_LIMIT);
     }
 
     public void removeAll() {
         postRepository.deleteAll();
+    }
+
+    public double calculateRating(TimelineMedia media, int viewCount) {
+        if (viewCount == 0) {
+            return 0d;
+        }
+
+        return (double) (media.getComment_count() + media.getLike_count()) / viewCount;
     }
 }

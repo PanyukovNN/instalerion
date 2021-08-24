@@ -13,6 +13,8 @@ dependencies {
 
     // Для использования FileUtils
     implementation 'commons-io:commons-io:2.8.0'
+
+    implementation rootProject.ext.library.jImageHash
 }
 
 bootJar.enabled = false

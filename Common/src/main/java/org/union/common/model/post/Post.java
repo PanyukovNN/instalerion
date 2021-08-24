@@ -57,6 +57,12 @@ public class Post {
     private int publishingErrorCount;
 
     /**
+     * Rating of post, calculated by formula (likes + comments)/views
+     * To calculate rate post must be published not earlier that 2 hours from now
+     */
+    private double rating;
+
+    /**
      * Increase publishing errors counter
      */
     public void increasePublishingErrors() {

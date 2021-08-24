@@ -33,7 +33,7 @@ public class PublisherKafkaSender implements KafkaSender {
 
     @Override
     public void send(String producingChannelId) {
-        Post post = postService.findAnyForPublication(producingChannelId)
+        Post post = postService.findMostRated(producingChannelId)
                 .orElse(null);
 
         if (post == null) {

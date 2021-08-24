@@ -12,6 +12,7 @@ dependencies {
         exclude group: 'com.squareup.okhttp3', module: 'okhttp'
     }
     implementation rootProject.ext.library.okhttp
+    implementation rootProject.ext.library.jImageHash
 
     implementation project(':Common')
 }

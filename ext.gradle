@@ -18,6 +18,8 @@ ext.library = [
         'kafkaCommon':'org.apache.kafka:kafka_2.13:2.8.0',
 
         'springKafka':'org.springframework.kafka:spring-kafka:2.7.5',
+
+        'jImageHash':'com.github.kilianB:JImageHash:3.0.0',
 ]
 
 ext.libraryTest = [

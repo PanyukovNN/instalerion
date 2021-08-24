@@ -27,11 +27,11 @@ public class LoaderKafkaListener {
     @KafkaListener(topics = "${kafka.loader.topic}", groupId = "${kafka.group}")
     public void listenLoader(String request) {
         try {
-//            LoadPostsRequest loadPostsRequest = kafkaHelper.deserialize(request, LoadPostsRequest.class);
-//
-//            logger.info(String.format(LOAD_POSTS_REQUEST_RECEIVED_MSG, loadPostsRequest.getConsumerId()));
-//
-//            loaderRequestProcessor.load(loadPostsRequest.getConsumerId());
+            LoadPostsRequest loadPostsRequest = kafkaHelper.deserialize(request, LoadPostsRequest.class);
+
+            logger.info(String.format(LOAD_POSTS_REQUEST_RECEIVED_MSG, loadPostsRequest.getConsumerId()));
+
+            loaderRequestProcessor.load(loadPostsRequest.getConsumerId());
         } catch (Exception e) {
             logger.error(String.format(ERROR_WHILE_LOADING, request), e);
 

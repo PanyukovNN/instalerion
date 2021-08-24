@@ -2,11 +2,13 @@ package org.union.promoter.service.requestprocessor;
 
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.actions.users.UserAction;
+import com.github.instagram4j.instagram4j.models.media.timeline.Comment;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineImageMedia;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineVideoMedia;
 import com.github.instagram4j.instagram4j.requests.feed.FeedUserRequest;
 import com.github.instagram4j.instagram4j.responses.feed.FeedUserResponse;
+import io.micrometer.core.instrument.util.StringUtils;
 import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -14,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.union.common.model.ConsumingChannel;
 import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.ImagePost;
@@ -125,12 +128,19 @@ public class LoaderRequestProcessor {
 
             List<TimelineMedia> responseItems = feedUserResponse.getItems();
 
-            // filter posts by time and existing in database
+            // filter posts by time/database existence/advertising
             List<TimelineMedia> filteredResponseItems = responseItems.stream()
-                    .filter(item -> getDateTime(item.getTaken_at() * 1000)
-                            .isAfter(dateTimeHelper.getCurrentDateTime().minusDays(postDays)))
+                    .filter(item -> {
+                        // filter posts taken more that 2 hours from now and earlier than current time minus postDays
+                        LocalDateTime takenAt = getDateTime(item.getTaken_at() * 1000);
+                        LocalDateTime now = dateTimeHelper.getCurrentDateTime();
+
+                        return takenAt.isBefore(now.minusDays(1))
+                                && takenAt.isAfter(now.minusDays(postDays));
+                    })
                     .filter(post -> !postService.exists(post.getCode(), producingChannel.getId()))
-                    .filter(post -> post.getCaption().getText() != null )
+                    .filter(post -> post.getCode() != null)
+                    .filter(post -> !isAdvertising(post, consumeChannelName))
                     .collect(Collectors.toList());
 
             timelineItems.addAll(filteredResponseItems);
@@ -147,14 +157,46 @@ public class LoaderRequestProcessor {
         return timelineItems;
     }
 
+    /**
+     * Check does media contain advertising (usertags or outer links)
+     *
+     * @param media media
+     * @param consumingChannelName name of consuming channel
+     * @return is contain ad
+     */
+    private boolean isAdvertising(TimelineMedia media, String consumingChannelName) {
+        // check usertags
+        if (media.getUsertags() != null
+                && !CollectionUtils.isEmpty(media.getUsertags().getIn())) {
+            return true;
+        }
+
+        if (media.getCaption() != null) {
+            String captionText = media.getCaption().getText();
+
+            if (StringUtils.isEmpty(captionText)) {
+                return false;
+            }
+
+            // remove links on consuming chanel
+            captionText = captionText.replace("@" + consumingChannelName, "");
+
+            // check outer links
+            return captionText.contains("@")
+                    || captionText.contains("http://")
+                    || captionText.contains("https://");
+        }
+
+        return false;
+    }
+
     private void processVideoPosts(ProducingChannel producingChannel, ConsumingChannel consumingChannel, List<TimelineMedia> timelineItems) throws IOException {
         List<VideoPost> videoPosts = timelineItems.stream()
                 .filter(TimelineVideoMedia.class::isInstance)
                 .map(TimelineVideoMedia.class::cast)
+                .filter(videoPost -> videoPost.getVideo_duration() <= 60)
+                .filter(videoPost -> videoPost.getMedia_type().equals(MediaType.VIDEO.getValue()))
                 .map(videoItem -> getVideoPost(producingChannel, videoItem))
-                .filter(videoPost -> videoPost.getDuration() <= 60)
-                .filter(videoPost -> videoPost.getMediaType().equals(MediaType.VIDEO.getValue()))
-                .filter(videoPost -> videoPost.getCode() != null)
                 .map(videoPostService::save)
                 .collect(Collectors.toList());
 
@@ -168,9 +210,8 @@ public class LoaderRequestProcessor {
         List<ImagePost> imagePosts = timelineItems.stream()
                 .filter(TimelineImageMedia.class::isInstance)
                 .map(TimelineImageMedia.class::cast)
+                .filter(imageItem -> imageItem.getMedia_type().equals(MediaType.IMAGE.getValue()))
                 .map(imageItem -> getImagePost(producingChannel, imageItem))
-                .filter(videoPost -> videoPost.getMediaType().equals(MediaType.IMAGE.getValue()))
-                .filter(imagePost -> imagePost.getCode() != null)
                 .map(imagePostService::save)
                 .collect(Collectors.toList());
 
@@ -219,6 +260,8 @@ public class LoaderRequestProcessor {
                 videoPost.setDescription("");
             }
 
+            videoPost.setRating(postService.calculateRating(video, video.getView_count()));
+
             videoPost.setMediaType(video.getMedia_type());
             videoPost.setDuration(video.getVideo_duration());
             videoPost.setUrl(video.getVideo_versions().get(0).getUrl());
@@ -249,6 +292,8 @@ public class LoaderRequestProcessor {
             } else {
                 imagePost.setDescription("");
             }
+
+            imagePost.setRating(postService.calculateRating(image, image.getView_count()));
 
             imagePost.setMediaType(image.getMedia_type());
             imagePost.setUrl(image.getImage_versions2().getCandidates().get(0).getUrl());
