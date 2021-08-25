@@ -1,6 +1,7 @@
 package org.union.common.service;
 
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
+import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.Post;
 import org.union.common.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -52,5 +53,9 @@ public class PostService {
         }
 
         return (double) (media.getComment_count() + media.getLike_count()) / viewCount;
+    }
+
+    public List<Post> findPublishedInProducingChannel(ProducingChannel producingChannel) {
+        return postRepository.findByProducingChannelIdAndPublishDateTimeIsNotNull(producingChannel.getId());
     }
 }

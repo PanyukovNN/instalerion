@@ -8,6 +8,7 @@ import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineVideoMedia;
 import com.github.instagram4j.instagram4j.requests.feed.FeedUserRequest;
 import com.github.instagram4j.instagram4j.responses.feed.FeedUserResponse;
+import com.github.kilianB.matcher.persistent.ConsecutiveMatcher;
 import io.micrometer.core.instrument.util.StringUtils;
 import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -54,12 +55,13 @@ public class LoaderRequestProcessor {
     private String topicName;
 
     private final PostService postService;
-    private final VideoPostService videoPostService;
-    private final ImagePostService imagePostService;
+    private final ImageMatcher imageMatcher;
     private final CloudService cloudService;
     private final InstaService instaService;
     private final RequestHelper requestHelper;
     private final DateTimeHelper dateTimeHelper;
+    private final ImagePostService imagePostService;
+    private final VideoPostService videoPostService;
     private final ProducingChannelService producingChannelService;
     private final ConsumingChannelService consumingChannelService;
 
@@ -99,11 +101,14 @@ public class LoaderRequestProcessor {
     private void processConsumeChannel(ProducingChannel producingChannel, IGClient client, ConsumingChannel consumingChannel) throws InterruptedException, ExecutionException, IOException {
         List<TimelineMedia> timelineItems = loadConsumingChannelPosts(producingChannel, client, consumingChannel);
 
-        processVideoPosts(producingChannel, consumingChannel, timelineItems);
-        processImagePosts(producingChannel, consumingChannel, timelineItems);
+        List<Post> publishedPosts = postService.findPublishedInProducingChannel(producingChannel);
+        ConsecutiveMatcher matcher = imageMatcher.createMatcher(publishedPosts);
+
+        processVideoPosts(matcher, producingChannel, consumingChannel, timelineItems);
+        processImagePosts(matcher, producingChannel, consumingChannel, timelineItems);
     }
 
-    private List<TimelineMedia> loadConsumingChannelPosts(ProducingChannel producingChannel, IGClient client, ConsumingChannel consumingChannel) throws InterruptedException, ExecutionException {
+    private List<TimelineMedia> loadConsumingChannelPosts(ProducingChannel producingChannel, IGClient client, ConsumingChannel consumingChannel) throws InterruptedException, ExecutionException, IOException {
         String consumeChannelName = consumingChannel.getName();
 
         UserAction userAction = client.actions().users().findByUsername(consumeChannelName).get();
@@ -190,13 +195,14 @@ public class LoaderRequestProcessor {
         return false;
     }
 
-    private void processVideoPosts(ProducingChannel producingChannel, ConsumingChannel consumingChannel, List<TimelineMedia> timelineItems) throws IOException {
+    private void processVideoPosts(ConsecutiveMatcher matcher, ProducingChannel producingChannel, ConsumingChannel consumingChannel, List<TimelineMedia> timelineItems) throws IOException {
         List<VideoPost> videoPosts = timelineItems.stream()
                 .filter(TimelineVideoMedia.class::isInstance)
                 .map(TimelineVideoMedia.class::cast)
                 .filter(videoPost -> videoPost.getVideo_duration() <= 60)
                 .filter(videoPost -> videoPost.getMedia_type().equals(MediaType.VIDEO.getValue()))
                 .map(videoItem -> getVideoPost(producingChannel, videoItem))
+                .filter(videoPost -> !imageMatcher.isDuplicate(matcher, videoPost.getCoverUrl(), videoPost.getCode()))
                 .map(videoPostService::save)
                 .collect(Collectors.toList());
 
@@ -206,12 +212,13 @@ public class LoaderRequestProcessor {
         logger.info(String.format(SAVED_VIDEOS_FROM_CHANNEL_MSG, videoPosts.size(), consumingChannel.getName()));
     }
 
-    private void processImagePosts(ProducingChannel producingChannel, ConsumingChannel consumingChannel, List<TimelineMedia> timelineItems) throws IOException {
+    private void processImagePosts(ConsecutiveMatcher matcher, ProducingChannel producingChannel, ConsumingChannel consumingChannel, List<TimelineMedia> timelineItems) throws IOException {
         List<ImagePost> imagePosts = timelineItems.stream()
                 .filter(TimelineImageMedia.class::isInstance)
                 .map(TimelineImageMedia.class::cast)
                 .filter(imageItem -> imageItem.getMedia_type().equals(MediaType.IMAGE.getValue()))
                 .map(imageItem -> getImagePost(producingChannel, imageItem))
+                .filter(imagePost -> !imageMatcher.isDuplicate(matcher, imagePost.getUrl(), imagePost.getCode()))
                 .map(imagePostService::save)
                 .collect(Collectors.toList());
 

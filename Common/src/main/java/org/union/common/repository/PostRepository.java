@@ -4,6 +4,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 import org.union.common.model.post.Post;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -29,4 +30,6 @@ public interface PostRepository extends MongoRepository<Post, String> {
      * @return video post
      */
     Optional<Post> findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThanOrderByRatingDesc(String producingChannelId, int errorCountLimit);
+
+    List<Post> findByProducingChannelIdAndPublishDateTimeIsNotNull(String producingChannelId);
 }
