@@ -3,7 +3,6 @@ package org.union.common.service;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
 import org.union.common.model.post.ImagePost;
-import org.union.common.model.post.Post;
 import org.union.common.model.post.VideoPost;
 
 import java.io.File;
@@ -39,10 +38,10 @@ public class CloudService {
     public void saveVideoPosts(List<VideoPost> videoPosts) throws IOException {
         for (VideoPost videoPost : videoPosts) {
             // Сохраняем видео
-            saveByUrl(videoPost.getUrl(), videoPost.getCode() + ".mp4");
+            saveByUrl(videoPost.getVideoUrl(), videoPost.getCode() + ".mp4");
 
             // Сохраняем фото обложки
-            saveByUrl(videoPost.getCoverUrl(), videoPost.getCode() + ".jpg");
+            saveByUrl(videoPost.getImageUrl(), videoPost.getCode() + ".jpg");
         }
     }
 
@@ -54,7 +53,7 @@ public class CloudService {
      */
     public void saveImagePosts(List<ImagePost> imagePosts) throws IOException {
         for (ImagePost imagePost : imagePosts) {
-            saveByUrl(imagePost.getUrl(), imagePost.getCode() + ".jpg");
+            saveByUrl(imagePost.getImageUrl(), imagePost.getCode() + ".jpg");
         }
     }
 

@@ -32,6 +32,7 @@ public class Constants {
     public static final String TOO_LONG_VIDEO_ERROR_MSG = "Слишком длинное видео на публикацию (продолжительность ролика не должна превышать 60 секунд)";
     public static final String NO_POST_MEDIA_INFO_ERROR_MSG = "В ответе от instagram отсутствует media информация о публикации %s";
     public static final String POST_PUBLICATION_NOT_CONFIRMED_ERROR_MSG = "Публикация поста не подтверждена. Нет информации о посте %s";
+    public static final String IMPOSSIBLE_TO_LOAD_IMAGE_BY_URL_ERROR_MSG = "Не удалось загрузить изображение поста для поиска дубликатов.";
 
     /**
      * Messages
@@ -50,4 +51,5 @@ public class Constants {
      */
     public static final String SOURCE_STRING_TEMPLATE = "Источник: https://www.instagram.com/p/%s/";
     public static final int PUBLISHING_ERROR_COUNT_LIMIT = 1;
+    public static final double IMAGE_MATCHING_THRESHOLD = 3d;
 }

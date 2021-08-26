@@ -65,9 +65,9 @@ public class InstalerionService {
                     continue;
                 }
 
-                if (producingChannelService.isLoadingTime(producingChannel)) {
+//                if (producingChannelService.isLoadingTime(producingChannel)) {
                     loaderKafkaSender.send(producingChannel.getId());
-                }
+//                }
 
                 if (producingChannelService.isPublishingTime(producingChannel)) {
                     publisherKafkaSender.send(producingChannel.getId());

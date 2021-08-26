@@ -2,7 +2,6 @@ package org.union.common.model.post;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
@@ -25,9 +24,9 @@ public class Post {
     private String producingChannelId;
 
     /**
-     * Url of a file
+     * Url of an image (a cover for video posts)
      */
-    private String url;
+    private String imageUrl;
 
     /**
      * Post author description

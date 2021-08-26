@@ -2,7 +2,6 @@ package org.union.promoter.service.requestprocessor;
 
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.actions.users.UserAction;
-import com.github.instagram4j.instagram4j.models.media.timeline.Comment;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineImageMedia;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineVideoMedia;
@@ -77,7 +76,7 @@ public class LoaderRequestProcessor {
         ProducingChannel producingChannel = producingChannelService.findById(producingChannelId)
                 .orElseThrow(() -> new NotFoundException(String.format(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, producingChannelId)));
 
-        requestHelper.checkOftenRequests(producingChannel.getLastLoadingDateTime(), topicName);
+//        requestHelper.checkOftenRequests(producingChannel.getLastLoadingDateTime(), topicName);
 
         // Login to access instagram account
         IGClient client = instaService.getClient(producingChannel);
@@ -108,7 +107,7 @@ public class LoaderRequestProcessor {
         processImagePosts(matcher, producingChannel, consumingChannel, timelineItems);
     }
 
-    private List<TimelineMedia> loadConsumingChannelPosts(ProducingChannel producingChannel, IGClient client, ConsumingChannel consumingChannel) throws InterruptedException, ExecutionException, IOException {
+    private List<TimelineMedia> loadConsumingChannelPosts(ProducingChannel producingChannel, IGClient client, ConsumingChannel consumingChannel) throws InterruptedException, ExecutionException {
         String consumeChannelName = consumingChannel.getName();
 
         UserAction userAction = client.actions().users().findByUsername(consumeChannelName).get();
@@ -141,7 +140,7 @@ public class LoaderRequestProcessor {
                         LocalDateTime now = dateTimeHelper.getCurrentDateTime();
 
                         return takenAt.isBefore(now.minusDays(1))
-                                && takenAt.isAfter(now.minusDays(postDays));
+                                && takenAt.isAfter(now.minusDays(postDays + 1));
                     })
                     .filter(post -> !postService.exists(post.getCode(), producingChannel.getId()))
                     .filter(post -> post.getCode() != null)
@@ -202,7 +201,7 @@ public class LoaderRequestProcessor {
                 .filter(videoPost -> videoPost.getVideo_duration() <= 60)
                 .filter(videoPost -> videoPost.getMedia_type().equals(MediaType.VIDEO.getValue()))
                 .map(videoItem -> getVideoPost(producingChannel, videoItem))
-                .filter(videoPost -> !imageMatcher.isDuplicate(matcher, videoPost.getCoverUrl(), videoPost.getCode()))
+                .filter(videoPost -> imageMatcher.isUniqueImage(matcher, videoPost.getImageUrl(), videoPost.getCode()))
                 .map(videoPostService::save)
                 .collect(Collectors.toList());
 
@@ -218,7 +217,7 @@ public class LoaderRequestProcessor {
                 .map(TimelineImageMedia.class::cast)
                 .filter(imageItem -> imageItem.getMedia_type().equals(MediaType.IMAGE.getValue()))
                 .map(imageItem -> getImagePost(producingChannel, imageItem))
-                .filter(imagePost -> !imageMatcher.isDuplicate(matcher, imagePost.getUrl(), imagePost.getCode()))
+                .filter(imagePost -> imageMatcher.isUniqueImage(matcher, imagePost.getImageUrl(), imagePost.getCode()))
                 .map(imagePostService::save)
                 .collect(Collectors.toList());
 
@@ -271,8 +270,8 @@ public class LoaderRequestProcessor {
 
             videoPost.setMediaType(video.getMedia_type());
             videoPost.setDuration(video.getVideo_duration());
-            videoPost.setUrl(video.getVideo_versions().get(0).getUrl());
-            videoPost.setCoverUrl(video.getImage_versions2().getCandidates().get(0).getUrl());
+            videoPost.setVideoUrl(video.getVideo_versions().get(0).getUrl());
+            videoPost.setImageUrl(video.getImage_versions2().getCandidates().get(0).getUrl());
             videoPost.setProducingChannelId(producingChannel.getId());
         } catch (Exception e) {
             logger.error(String.format(TRANSFORM_TO_VIDEO_POST_ERROR_MSG, e.getMessage()), e);
@@ -303,7 +302,7 @@ public class LoaderRequestProcessor {
             imagePost.setRating(postService.calculateRating(image, image.getView_count()));
 
             imagePost.setMediaType(image.getMedia_type());
-            imagePost.setUrl(image.getImage_versions2().getCandidates().get(0).getUrl());
+            imagePost.setImageUrl(image.getImage_versions2().getCandidates().get(0).getUrl());
             imagePost.setProducingChannelId(producingChannel.getId());
         } catch (Exception e) {
             logger.error(String.format(TRANSFORM_TO_IMAGE_POST_ERROR_MSG, e.getMessage()), e);

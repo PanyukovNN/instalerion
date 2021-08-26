@@ -15,9 +15,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class VideoPost extends Post {
 
     /**
-     * Url of a cover
+     * Url of a video
      */
-    private String coverUrl;
+    private String videoUrl;
 
     private long duration;
 }
