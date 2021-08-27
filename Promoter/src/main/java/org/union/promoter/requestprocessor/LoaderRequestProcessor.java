@@ -103,6 +103,8 @@ public class LoaderRequestProcessor {
         List<Post> publishedPosts = postService.findPublishedInProducingChannel(producingChannel);
         ConsecutiveMatcher matcher = imageMatcher.createMatcher(publishedPosts);
 
+        System.out.println(String.format("Загружено %d постов", timelineItems.size()));
+
         processVideoPosts(matcher, producingChannel, consumingChannel, timelineItems);
         processImagePosts(matcher, producingChannel, consumingChannel, timelineItems);
     }

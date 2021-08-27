@@ -63,18 +63,33 @@ public class ImageMatcher {
         BufferedImage image = getBufferedImageByUrl(imageUrl)
                 .orElseThrow(() -> new IllegalArgumentException(IMPOSSIBLE_TO_LOAD_IMAGE_BY_URL_ERROR_MSG));
 
-        PriorityQueue<Result<String>> matchingImages = matcher.getMatchingImages(image);
+        PriorityQueue<Result<String>> matchingImages = getMatchingImages(matcher, code, image);
 
-        boolean hasMatch = matchingImages
+        boolean noMatch = matchingImages
                 .stream()
-                .anyMatch(matchingImage -> matchingImage.distance < IMAGE_MATCHING_THRESHOLD);
+                .noneMatch(matchingImage -> matchingImage.distance < IMAGE_MATCHING_THRESHOLD);
 
-        if (hasMatch) {
-            return true;
-        } else {
+        if (noMatch) {
             matcher.addImage(code, image);
 
+            return true;
+        } else {
             return false;
+        }
+    }
+
+    private PriorityQueue<Result<String>> getMatchingImages(ConsecutiveMatcher matcher, String code, BufferedImage image) {
+        try {
+            return matcher.getMatchingImages(image);
+        } catch (IllegalStateException e) {
+            // exception while adding a very first image
+            if (e.getMessage().equals("Tried to add an incompatible hash to the binary tree")) {
+                matcher.addImage(code, image);
+
+                return new PriorityQueue<>();
+            } else {
+                throw e;
+            }
         }
     }
 
