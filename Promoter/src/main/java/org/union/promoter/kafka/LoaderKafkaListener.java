@@ -2,7 +2,8 @@ package org.union.promoter.kafka;
 
 import org.union.common.model.request.LoadPostsRequest;
 import org.union.common.service.kafka.KafkaHelper;
-import org.union.promoter.service.requestprocessor.LoaderRequestProcessor;
+import org.union.promoter.PromoterProperties;
+import org.union.promoter.requestprocessor.LoaderRequestProcessor;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,12 @@ public class LoaderKafkaListener {
     @KafkaListener(topics = "${kafka.loader.topic}", groupId = "${kafka.group}")
     public void listenLoader(String request) {
         try {
+            if (!PromoterProperties.loadingEnabled) {
+                logger.info("Loader disabled.");
+
+                return;
+            }
+
             LoadPostsRequest loadPostsRequest = kafkaHelper.deserialize(request, LoadPostsRequest.class);
 
             logger.info(String.format(LOAD_POSTS_REQUEST_RECEIVED_MSG, loadPostsRequest.getConsumerId()));

@@ -1,4 +1,4 @@
-package org.union.promoter.service.requestprocessor;
+package org.union.promoter.requestprocessor;
 
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
