@@ -185,7 +185,8 @@ public class LoaderRequestProcessor {
             }
 
             // remove links on consuming chanel
-            captionText = captionText.replace("@" + consumingChannelName, "");
+            captionText = captionText.replace("@" + consumingChannelName, "")
+                    .replace("https://www.instagram.com/" + consumingChannelName + "/", "");
 
             // check outer links
             return captionText.contains("@")
