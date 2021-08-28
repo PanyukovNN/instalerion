@@ -9,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -74,5 +77,17 @@ public class InstaService {
                 .username(login)
                 .password(encryptionUtil.getTextEncryptor().decrypt(encryptedPassword))
                 .login();
+    }
+
+    /**
+     * Get localDateTime from TimelineMedia taken_at time
+     *
+     * @param mills milli seconds
+     * @return localDateTime
+     */
+    public LocalDateTime getTimelineMediaDateTime(long mills) {
+        return Instant.ofEpochMilli(mills)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
     }
 }

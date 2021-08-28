@@ -10,6 +10,7 @@ public class Constants {
      */
     public static final String TRANSFORM_TO_VIDEO_POST_ERROR_MSG = "Произошла ошибка во время преобразования TimelineVideoMedia в VideoPost: %s";
     public static final String TRANSFORM_TO_IMAGE_POST_ERROR_MSG = "Произошла ошибка во время преобразования TimelineImageMedia в ImagePost: %s";
+    public static final String FILL_POST_INFO_ERROR_MSG = "Произошла ошибка во время преобразования поста: %s";
     public static final String PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG = "Не найден канал публикации с id %s";
     public static final String POST_NOT_FOUND_ERROR_MSG = "Не найден пост с id %s";
     public static final String POST_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG = "Пост для отправки на публикацию не найден.";

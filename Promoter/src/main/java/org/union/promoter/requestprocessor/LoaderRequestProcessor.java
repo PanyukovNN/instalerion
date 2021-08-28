@@ -1,14 +1,10 @@
 package org.union.promoter.requestprocessor;
 
 import com.github.instagram4j.instagram4j.IGClient;
-import com.github.instagram4j.instagram4j.actions.users.UserAction;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineImageMedia;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineVideoMedia;
-import com.github.instagram4j.instagram4j.requests.feed.FeedUserRequest;
-import com.github.instagram4j.instagram4j.responses.feed.FeedUserResponse;
 import com.github.kilianB.matcher.persistent.ConsecutiveMatcher;
-import io.micrometer.core.instrument.util.StringUtils;
 import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -16,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import org.union.common.model.ConsumingChannel;
 import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.ImagePost;
@@ -24,17 +19,15 @@ import org.union.common.model.post.MediaType;
 import org.union.common.model.post.Post;
 import org.union.common.model.post.VideoPost;
 import org.union.common.service.*;
+import org.union.promoter.service.LoaderService;
 import org.union.promoter.service.RequestHelper;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import static org.apache.logging.log4j.util.Strings.EMPTY;
 import static org.union.common.Constants.*;
 
 /**
@@ -46,10 +39,6 @@ public class LoaderRequestProcessor {
 
     private final Logger logger = LoggerFactory.getLogger(LoaderRequestProcessor.class);
 
-    @Value("${post.days}")
-    private int postDays;
-    @Value("${post.limit}")
-    private int postLimit;
     @Value("${kafka.loader.topic}")
     private String topicName;
 
@@ -57,6 +46,7 @@ public class LoaderRequestProcessor {
     private final ImageMatcher imageMatcher;
     private final CloudService cloudService;
     private final InstaService instaService;
+    private final LoaderService loaderService;
     private final RequestHelper requestHelper;
     private final DateTimeHelper dateTimeHelper;
     private final ImagePostService imagePostService;
@@ -76,125 +66,34 @@ public class LoaderRequestProcessor {
         ProducingChannel producingChannel = producingChannelService.findById(producingChannelId)
                 .orElseThrow(() -> new NotFoundException(String.format(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, producingChannelId)));
 
-//        requestHelper.checkOftenRequests(producingChannel.getLastLoadingDateTime(), topicName);
+        requestHelper.checkOftenRequests(producingChannel.getLastLoadingDateTime(), topicName);
 
         // Login to access instagram account
         IGClient client = instaService.getClient(producingChannel);
 
         List<ConsumingChannel> consumingChannels = producingChannel.getConsumingChannels();
 
-        // Load posts from consume channels
-        for (ConsumingChannel consumingChannel : consumingChannels) {
-            try {
-                processConsumeChannel(producingChannel, client, consumingChannel);
-            } catch (Exception e) {
-                logger.error(String.format(ERROR_WHILE_CONSUME_CHANNEL_LOADING, consumingChannel.getName()), e);
-            }
-        }
+        consumingChannels.forEach(
+                consumingChannel -> processConsumeChannel(producingChannel, client, consumingChannel)
+        );
 
         producingChannel.setLastLoadingDateTime(dateTimeHelper.getCurrentDateTime());
         consumingChannelService.saveAll(consumingChannels);
         producingChannelService.save(producingChannel);
     }
 
-    private void processConsumeChannel(ProducingChannel producingChannel, IGClient client, ConsumingChannel consumingChannel) throws InterruptedException, ExecutionException, IOException {
-        List<TimelineMedia> timelineItems = loadConsumingChannelPosts(producingChannel, client, consumingChannel);
+    private void processConsumeChannel(ProducingChannel producingChannel, IGClient client, ConsumingChannel consumingChannel) {
+        try {
+            List<TimelineMedia> timelineItems = loaderService.loadConsumingChannelPosts(producingChannel, client, consumingChannel);
 
-        List<Post> publishedPosts = postService.findPublishedInProducingChannel(producingChannel);
-        ConsecutiveMatcher matcher = imageMatcher.createMatcher(publishedPosts);
+            List<Post> publishedPosts = postService.findPublishedInProducingChannel(producingChannel);
+            ConsecutiveMatcher matcher = imageMatcher.createMatcher(publishedPosts);
 
-        System.out.println(String.format("Загружено %d постов", timelineItems.size()));
-
-        processVideoPosts(matcher, producingChannel, consumingChannel, timelineItems);
-        processImagePosts(matcher, producingChannel, consumingChannel, timelineItems);
-    }
-
-    private List<TimelineMedia> loadConsumingChannelPosts(ProducingChannel producingChannel, IGClient client, ConsumingChannel consumingChannel) throws InterruptedException, ExecutionException {
-        String consumeChannelName = consumingChannel.getName();
-
-        UserAction userAction = client.actions().users().findByUsername(consumeChannelName).get();
-
-        List<TimelineMedia> timelineItems = new ArrayList<>();
-
-        // id of last loaded post for pagination
-        String maxId = null;
-        int leftToLoadPosts = postLimit;
-        boolean continueLoading = true;
-
-        // while has posts to load or loading is allowed
-        while(leftToLoadPosts > 0 && continueLoading) {
-            // Loads first 12 posts
-            FeedUserResponse feedUserResponse = client
-                    .sendRequest(new FeedUserRequest(userAction.getUser().getPk(), maxId))
-                    .get();
-
-            // Set max_id for next pagination request
-            maxId = feedUserResponse.getNext_max_id();
-            continueLoading = feedUserResponse.isMore_available();
-
-            List<TimelineMedia> responseItems = feedUserResponse.getItems();
-
-            // filter posts by time/database existence/advertising
-            List<TimelineMedia> filteredResponseItems = responseItems.stream()
-                    .filter(item -> {
-                        // filter posts taken more that 2 hours from now and earlier than current time minus postDays
-                        LocalDateTime takenAt = getDateTime(item.getTaken_at() * 1000);
-                        LocalDateTime now = dateTimeHelper.getCurrentDateTime();
-
-                        return takenAt.isBefore(now.minusDays(1))
-                                && takenAt.isAfter(now.minusDays(postDays + 1));
-                    })
-                    .filter(post -> !postService.exists(post.getCode(), producingChannel.getId()))
-                    .filter(post -> post.getCode() != null)
-                    .filter(post -> !isAdvertising(post, consumeChannelName))
-                    .collect(Collectors.toList());
-
-            timelineItems.addAll(filteredResponseItems);
-
-            // if even one post is filtered - stop loading
-            if (responseItems.size() > filteredResponseItems.size()) {
-                break;
-            }
-
-            // decrease number of posts, which needs to be loaded
-            leftToLoadPosts -= responseItems.size();
+            processVideoPosts(matcher, producingChannel, consumingChannel, timelineItems);
+            processImagePosts(matcher, producingChannel, consumingChannel, timelineItems);
+        } catch (Exception e) {
+            logger.error(String.format(ERROR_WHILE_CONSUME_CHANNEL_LOADING, consumingChannel.getName()), e);
         }
-
-        return timelineItems;
-    }
-
-    /**
-     * Check does media contain advertising (usertags or outer links)
-     *
-     * @param media media
-     * @param consumingChannelName name of consuming channel
-     * @return is contain ad
-     */
-    private boolean isAdvertising(TimelineMedia media, String consumingChannelName) {
-        // check usertags
-        if (media.getUsertags() != null
-                && !CollectionUtils.isEmpty(media.getUsertags().getIn())) {
-            return true;
-        }
-
-        if (media.getCaption() != null) {
-            String captionText = media.getCaption().getText();
-
-            if (StringUtils.isEmpty(captionText)) {
-                return false;
-            }
-
-            // remove links on consuming chanel
-            captionText = captionText.replace("@" + consumingChannelName, "")
-                    .replace("https://www.instagram.com/" + consumingChannelName + "/", "");
-
-            // check outer links
-            return captionText.contains("@")
-                    || captionText.contains("http://")
-                    || captionText.contains("https://");
-        }
-
-        return false;
     }
 
     private void processVideoPosts(ConsecutiveMatcher matcher, ProducingChannel producingChannel, ConsumingChannel consumingChannel, List<TimelineMedia> timelineItems) throws IOException {
@@ -261,23 +160,12 @@ public class LoaderRequestProcessor {
         VideoPost videoPost = new VideoPost();
 
         try {
-            videoPost.setCode(video.getCode());
-
-            if (video.getCaption() != null) {
-                videoPost.setDescription(video.getCaption().getText());
-            } else {
-                videoPost.setDescription("");
-            }
-
-            videoPost.setRating(postService.calculateRating(video, video.getView_count()));
-
-            videoPost.setMediaType(video.getMedia_type());
+            fillPostInfo(videoPost, producingChannel, video, video.getView_count());
             videoPost.setDuration(video.getVideo_duration());
             videoPost.setVideoUrl(video.getVideo_versions().get(0).getUrl());
             videoPost.setImageUrl(video.getImage_versions2().getCandidates().get(0).getUrl());
-            videoPost.setProducingChannelId(producingChannel.getId());
         } catch (Exception e) {
-            logger.error(String.format(TRANSFORM_TO_VIDEO_POST_ERROR_MSG, e.getMessage()), e);
+            logger.error(String.format(TRANSFORM_TO_IMAGE_POST_ERROR_MSG, e.getMessage()), e);
         }
 
         return videoPost;
@@ -294,19 +182,8 @@ public class LoaderRequestProcessor {
         ImagePost imagePost = new ImagePost();
 
         try {
-            imagePost.setCode(image.getCode());
-
-            if (image.getCaption() != null) {
-                imagePost.setDescription(image.getCaption().getText());
-            } else {
-                imagePost.setDescription("");
-            }
-
-            imagePost.setRating(postService.calculateRating(image, image.getView_count()));
-
-            imagePost.setMediaType(image.getMedia_type());
+            fillPostInfo(imagePost, producingChannel, image, image.getView_count());
             imagePost.setImageUrl(image.getImage_versions2().getCandidates().get(0).getUrl());
-            imagePost.setProducingChannelId(producingChannel.getId());
         } catch (Exception e) {
             logger.error(String.format(TRANSFORM_TO_IMAGE_POST_ERROR_MSG, e.getMessage()), e);
         }
@@ -314,15 +191,11 @@ public class LoaderRequestProcessor {
         return imagePost;
     }
 
-    /**
-     * Get localDateTime from post taken_at time
-     *
-     * @param mills milli seconds
-     * @return localDateTime
-     */
-    private LocalDateTime getDateTime(long mills) {
-        return Instant.ofEpochMilli(mills)
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime();
+    public void fillPostInfo(Post post, ProducingChannel producingChannel, TimelineMedia media, int viewCount) {
+        post.setCode(media.getCode());
+        post.setDescription(media.getCaption() != null ? media.getCaption().getText() : EMPTY);
+        post.setRating(postService.calculateRating(media, viewCount));
+        post.setMediaType(media.getMedia_type());
+        post.setProducingChannelId(producingChannel.getId());
     }
 }
