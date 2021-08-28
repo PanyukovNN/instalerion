@@ -33,4 +33,14 @@ public class DateTimeHelper {
 
         return now.getHour() > 22 || now.getHour() < 8;
     }
+
+    /**
+     * Return formatted front date time string
+     *
+     * @param dateTime date time
+     * @return formatted front date time string
+     */
+    public String formatFrontDateTime(LocalDateTime dateTime) {
+        return FRONT_DATE_TIME.format(dateTime);
+    }
 }

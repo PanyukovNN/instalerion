@@ -45,6 +45,9 @@ public class Constants {
     public static final String SAVED_IMAGES_FROM_CHANNEL_MSG = "Сохранено %d фото с канала %s";
     public static final String SAVED_VIDEOS_FROM_CHANNEL_MSG = "Сохранено %d видео с канала %s";
     public static final String PRODUCING_CHANNEL_DISABLED_MSG = "Канал публикации %s отключен.";
+    public static final String PRODUCING_CHANNEL_TEMPORARY_BLOCKED_MSG = "Канал публикации %s временно заблокирован инстаграммом, работа будет продолжена %s.";
+    public static final String CUSTOMERS_NOT_FOUND_MSG = "Не найдено ни одного пользователя.";
+    public static final String PRODUCING_CHANNELS_NOT_FOUND_MSG = "Не найдено ни одного канала публикации для пользователя %s.";
 
     /**
      * Other
@@ -52,4 +55,6 @@ public class Constants {
     public static final String SOURCE_STRING_TEMPLATE = "Источник: https://www.instagram.com/p/%s/";
     public static final int PUBLISHING_ERROR_COUNT_LIMIT = 1;
     public static final double IMAGE_MATCHING_THRESHOLD = 3d;
+    public static final int UNBLOCK_PRODUCING_CHANNEL_PERIOD_DAYS = 1;
+
 }

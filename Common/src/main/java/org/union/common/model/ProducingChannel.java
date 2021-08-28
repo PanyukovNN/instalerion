@@ -65,4 +65,9 @@ public class ProducingChannel {
      * Is enabled
      */
     private boolean enabled = true;
+
+    /**
+     * Time when blocking started
+     */
+    private LocalDateTime blockingTime;
 }

@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.union.common.Constants.UNBLOCK_PRODUCING_CHANNEL_PERIOD_DAYS;
+
 /**
  * Producing channels service
  */
@@ -138,4 +140,36 @@ public class ProducingChannelService {
     public List<ProducingChannel> findByConsumer(Customer customer) {
         return producingChannelRepository.findByCustomer(customer);
     }
+
+    public void setBlock(ProducingChannel producingChannel) {
+        producingChannel.setBlockingTime(dateTimeHelper.getCurrentDateTime());
+        this.save(producingChannel);
+    }
+
+    /**
+     * Channel is blocked if went less than a day from blocking
+     *
+     * @param producingChannel producing channel
+     * @return is producing channel blocked
+     */
+    public boolean isBlocked(ProducingChannel producingChannel) {
+        if (producingChannel.getBlockingTime() == null) {
+            return false;
+        }
+
+        return producingChannel.getBlockingTime().isBefore(
+                dateTimeHelper.getCurrentDateTime().minusDays(UNBLOCK_PRODUCING_CHANNEL_PERIOD_DAYS));
+    }
+
+    /**
+     * Returns formatted date time when producing channel would be unblocked
+     *
+     * @param producingChannel producing channel
+     * @return formatted date time string
+     */
+    public String getUnblockingFormattedDateTime(ProducingChannel producingChannel) {
+        return dateTimeHelper.formatFrontDateTime(
+                producingChannel.getBlockingTime().plusDays(UNBLOCK_PRODUCING_CHANNEL_PERIOD_DAYS));
+    }
+
 }
