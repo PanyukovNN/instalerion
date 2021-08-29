@@ -98,13 +98,13 @@ public class InstalerionService {
         if (producingChannel.getId() == null) {
             logger.info(String.format(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, producingChannel.getId()));
 
-            return false;
+            return true;
         }
 
         if (!producingChannel.isEnabled()) {
             logger.info(String.format(PRODUCING_CHANNEL_DISABLED_MSG, producingChannel.getId()));
 
-            return false;
+            return true;
         }
 
         if (producingChannelService.isBlocked(producingChannel)) {
@@ -112,9 +112,9 @@ public class InstalerionService {
                     producingChannel.getId(),
                     producingChannelService.getUnblockingFormattedDateTime(producingChannel)));
 
-            return false;
+            return true;
         }
 
-        return true;
+        return false;
     }
 }

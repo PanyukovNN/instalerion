@@ -38,6 +38,16 @@ public class LoaderService {
     private final InstaService instaService;
     private final DateTimeHelper dateTimeHelper;
 
+    /**
+     * Returns filtered list of loaded TimelineMedia
+     *
+     * @param producingChannel producing channel
+     * @param client instagram client
+     * @param consumingChannel consuming channel
+     * @return list of loaded TimelineMedia
+     * @throws InterruptedException exception
+     * @throws ExecutionException exception
+     */
     public List<TimelineMedia> loadConsumingChannelPosts(ProducingChannel producingChannel, IGClient client, ConsumingChannel consumingChannel) throws InterruptedException, ExecutionException {
         String consumeChannelName = consumingChannel.getName();
 
