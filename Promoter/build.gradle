@@ -8,6 +8,7 @@ dependencies {
     implementation rootProject.ext.library.springBootActuator
     implementation rootProject.ext.library.springBootDataMongo
     implementation rootProject.ext.library.springSecurity
+    implementation rootProject.ext.library.springAOP
     implementation (rootProject.ext.library.instagram4j) {
         exclude group: 'com.squareup.okhttp3', module: 'okhttp'
     }

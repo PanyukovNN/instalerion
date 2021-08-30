@@ -1,14 +1,14 @@
 package org.union.promoter.kafka;
 
-import org.union.common.model.request.PublishPostRequest;
-import org.union.common.service.kafka.KafkaHelper;
-import org.union.promoter.PromoterProperties;
-import org.union.promoter.requestprocessor.PublisherRequestProcessor;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import org.union.common.model.request.PublishPostRequest;
+import org.union.common.service.kafka.KafkaHelper;
+import org.union.promoter.PromoterProperties;
+import org.union.promoter.requestprocessor.PublisherRequestProcessor;
 
 import static org.union.common.Constants.ERROR_WHILE_PUBLICATION;
 import static org.union.common.Constants.UPLOAD_POST_REQUEST_RECEIVED_MSG;
@@ -41,8 +41,6 @@ public class PublisherKafkaListener {
             publisherRequestProcessor.publish(uploadVideoRequest);
         } catch (Exception e) {
             logger.error(String.format(ERROR_WHILE_PUBLICATION, request), e);
-
-            //TODO send error message to topic PUBLISHER_ERRORS
         }
     }
 }

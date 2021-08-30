@@ -9,6 +9,7 @@ dependencies {
     implementation rootProject.ext.library.springBootDevTools
     implementation rootProject.ext.library.springBootDataMongo
     implementation rootProject.ext.library.springSecurity
+    implementation rootProject.ext.library.springAOP
     implementation rootProject.ext.library.kafkaClients
     implementation rootProject.ext.library.kafkaCommon
     implementation (rootProject.ext.library.instagram4j) {

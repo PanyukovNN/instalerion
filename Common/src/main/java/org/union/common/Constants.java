@@ -34,6 +34,9 @@ public class Constants {
     public static final String NO_POST_MEDIA_INFO_ERROR_MSG = "В ответе от instagram отсутствует media информация о публикации %s";
     public static final String POST_PUBLICATION_NOT_CONFIRMED_ERROR_MSG = "Публикация поста не подтверждена. Нет информации о посте %s";
     public static final String IMPOSSIBLE_TO_LOAD_IMAGE_BY_URL_ERROR_MSG = "Не удалось загрузить изображение поста для поиска дубликатов.";
+    public static final String PRODUCING_CHANNEL_NULL_ID_ERROR_MSG = "Идентификатор канала публикации не может быть null.";
+    public static final String ID_CANT_BE_NULL_ERROR_MSG = "Идентификатор не может быть равен null.";
+    public static final String OBJECT_IN_USE_ERROR_MSG = "Object with id %s now in use.";
 
     /**
      * Messages
@@ -49,6 +52,8 @@ public class Constants {
     public static final String PRODUCING_CHANNEL_TEMPORARY_BLOCKED_MSG = "Канал публикации %s временно заблокирован инстаграммом, работа будет продолжена %s.";
     public static final String CUSTOMERS_NOT_FOUND_MSG = "Не найдено ни одного пользователя.";
     public static final String PRODUCING_CHANNELS_NOT_FOUND_MSG = "Не найдено ни одного канала публикации для пользователя %s.";
+    public static final String LOADER_DISABLED_MSG = "Loader disabled.";
+
 
     /**
      * Other

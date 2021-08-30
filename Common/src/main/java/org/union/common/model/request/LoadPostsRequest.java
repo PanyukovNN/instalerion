@@ -14,5 +14,5 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class LoadPostsRequest implements Serializable {
 
-    private String consumerId;
+    private String producingChannelId;
 }

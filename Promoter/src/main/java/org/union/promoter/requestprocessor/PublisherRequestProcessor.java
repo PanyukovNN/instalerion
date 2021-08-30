@@ -57,7 +57,10 @@ public class PublisherRequestProcessor {
 
         checkPost(request, post);
 
+        String producingChannelId = post.getProducingChannelId();
         try {
+            UseContext.setInUse(producingChannelId);
+
             ProducingChannel producingChannel = producingChannelService.findById(post.getProducingChannelId())
                     .orElseThrow(() -> new NotFoundException(String.format(Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, post.getProducingChannelId())));
 
@@ -81,6 +84,8 @@ public class PublisherRequestProcessor {
             postService.save(post);
 
             throw e;
+        } finally {
+            UseContext.release(producingChannelId);
         }
     }
 

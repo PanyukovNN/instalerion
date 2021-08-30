@@ -1,3 +1,4 @@
+rootProject.name = 'instalerion'
 
 include 'Common'
 include 'Promoter'
