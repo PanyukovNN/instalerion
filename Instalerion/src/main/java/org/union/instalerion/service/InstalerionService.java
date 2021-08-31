@@ -8,9 +8,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.union.common.model.Customer;
 import org.union.common.model.ProducingChannel;
+import org.union.common.model.post.Post;
+import org.union.common.model.request.LoadPostsRequest;
+import org.union.common.model.request.PublishPostRequest;
 import org.union.common.service.CustomerService;
 import org.union.common.service.DateTimeHelper;
+import org.union.common.service.PostService;
 import org.union.common.service.ProducingChannelService;
+import org.union.common.service.loadingstrategy.LoadingStrategyType;
 import org.union.instalerion.kafka.LoaderKafkaSender;
 import org.union.instalerion.kafka.PublisherKafkaSender;
 
@@ -27,6 +32,7 @@ public class InstalerionService {
 
     private final Logger logger = LoggerFactory.getLogger(InstalerionService.class);
 
+    private final PostService postService;
     private final DateTimeHelper dateTimeHelper;
     private final CustomerService customerService;
     private final LoaderKafkaSender loaderKafkaSender;
@@ -80,11 +86,26 @@ public class InstalerionService {
         }
 
         if (producingChannelService.isLoadingTime(producingChannel)) {
-            loaderKafkaSender.send(producingChannel.getId());
+            LoadingStrategyType strategyType = LoadingStrategyType.INSTAGRAM_POSTS;
+
+            LoadPostsRequest request = new LoadPostsRequest(producingChannel.getId(), strategyType, STANDARD_LOADING_VOLUME);
+
+            loaderKafkaSender.send(request);
         }
 
         if (producingChannelService.isPublishingTime(producingChannel)) {
-            publisherKafkaSender.send(producingChannel.getId());
+            Post post = postService.findMostRated(producingChannel.getId())
+                    .orElse(null);
+
+            if (post == null) {
+                logger.info(POST_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG);
+
+                return;
+            }
+
+            PublishPostRequest request = new PublishPostRequest(post.getId(), post.getMediaType());
+
+            publisherKafkaSender.send(request);
         }
     }
 

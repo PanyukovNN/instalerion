@@ -34,13 +34,9 @@ import static org.union.common.Constants.*;
 @RequiredArgsConstructor
 public class PublisherRequestProcessor {
 
-    @Value("${kafka.publisher.topic}")
-    private String topicName;
-
     private final PostService postService;
     private final CloudService cloudService;
     private final InstaService instaService;
-    private final RequestHelper requestHelper;
     private final DateTimeHelper dateTimeHelper;
     private final ImagePostService imagePostService;
     private final VideoPostService videoPostService;
@@ -63,8 +59,6 @@ public class PublisherRequestProcessor {
 
             ProducingChannel producingChannel = producingChannelService.findById(post.getProducingChannelId())
                     .orElseThrow(() -> new NotFoundException(String.format(Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, post.getProducingChannelId())));
-
-            requestHelper.checkOftenRequests(producingChannel.getLastPostingDateTime(), topicName);
 
             // Login to instagram account
             IGClient client = instaService.getClient(producingChannel);

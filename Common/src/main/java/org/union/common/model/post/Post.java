@@ -51,13 +51,19 @@ public class Post {
     private LocalDateTime publishDateTime;
 
     /**
+     * Date time when post was taken
+     */
+    private LocalDateTime takenAt;
+
+    /**
      * Number of publishing errors
      */
     private int publishingErrorCount;
 
     /**
-     * Rating of post, calculated by formula (likes + comments)/views
-     * To calculate rate post must be published not earlier that 2 hours from now
+     * Rating of post
+     * Negative rating is "null rating"
+     * Zero rating is "impossible to calculate"
      */
     private double rating;
 

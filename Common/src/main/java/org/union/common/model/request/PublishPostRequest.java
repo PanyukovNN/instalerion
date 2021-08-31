@@ -10,7 +10,7 @@ import lombok.*;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class PublishPostRequest {
+public class PublishPostRequest extends KafkaRequest {
 
     private String postId;
     private String mediaType;

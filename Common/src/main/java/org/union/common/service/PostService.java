@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.union.common.Constants;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,7 +16,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PostService {
 
-    public final PostRepository postRepository;
+    private final PostRepository postRepository;
+    private final DateTimeHelper dateTimeHelper;
 
     public boolean exists(String code, String producingChannelId) {
         return postRepository.existsByCodeAndProducingChannelId(code, producingChannelId);
@@ -47,7 +49,21 @@ public class PostService {
         postRepository.deleteAll();
     }
 
-    public double calculateRating(TimelineMedia media, int viewCount) {
+    /**
+     * Returns post rating, calculated by formula (likes + comments)/views
+     * To calculate rate post must be published not earlier that 24 hours from now
+     *
+     * @param media timeline media
+     * @param takenAt when post was taken
+     * @param viewCount count of views
+     * @return post rating
+     */
+    public double calculateRating(TimelineMedia media, LocalDateTime takenAt, int viewCount) {
+        if (takenAt == null
+                || takenAt.isAfter(dateTimeHelper.getCurrentDateTime().minusDays(1))) {
+            return -1d;
+        }
+
         if (viewCount == 0) {
             return 0d;
         }

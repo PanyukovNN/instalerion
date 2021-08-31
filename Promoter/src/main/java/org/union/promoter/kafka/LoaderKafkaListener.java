@@ -1,15 +1,20 @@
 package org.union.promoter.kafka;
 
-import org.union.common.model.request.LoadPostsRequest;
-import org.union.common.service.UseContext;
-import org.union.common.service.kafka.KafkaHelper;
-import org.union.promoter.PromoterProperties;
-import org.union.promoter.requestprocessor.LoaderRequestProcessor;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import org.union.common.model.request.LoadPostsRequest;
+import org.union.common.service.kafka.KafkaHelper;
+import org.union.common.service.loadingstrategy.LoadingStrategy;
+import org.union.common.service.loadingstrategy.LoadingStrategyType;
+import org.union.common.service.loadingstrategy.LoadingVolume;
+import org.union.promoter.PromoterProperties;
+import org.union.promoter.requestprocessor.LoaderRequestProcessor;
+import org.union.promoter.service.RequestHelper;
+import org.union.promoter.service.StrategyResolver;
 
 import static org.union.common.Constants.*;
 
@@ -22,36 +27,32 @@ public class LoaderKafkaListener {
 
     private final Logger logger = LoggerFactory.getLogger(LoaderKafkaListener.class);
 
+    @Value("${kafka.loader.topic}")
+    private String topicName;
+
     private final KafkaHelper kafkaHelper;
+    private final RequestHelper requestHelper;
     private final LoaderRequestProcessor loaderRequestProcessor;
 
     @KafkaListener(topics = "${kafka.loader.topic}", groupId = "${kafka.group}")
-    public void listenLoader(String request) {
+    public void listenLoader(String rawRequest) {
+        if (!PromoterProperties.loadingEnabled) {
+            logger.info(LOADER_DISABLED_MSG);
+
+            return;
+        }
+
         try {
-            if (!PromoterProperties.loadingEnabled) {
-                logger.info(LOADER_DISABLED_MSG);
+            requestHelper.checkOftenRequests(topicName);
 
-                return;
-            }
+            LoadPostsRequest request = kafkaHelper.deserialize(rawRequest, LoadPostsRequest.class);
+            requestHelper.validateLoaderRequest(request);
 
-            LoadPostsRequest loadPostsRequest = kafkaHelper.deserialize(request, LoadPostsRequest.class);
+            logger.info(String.format(LOAD_POSTS_REQUEST_RECEIVED_MSG, request.getProducingChannelId()));
 
-            String producingChannelId = loadPostsRequest.getProducingChannelId();
-
-            if (producingChannelId == null) {
-                throw new IllegalArgumentException(PRODUCING_CHANNEL_NULL_ID_ERROR_MSG);
-            }
-
-            logger.info(String.format(LOAD_POSTS_REQUEST_RECEIVED_MSG, producingChannelId));
-
-            try {
-                UseContext.setInUse(producingChannelId);
-                loaderRequestProcessor.load(producingChannelId);
-            } finally {
-                UseContext.release(producingChannelId);
-            }
+            loaderRequestProcessor.load(request);
         } catch (Exception e) {
-            logger.error(String.format(ERROR_WHILE_LOADING, request), e);
+            logger.error(String.format(ERROR_WHILE_LOADING, rawRequest), e);
         }
     }
 }

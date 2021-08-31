@@ -3,6 +3,7 @@ package org.union.common.service;
 import com.github.instagram4j.instagram4j.IGAndroidDevice;
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
+import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import org.union.common.exception.RequestException;
 import org.union.common.model.ProducingChannel;
 import lombok.RequiredArgsConstructor;
@@ -82,11 +83,11 @@ public class InstaService {
     /**
      * Get localDateTime from TimelineMedia taken_at time
      *
-     * @param mills milli seconds
+     * @param media TimelineMedia entity
      * @return localDateTime
      */
-    public LocalDateTime getTimelineMediaDateTime(long mills) {
-        return Instant.ofEpochMilli(mills)
+    public LocalDateTime getTimelineMediaDateTime(TimelineMedia media) {
+        return Instant.ofEpochMilli(media.getTaken_at() * 1000)
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime();
     }

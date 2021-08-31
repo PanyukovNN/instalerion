@@ -53,6 +53,7 @@ public class ImageMatcher {
 
     /**
      * Looks for image duplicates in matcher
+     * Has to be the last check after all posts filtering, because it is adding the image to matcher, which cant be removed
      *
      * @param matcher image matcher
      * @param imageUrl url of image to compare

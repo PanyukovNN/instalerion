@@ -1,14 +1,17 @@
 package org.union.promoter.service;
 
 import org.union.common.exception.RequestException;
+import org.union.common.model.request.LoadPostsRequest;
 import org.union.common.service.DateTimeHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
-import static org.union.common.Constants.TOO_OFTEN_REQUESTS_ERROR_MSG;
+import static org.union.common.Constants.*;
 
 /**
  * Helper service for request processors
@@ -22,18 +25,39 @@ public class RequestHelper {
     @Value("${min.request.period.minutes}")
     private int minRequestPeriod;
 
+    private final Map<String, LocalDateTime> topicRequestContext = new HashMap<>();
+
     /**
      * Checks too often requests
-     *
-     * @param lastRequestDateTime date time of last request
      */
-    public void checkOftenRequests(LocalDateTime lastRequestDateTime, String topicName) {
-        if (lastRequestDateTime != null) {
-            int minutesDiff = dateTimeHelper.minuteFromNow(lastRequestDateTime);
+    public void checkOftenRequests(String topicName) {
+        LocalDateTime lastRequestDateTime = topicRequestContext.get(topicName);
 
-            if (minRequestPeriod > minutesDiff) {
-                throw new RequestException(String.format(TOO_OFTEN_REQUESTS_ERROR_MSG, topicName));
-            }
+        topicRequestContext.put(topicName, dateTimeHelper.getCurrentDateTime());
+
+        if (lastRequestDateTime == null) {
+            return;
+        }
+
+        int minutesDiff = dateTimeHelper.minuteFromNow(lastRequestDateTime);
+
+        if (minRequestPeriod > minutesDiff) {
+            throw new RequestException(String.format(TOO_OFTEN_REQUESTS_ERROR_MSG, topicName));
+        }
+    }
+
+    /**
+     * Validates {@link LoadPostsRequest}
+     *
+     * @param request request
+     */
+    public void validateLoaderRequest(LoadPostsRequest request) {
+        if (request.getProducingChannelId() == null) {
+            throw new IllegalArgumentException(PRODUCING_CHANNEL_NULL_ID_ERROR_MSG);
+        }
+
+        if (request.getStrategyType() == null) {
+            throw new IllegalArgumentException(LOADING_STRATEGY_TYPE_NULL_ID_ERROR_MSG);
         }
     }
 }

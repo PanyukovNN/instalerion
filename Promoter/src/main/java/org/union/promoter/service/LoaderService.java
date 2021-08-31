@@ -7,7 +7,6 @@ import com.github.instagram4j.instagram4j.requests.feed.FeedUserRequest;
 import com.github.instagram4j.instagram4j.responses.feed.FeedUserResponse;
 import io.micrometer.core.instrument.util.StringUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.union.common.model.ConsumingChannel;
@@ -15,6 +14,7 @@ import org.union.common.model.ProducingChannel;
 import org.union.common.service.DateTimeHelper;
 import org.union.common.service.InstaService;
 import org.union.common.service.PostService;
+import org.union.common.service.loadingstrategy.LoadingVolume;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,11 +29,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class LoaderService {
 
-    @Value("${post.days}")
-    private int postDays;
-    @Value("${post.limit}")
-    private int postLimit;
-
     private final PostService postService;
     private final InstaService instaService;
     private final DateTimeHelper dateTimeHelper;
@@ -44,11 +39,15 @@ public class LoaderService {
      * @param producingChannel producing channel
      * @param client instagram client
      * @param consumingChannel consuming channel
+     * @param loadingVolume volume of loading posts
      * @return list of loaded TimelineMedia
      * @throws InterruptedException exception
      * @throws ExecutionException exception
      */
-    public List<TimelineMedia> loadConsumingChannelPosts(ProducingChannel producingChannel, IGClient client, ConsumingChannel consumingChannel) throws InterruptedException, ExecutionException {
+    public List<TimelineMedia> loadConsumingChannelPosts(ProducingChannel producingChannel,
+                                                         IGClient client,
+                                                         ConsumingChannel consumingChannel,
+                                                         LoadingVolume loadingVolume) throws InterruptedException, ExecutionException {
         String consumeChannelName = consumingChannel.getName();
 
         UserAction userAction = client.actions().users().findByUsername(consumeChannelName).get();
@@ -57,7 +56,7 @@ public class LoaderService {
 
         // id of last loaded post for pagination
         String maxId = null;
-        int leftToLoadPosts = postLimit;
+        int leftToLoadPosts = loadingVolume.getAmount();
         boolean continueLoading = true;
 
         // while has posts to load or loading is allowed
@@ -77,11 +76,10 @@ public class LoaderService {
             List<TimelineMedia> filteredResponseItems = responseItems.stream()
                     .filter(item -> {
                         // filter posts taken more that 2 hours from now and earlier than current time minus postDays
-                        LocalDateTime takenAt = instaService.getTimelineMediaDateTime(item.getTaken_at() * 1000);
+                        LocalDateTime takenAt = instaService.getTimelineMediaDateTime(item);
                         LocalDateTime now = dateTimeHelper.getCurrentDateTime();
 
-                        return takenAt.isBefore(now.minusDays(1))
-                                && takenAt.isAfter(now.minusDays(postDays + 1));
+                        return takenAt.isAfter(now.minusDays(loadingVolume.getDays()));
                     })
                     .filter(post -> !postService.exists(post.getCode(), producingChannel.getId()))
                     .filter(post -> post.getCode() != null)

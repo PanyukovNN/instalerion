@@ -1,5 +1,7 @@
 package org.union.common;
 
+import org.union.common.service.loadingstrategy.LoadingVolume;
+
 /**
  * Constants
  */
@@ -35,8 +37,10 @@ public class Constants {
     public static final String POST_PUBLICATION_NOT_CONFIRMED_ERROR_MSG = "Публикация поста не подтверждена. Нет информации о посте %s";
     public static final String IMPOSSIBLE_TO_LOAD_IMAGE_BY_URL_ERROR_MSG = "Не удалось загрузить изображение поста для поиска дубликатов.";
     public static final String PRODUCING_CHANNEL_NULL_ID_ERROR_MSG = "Идентификатор канала публикации не может быть null.";
+    public static final String LOADING_STRATEGY_TYPE_NULL_ID_ERROR_MSG = "Тип стратегии загрузки не может быть null.";
     public static final String ID_CANT_BE_NULL_ERROR_MSG = "Идентификатор не может быть равен null.";
     public static final String OBJECT_IN_USE_ERROR_MSG = "Object with id %s now in use.";
+    public static final String STRATEGY_RESOLVING_ERROR_MSG = "Ошибка при получении стратегии загрузки из контекста.";
 
     /**
      * Messages
@@ -62,5 +66,6 @@ public class Constants {
     public static final int PUBLISHING_ERROR_COUNT_LIMIT = 1;
     public static final double IMAGE_MATCHING_THRESHOLD = 3d;
     public static final int UNBLOCK_PRODUCING_CHANNEL_PERIOD_DAYS = 1;
+    public static final LoadingVolume STANDARD_LOADING_VOLUME = new LoadingVolume(5, 15);
 
 }
