@@ -1,7 +1,8 @@
 package org.union.promoter.service;
 
 import org.union.common.exception.RequestException;
-import org.union.common.model.request.LoadPostsRequest;
+import org.union.common.model.request.LoadingRequest;
+import org.union.common.model.request.PublishingRequest;
 import org.union.common.service.DateTimeHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,8 +34,6 @@ public class RequestHelper {
     public void checkOftenRequests(String topicName) {
         LocalDateTime lastRequestDateTime = topicRequestContext.get(topicName);
 
-        topicRequestContext.put(topicName, dateTimeHelper.getCurrentDateTime());
-
         if (lastRequestDateTime == null) {
             return;
         }
@@ -47,11 +46,35 @@ public class RequestHelper {
     }
 
     /**
-     * Validates {@link LoadPostsRequest}
+     * Add record with request finish time
+     *
+     * @param topicName name of topic
+     */
+    public void requestFinished(String topicName) {
+        topicRequestContext.put(topicName, dateTimeHelper.getCurrentDateTime());
+    }
+
+    /**
+     * Validates {@link LoadingRequest}
      *
      * @param request request
      */
-    public void validateLoaderRequest(LoadPostsRequest request) {
+    public void validateLoaderRequest(LoadingRequest request) {
+        if (request.getProducingChannelId() == null) {
+            throw new IllegalArgumentException(PRODUCING_CHANNEL_NULL_ID_ERROR_MSG);
+        }
+
+        if (request.getStrategyType() == null) {
+            throw new IllegalArgumentException(LOADING_STRATEGY_TYPE_NULL_ID_ERROR_MSG);
+        }
+    }
+
+    /**
+     * Validates {@link PublishingRequest}
+     *
+     * @param request request
+     */
+    public void validateLoaderRequest(PublishingRequest request) {
         if (request.getProducingChannelId() == null) {
             throw new IllegalArgumentException(PRODUCING_CHANNEL_NULL_ID_ERROR_MSG);
         }

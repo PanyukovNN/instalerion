@@ -3,13 +3,10 @@ package org.union.promoter.requestprocessor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.union.common.model.request.LoadPostsRequest;
+import org.union.common.model.request.LoadingRequest;
 import org.union.common.service.UseContext;
 import org.union.common.service.loadingstrategy.LoadingStrategy;
-import org.union.common.service.loadingstrategy.LoadingVolume;
 import org.union.promoter.service.StrategyResolver;
-
-import static org.union.common.Constants.STANDARD_LOADING_VOLUME;
 
 /**
  * Request processor for posts loading
@@ -27,15 +24,15 @@ public class LoaderRequestProcessor {
      * @throws Exception exception
      */
     @Transactional
-    public void load(LoadPostsRequest request) throws Exception {
+    public void processLoadingRequest(LoadingRequest request) throws Exception {
+        UseContext.checkInUse(request.getProducingChannelId());
+
         try {
             UseContext.setInUse(request.getProducingChannelId());
 
-            LoadingVolume loadingVolume = request.getLoadingVolume();
             LoadingStrategy strategy = strategyResolver.getLoadingStrategy(request.getStrategyType());
-            strategy.setLoadingVolume(loadingVolume != null ? loadingVolume : STANDARD_LOADING_VOLUME);
 
-            strategy.load(request.getProducingChannelId());
+            strategy.load(request);
         } finally {
             UseContext.release(request.getProducingChannelId());
         }

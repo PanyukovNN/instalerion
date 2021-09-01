@@ -12,10 +12,9 @@ public class Constants {
      */
     public static final String TRANSFORM_TO_VIDEO_POST_ERROR_MSG = "Произошла ошибка во время преобразования TimelineVideoMedia в VideoPost: %s";
     public static final String TRANSFORM_TO_IMAGE_POST_ERROR_MSG = "Произошла ошибка во время преобразования TimelineImageMedia в ImagePost: %s";
-    public static final String FILL_POST_INFO_ERROR_MSG = "Произошла ошибка во время преобразования поста: %s";
     public static final String PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG = "Не найден канал публикации с id %s";
-    public static final String POST_NOT_FOUND_ERROR_MSG = "Не найден пост с id %s";
-    public static final String POST_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG = "Пост для отправки на публикацию не найден.";
+    public static final String POST_NOT_FOUND_ERROR_MSG = "Не найден пост для канала публикации с id %s";
+    public static final String POST_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG = "Пост для публикации в канале %s не найден.";
     public static final String POST_ALREADY_PUBLISHED_ERROR_MSG = "Пост уже опубликован. Повторная публикация запрещена.";
     public static final String POST_TOO_MANY_PUBLISHING_ERRORS = "Превышено количество попыток публикации поста.";
     public static final String FILE_NOT_FOUND_ERROR_MSG = "Файл с code %s не обнаружен.";
@@ -40,13 +39,14 @@ public class Constants {
     public static final String LOADING_STRATEGY_TYPE_NULL_ID_ERROR_MSG = "Тип стратегии загрузки не может быть null.";
     public static final String ID_CANT_BE_NULL_ERROR_MSG = "Идентификатор не может быть равен null.";
     public static final String OBJECT_IN_USE_ERROR_MSG = "Object with id %s now in use.";
-    public static final String STRATEGY_RESOLVING_ERROR_MSG = "Ошибка при получении стратегии загрузки из контекста.";
+    public static final String LOADING_STRATEGY_RESOLVING_ERROR_MSG = "Ошибка при получении стратегии загрузки из контекста.";
+    public static final String PUBLISHING_STRATEGY_RESOLVING_ERROR_MSG = "Ошибка при получении стратегии публикации из контекста.";
 
     /**
      * Messages
      */
-    public static final String UPLOAD_POST_REQUEST_RECEIVED_MSG = "Получен запрос на публикацию поста с id %s.";
-    public static final String LOAD_POSTS_REQUEST_RECEIVED_MSG = "Получен запрос на загрузку постов аккаунта id %s.";
+    public static final String PUBLISHING_REQUEST_RECEIVED_MSG = "Получен запрос на публикацию поста для аккаунта id %s.";
+    public static final String LOADING_REQUEST_RECEIVED_MSG = "Получен запрос на загрузку постов аккаунта id %s.";
     public static final String WORKING_ON_PAUSE_IN_NIGHT_MSG = "В период с 23:00 до 09:00 публикация не осуществляется.";
     public static final String LOADER_REQUEST_SUCCESSFULLY_SENT = "Запрос на загрузку постов успешно отправлен: %s";
     public static final String PUBLISHER_REQUEST_SUCCESSFULLY_SENT = "Запрос на публикацию поста успешно отправлен: %s";
@@ -57,14 +57,15 @@ public class Constants {
     public static final String CUSTOMERS_NOT_FOUND_MSG = "Не найдено ни одного пользователя.";
     public static final String PRODUCING_CHANNELS_NOT_FOUND_MSG = "Не найдено ни одного канала публикации для пользователя %s.";
     public static final String LOADER_DISABLED_MSG = "Loader disabled.";
-
+    public static final String PUBLISHER_DISABLED_MSG = "Publisher disabled.";
+    public static final String STORY_SUCCESSFULLY_PUBLISHED_MSG = "Стори с %s успешно опубликована в канале %s.";
 
     /**
      * Other
      */
     public static final String SOURCE_STRING_TEMPLATE = "Источник: https://www.instagram.com/p/%s/";
     public static final int PUBLISHING_ERROR_COUNT_LIMIT = 1;
-    public static final double IMAGE_MATCHING_THRESHOLD = 3d;
+    public static final double IMAGE_MATCHING_THRESHOLD = 2d;
     public static final int UNBLOCK_PRODUCING_CHANNEL_PERIOD_DAYS = 1;
     public static final LoadingVolume STANDARD_LOADING_VOLUME = new LoadingVolume(5, 15);
 

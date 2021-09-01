@@ -6,6 +6,8 @@ import org.union.common.service.loadingstrategy.LoadingVolume;
 
 import java.io.Serializable;
 
+import static org.union.common.Constants.STANDARD_LOADING_VOLUME;
+
 /**
  * Request to run loader module
  */
@@ -14,9 +16,9 @@ import java.io.Serializable;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoadPostsRequest extends KafkaRequest implements Serializable {
+public class LoadingRequest extends KafkaRequest implements Serializable {
 
     private String producingChannelId;
     private LoadingStrategyType strategyType;
-    private LoadingVolume loadingVolume;
+    private LoadingVolume loadingVolume = STANDARD_LOADING_VOLUME;
 }

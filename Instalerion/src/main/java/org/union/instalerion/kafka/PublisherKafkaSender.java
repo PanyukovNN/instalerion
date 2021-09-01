@@ -14,8 +14,8 @@ import java.util.Map;
 @Service
 public class PublisherKafkaSender extends KafkaSender {
 
-    @Value("${kafka.loader.topic}")
-    private String LOADER_TOPIC_NAME;
+    @Value("${kafka.publisher.topic}")
+    private String topicName;
 
     public PublisherKafkaSender(KafkaHelper kafkaHelper, KafkaTemplate<String, Map<String, Object>> kafkaTemplate) {
         super(kafkaHelper, kafkaTemplate);
@@ -23,7 +23,7 @@ public class PublisherKafkaSender extends KafkaSender {
 
     @Override
     protected String getTopicName() {
-        return LOADER_TOPIC_NAME;
+        return topicName;
     }
 
     @Override

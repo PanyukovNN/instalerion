@@ -1,12 +1,15 @@
 package org.union.common.service;
 
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.union.common.Constants;
 import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.Post;
 import org.union.common.repository.PostRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.union.common.Constants;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,6 +46,30 @@ public class PostService {
      */
     public Optional<Post> findMostRated(String producingChannelId) {
         return postRepository.findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThanOrderByRatingDesc(producingChannelId, Constants.PUBLISHING_ERROR_COUNT_LIMIT);
+    }
+
+    /**
+     * Returns unpublished post most recently downloaded
+     *
+     * @param producingChannelId id of producing channel
+     * @return optional of post
+     */
+    public Optional<Post> findMostRecent(String producingChannelId) {
+        return postRepository.findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThanOrderByTakenAtDesc(producingChannelId, Constants.PUBLISHING_ERROR_COUNT_LIMIT);
+    }
+
+    /**
+     * Returns unpublished post most recently downloaded
+     *
+     * @param producingChannelId id of producing channel
+     * @return optional of post
+     */
+    public Optional<Post> findMostRecentStory(String producingChannelId) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "takenAt");
+        Pageable pageable = PageRequest.of(0, 1, sort);
+
+        //TODO найти более красивый способ достать только 1 пост
+        return Optional.ofNullable(postRepository.findMostRecentStory(producingChannelId, Constants.PUBLISHING_ERROR_COUNT_LIMIT, pageable).getContent().get(0));
     }
 
     public void removeAll() {

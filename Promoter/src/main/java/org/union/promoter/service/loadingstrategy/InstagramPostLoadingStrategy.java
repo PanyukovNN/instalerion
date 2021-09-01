@@ -19,10 +19,10 @@ import org.union.common.model.post.ImagePost;
 import org.union.common.model.post.MediaType;
 import org.union.common.model.post.Post;
 import org.union.common.model.post.VideoPost;
+import org.union.common.model.request.LoadingRequest;
 import org.union.common.service.*;
 import org.union.common.service.loadingstrategy.LoadingStrategy;
 import org.union.common.service.loadingstrategy.LoadingVolume;
-import org.union.promoter.requestprocessor.LoaderRequestProcessor;
 import org.union.promoter.service.LoaderService;
 
 import java.io.IOException;
@@ -32,16 +32,13 @@ import java.util.stream.Collectors;
 
 import static org.apache.logging.log4j.util.Strings.EMPTY;
 import static org.union.common.Constants.*;
-import static org.union.common.Constants.TRANSFORM_TO_IMAGE_POST_ERROR_MSG;
 
 @Service
 @RequiredArgsConstructor
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class InstagramPostLoadingStrategy implements LoadingStrategy {
 
-    private final Logger logger = LoggerFactory.getLogger(LoaderRequestProcessor.class);
-
-    private LoadingVolume loadingVolume;
+    private final Logger logger = LoggerFactory.getLogger(InstagramPostLoadingStrategy.class);
 
     private final PostService postService;
     private final ImageMatcher imageMatcher;
@@ -55,9 +52,9 @@ public class InstagramPostLoadingStrategy implements LoadingStrategy {
     private final ConsumingChannelService consumingChannelService;
 
     @Override
-    public void load(String producingChannelId) throws IGLoginException, NotFoundException {
-        ProducingChannel producingChannel = producingChannelService.findById(producingChannelId)
-                .orElseThrow(() -> new NotFoundException(String.format(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, producingChannelId)));
+    public void load(LoadingRequest request) throws IGLoginException, NotFoundException {
+        ProducingChannel producingChannel = producingChannelService.findById(request.getProducingChannelId())
+                .orElseThrow(() -> new NotFoundException(String.format(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, request.getProducingChannelId())));
 
         // Login to access instagram account
         IGClient client = instaService.getClient(producingChannel);
@@ -65,7 +62,7 @@ public class InstagramPostLoadingStrategy implements LoadingStrategy {
         List<ConsumingChannel> consumingChannels = producingChannel.getConsumingChannels();
 
         consumingChannels.forEach(
-                consumingChannel -> processConsumeChannel(producingChannel, client, consumingChannel)
+                consumingChannel -> processConsumeChannel(producingChannel, client, consumingChannel, request.getLoadingVolume())
         );
 
         producingChannel.setLastLoadingDateTime(dateTimeHelper.getCurrentDateTime());
@@ -73,12 +70,10 @@ public class InstagramPostLoadingStrategy implements LoadingStrategy {
         producingChannelService.save(producingChannel);
     }
 
-    @Override
-    public void setLoadingVolume(LoadingVolume loadingVolume) {
-        this.loadingVolume = loadingVolume;
-    }
-
-    private void processConsumeChannel(ProducingChannel producingChannel, IGClient client, ConsumingChannel consumingChannel) {
+    private void processConsumeChannel(ProducingChannel producingChannel,
+                                       IGClient client,
+                                       ConsumingChannel consumingChannel,
+                                       LoadingVolume loadingVolume) {
         try {
             List<TimelineMedia> timelineItems = loaderService.loadConsumingChannelPosts(producingChannel, client, consumingChannel, loadingVolume);
 
@@ -161,7 +156,7 @@ public class InstagramPostLoadingStrategy implements LoadingStrategy {
             videoPost.setVideoUrl(video.getVideo_versions().get(0).getUrl());
             videoPost.setImageUrl(video.getImage_versions2().getCandidates().get(0).getUrl());
         } catch (Exception e) {
-            logger.error(String.format(TRANSFORM_TO_IMAGE_POST_ERROR_MSG, e.getMessage()), e);
+            logger.error(String.format(TRANSFORM_TO_VIDEO_POST_ERROR_MSG, e.getMessage()), e);
         }
 
         return videoPost;

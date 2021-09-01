@@ -9,13 +9,14 @@ import org.springframework.util.CollectionUtils;
 import org.union.common.model.Customer;
 import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.Post;
-import org.union.common.model.request.LoadPostsRequest;
-import org.union.common.model.request.PublishPostRequest;
+import org.union.common.model.request.LoadingRequest;
+import org.union.common.model.request.PublishingRequest;
 import org.union.common.service.CustomerService;
 import org.union.common.service.DateTimeHelper;
 import org.union.common.service.PostService;
 import org.union.common.service.ProducingChannelService;
 import org.union.common.service.loadingstrategy.LoadingStrategyType;
+import org.union.common.service.publishingstrategy.PublishingStrategyType;
 import org.union.instalerion.kafka.LoaderKafkaSender;
 import org.union.instalerion.kafka.PublisherKafkaSender;
 
@@ -41,11 +42,11 @@ public class InstalerionService {
 
     @Scheduled(fixedRateString = "${processor.scheduler.fixed.rate.mills}")
     public void schedule() {
-        if (dateTimeHelper.isNight()) {
-            logger.info(WORKING_ON_PAUSE_IN_NIGHT_MSG);
-
-            return;
-        }
+//        if (dateTimeHelper.isNight()) {
+//            logger.info(WORKING_ON_PAUSE_IN_NIGHT_MSG);
+//
+//            return;
+//        }
 
         List<Customer> customers = customerService.findAll();
 
@@ -88,22 +89,15 @@ public class InstalerionService {
         if (producingChannelService.isLoadingTime(producingChannel)) {
             LoadingStrategyType strategyType = LoadingStrategyType.INSTAGRAM_POSTS;
 
-            LoadPostsRequest request = new LoadPostsRequest(producingChannel.getId(), strategyType, STANDARD_LOADING_VOLUME);
+            LoadingRequest request = new LoadingRequest(producingChannel.getId(), strategyType, STANDARD_LOADING_VOLUME);
 
             loaderKafkaSender.send(request);
         }
 
         if (producingChannelService.isPublishingTime(producingChannel)) {
-            Post post = postService.findMostRated(producingChannel.getId())
-                    .orElse(null);
+            PublishingStrategyType strategyType = PublishingStrategyType.INSTAGRAM_STORY;
 
-            if (post == null) {
-                logger.info(POST_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG);
-
-                return;
-            }
-
-            PublishPostRequest request = new PublishPostRequest(post.getId(), post.getMediaType());
+            PublishingRequest request = new PublishingRequest(producingChannel.getId(), strategyType);
 
             publisherKafkaSender.send(request);
         }

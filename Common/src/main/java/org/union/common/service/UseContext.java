@@ -37,8 +37,6 @@ public class UseContext {
     }
 
     public void setInUse(String id) {
-        checkInUse(id);
-
         inUseIds.add(id);
     }
 }
