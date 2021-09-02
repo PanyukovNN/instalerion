@@ -54,7 +54,7 @@ public class PostService {
      * @param producingChannelId id of producing channel
      * @return optional of post
      */
-    public Optional<Post> findMostRecent(String producingChannelId) {
+    public Optional<Post> findMostRecentPost(String producingChannelId) {
         return postRepository.findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThanOrderByTakenAtDesc(producingChannelId, Constants.PUBLISHING_ERROR_COUNT_LIMIT);
     }
 

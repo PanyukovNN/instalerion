@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.union.common.model.Customer;
 import org.union.common.model.ProducingChannel;
-import org.union.common.model.post.Post;
 import org.union.common.model.request.LoadingRequest;
 import org.union.common.model.request.PublishingRequest;
 import org.union.common.service.CustomerService;
@@ -42,11 +41,11 @@ public class InstalerionService {
 
     @Scheduled(fixedRateString = "${processor.scheduler.fixed.rate.mills}")
     public void schedule() {
-//        if (dateTimeHelper.isNight()) {
-//            logger.info(WORKING_ON_PAUSE_IN_NIGHT_MSG);
-//
-//            return;
-//        }
+        if (dateTimeHelper.isNight()) {
+            logger.info(WORKING_ON_PAUSE_IN_NIGHT_MSG);
+
+            return;
+        }
 
         List<Customer> customers = customerService.findAll();
 
@@ -95,7 +94,8 @@ public class InstalerionService {
         }
 
         if (producingChannelService.isPublishingTime(producingChannel)) {
-            PublishingStrategyType strategyType = PublishingStrategyType.INSTAGRAM_STORY;
+//            PublishingStrategyType strategyType = PublishingStrategyType.INSTAGRAM_STORY;
+            PublishingStrategyType strategyType = PublishingStrategyType.RECENT_INSTAGRAM_POST;
 
             PublishingRequest request = new PublishingRequest(producingChannel.getId(), strategyType);
 

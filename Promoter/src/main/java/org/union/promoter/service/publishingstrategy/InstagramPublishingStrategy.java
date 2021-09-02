@@ -2,15 +2,12 @@ package org.union.promoter.service.publishingstrategy;
 
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
-import com.github.instagram4j.instagram4j.models.media.reel.item.StoryHashtagsItem;
 import com.github.instagram4j.instagram4j.requests.media.MediaInfoRequest;
 import com.github.instagram4j.instagram4j.responses.media.MediaInfoResponse;
 import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.union.common.Constants;
 import org.union.common.exception.NotFoundException;
@@ -30,12 +27,14 @@ import java.util.concurrent.ExecutionException;
 
 import static org.union.common.Constants.*;
 
+/**
+ * Base strategy class for an instagram posting
+ */
 @Service
 @RequiredArgsConstructor
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class InstagramStoryPublishingStrategy implements PublishingStrategy {
+public abstract class InstagramPublishingStrategy implements PublishingStrategy {
 
-    private final Logger logger = LoggerFactory.getLogger(InstagramStoryPublishingStrategy.class);
+    private final Logger logger = LoggerFactory.getLogger(InstagramPublishingStrategy.class);
 
     private final PostService postService;
     private final CloudService cloudService;
@@ -51,7 +50,7 @@ public class InstagramStoryPublishingStrategy implements PublishingStrategy {
      * @param request publish post request
      * @throws IGLoginException instagram4j login exception
      */
-    public void publish(PublishingRequest request) throws IGLoginException, ExecutionException, InterruptedException {
+    public void publish(PublishingRequest request) throws Exception {
         Post post = definePost(request);
 
         String producingChannelId = post.getProducingChannelId();
@@ -64,9 +63,7 @@ public class InstagramStoryPublishingStrategy implements PublishingStrategy {
             // Login to instagram account
             IGClient client = instaService.getClient(producingChannel);
 
-            MediaResponse.MediaConfigureToStoryResponse response = processPublishing(post, client);
-
-            checkResponse(response, client, post);
+            processPublishing(post, client);
 
             LocalDateTime now = dateTimeHelper.getCurrentDateTime();
             post.setPublishDateTime(now);
@@ -86,23 +83,68 @@ public class InstagramStoryPublishingStrategy implements PublishingStrategy {
         }
     }
 
-    private Post definePost(PublishingRequest request) {
-        Post post = postService.findMostRecentStory(request.getProducingChannelId())
-                .orElse(null);
+    private void processPublishing(Post post, IGClient client) throws Exception {
+        int tries = TRANSCODE_NOT_FINISHED_TRIES;
+        while (tries > 0) {
+            try {
+                publishPost(post, client);
+            } catch (Exception e) {
+                if (e.getMessage().equals(TRANSCODE_NOT_FINISHED_YET_ERROR_MSG)) {
+                    logger.info(TRANSCODE_NOT_FINISHED_YET_ERROR_MSG);
 
-        checkPost(request, post);
-
-        return post;
+                    tries--;
+                } else {
+                    throw e;
+                }
+            }
+        }
     }
 
-    private MediaResponse.MediaConfigureToStoryResponse processPublishing(Post post, IGClient client) throws ExecutionException, InterruptedException {
+    protected void publishPost(Post post, IGClient client) throws ExecutionException, InterruptedException {
+        MediaResponse response;
+
         if (post.getMediaType().equals(MediaType.IMAGE.getValue())) {
-            return publishImage(post.getId(), client);
+            response = publishImage(post.getId(), client);
         } else if (post.getMediaType().equals(MediaType.VIDEO.getValue())) {
-            return publishVideo(post.getId(), client);
+            response = publishVideo(post.getId(), client);
         } else {
             throw new RequestException(String.format(UNRECOGNIZED_MEDIA_TYPE_ERROR_MSG, post.getId()));
         }
+
+        checkResponse(response, client, post);
+    }
+
+    private MediaResponse publishImage(String postId, IGClient client) throws ExecutionException, InterruptedException {
+        ImagePost imagePost = imagePostService.findById(postId)
+                .orElseThrow(() -> new org.union.common.exception.NotFoundException(String.format(IMAGE_POST_NOT_FOUND_ERROR_MSG, postId)));
+
+        File imageFile = cloudService.getImageFileByCode(imagePost.getCode());
+
+        if (!imageFile.exists()) {
+            throw new RequestException(String.format(FILE_NOT_FOUND_ERROR_MSG, imagePost.getCode()));
+        }
+
+        return uploadPhoto(imagePost, imageFile, client);
+    }
+
+    private MediaResponse publishVideo(String postId, IGClient client) throws ExecutionException, InterruptedException {
+        VideoPost videoPost = videoPostService.findById(postId)
+                .orElseThrow(() -> new NotFoundException(String.format(VIDEO_POST_NOT_FOUND_ERROR_MSG, postId)));
+
+        if (videoPost.getDuration() > 60) {
+            throw new RequestException(TOO_LONG_VIDEO_ERROR_MSG);
+        }
+
+        File videoFile = cloudService.getVideoFileByCode(videoPost.getCode());
+        File coverFile = cloudService.getImageFileByCode(videoPost.getCode());
+
+        if (!videoFile.exists() || !coverFile.exists()) {
+            throw new RequestException(String.format(FILE_NOT_FOUND_ERROR_MSG, videoPost.getCode()));
+        }
+
+//        StoryHashtagsItem.builder()
+
+        return uploadVideo(videoPost, videoFile, coverFile, client);
     }
 
     /**
@@ -114,7 +156,7 @@ public class InstagramStoryPublishingStrategy implements PublishingStrategy {
      * @throws ExecutionException future exception
      * @throws InterruptedException future exception
      */
-    private void checkResponse(MediaResponse.MediaConfigureToStoryResponse response, IGClient client, Post post) throws ExecutionException, InterruptedException {
+    protected void checkResponse(MediaResponse response, IGClient client, Post post) throws ExecutionException, InterruptedException {
         if (response == null) {
             throw new RequestException(NO_PUBLISHING_ANSWER_FROM_INSTAGRAM_ERROR_MSG);
         }
@@ -147,7 +189,13 @@ public class InstagramStoryPublishingStrategy implements PublishingStrategy {
         }
     }
 
-    private void checkPost(PublishingRequest request, Post post) {
+    /**
+     * Checks post availability for publishing
+     *
+     * @param request request
+     * @param post post
+     */
+    protected void checkPost(PublishingRequest request, Post post) {
         if (post == null) {
             throw new RequestException(String.format(POST_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG, request.getProducingChannelId()));
         }
@@ -161,44 +209,36 @@ public class InstagramStoryPublishingStrategy implements PublishingStrategy {
         }
     }
 
-    private MediaResponse.MediaConfigureToStoryResponse publishImage(String postId, IGClient client) throws ExecutionException, InterruptedException {
-        ImagePost imagePost = imagePostService.findById(postId)
-                .orElseThrow(() -> new org.union.common.exception.NotFoundException(String.format(IMAGE_POST_NOT_FOUND_ERROR_MSG, postId)));
+    /**
+     * Defines post for special strategy
+     *
+     * @param request request
+     * @return post instance
+     */
+    protected abstract Post definePost(PublishingRequest request);
 
-        File imageFile = cloudService.getImageFileByCode(imagePost.getCode());
+    /**
+     * Uploads photo
+     *
+     * @param post post
+     * @param imageFile file of image
+     * @param client instagram client
+     * @return media response
+     * @throws InterruptedException exception
+     * @throws ExecutionException exception
+     */
+    protected abstract MediaResponse uploadPhoto(Post post, File imageFile, IGClient client) throws InterruptedException, ExecutionException;
 
-        if (!imageFile.exists()) {
-            throw new RequestException(String.format(FILE_NOT_FOUND_ERROR_MSG, imagePost.getCode()));
-        }
-
-        return client
-                .actions()
-                .story()
-                .uploadPhoto(imageFile)
-                .get();
-    }
-
-    private MediaResponse.MediaConfigureToStoryResponse publishVideo(String postId, IGClient client) throws ExecutionException, InterruptedException {
-        VideoPost videoPost = videoPostService.findById(postId)
-                .orElseThrow(() -> new NotFoundException(String.format(VIDEO_POST_NOT_FOUND_ERROR_MSG, postId)));
-
-        if (videoPost.getDuration() > 60) {
-            throw new RequestException(TOO_LONG_VIDEO_ERROR_MSG);
-        }
-
-        File videoFile = cloudService.getVideoFileByCode(videoPost.getCode());
-        File coverFile = cloudService.getImageFileByCode(videoPost.getCode());
-
-        if (!videoFile.exists() || !coverFile.exists()) {
-            throw new RequestException(String.format(FILE_NOT_FOUND_ERROR_MSG, videoPost.getCode()));
-        }
-
-//        StoryHashtagsItem.builder()
-
-        return client
-                .actions()
-                .story()
-                .uploadVideo(videoFile, coverFile)
-                .get();
-    }
+    /**
+     * Uploads photo video
+     *
+     * @param post post
+     * @param videoFile file of video
+     * @param coverFile file of video cover
+     * @param client instagram client
+     * @return media response
+     * @throws InterruptedException exception
+     * @throws ExecutionException exception
+     */
+    protected abstract MediaResponse uploadVideo(Post post, File videoFile, File coverFile, IGClient client) throws ExecutionException, InterruptedException;
 }

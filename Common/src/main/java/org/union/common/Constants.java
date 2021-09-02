@@ -68,5 +68,8 @@ public class Constants {
     public static final double IMAGE_MATCHING_THRESHOLD = 2d;
     public static final int UNBLOCK_PRODUCING_CHANNEL_PERIOD_DAYS = 1;
     public static final LoadingVolume STANDARD_LOADING_VOLUME = new LoadingVolume(5, 15);
+    public static final int TRANSCODE_NOT_FINISHED_TRIES = 3;
+    // Do not change text
+    public static final String TRANSCODE_NOT_FINISHED_YET_ERROR_MSG = "Transcode not finished yet";
 
 }
