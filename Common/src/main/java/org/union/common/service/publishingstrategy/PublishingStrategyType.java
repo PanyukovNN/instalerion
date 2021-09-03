@@ -1,9 +1,10 @@
 package org.union.common.service.publishingstrategy;
 
+/**
+ * Type to choose publishing strategy
+ */
 public enum PublishingStrategyType {
 
-    RECENT_INSTAGRAM_POST,
-    RATED_INSTAGRAM_POST,
-    RECENT_INSTAGRAM_STORY,
-    RATED_INSTAGRAM_STORY,
+    INSTAGRAM_POST,
+    INSTAGRAM_STORY,
 }

@@ -42,7 +42,7 @@ public class PublisherKafkaListener {
             requestHelper.checkOftenRequests(topicName);
 
             PublishingRequest request = kafkaHelper.deserialize(rawRequest, PublishingRequest.class);
-            requestHelper.validateLoaderRequest(request);
+            requestHelper.validatePublisherRequest(request);
 
             logger.info(String.format(PUBLISHING_REQUEST_RECEIVED_MSG, request.getProducingChannelId()));
 

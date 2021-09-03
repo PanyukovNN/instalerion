@@ -3,8 +3,10 @@ package org.union.promoter.requestprocessor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.union.common.model.post.Post;
 import org.union.common.model.request.PublishingRequest;
 import org.union.common.service.UseContext;
+import org.union.common.service.publishingstrategy.PostDefiningStrategy;
 import org.union.common.service.publishingstrategy.PublishingStrategy;
 import org.union.promoter.service.StrategyResolver;
 
@@ -30,9 +32,11 @@ public class PublisherRequestProcessor {
         try {
             UseContext.setInUse(request.getProducingChannelId());
 
-            PublishingStrategy strategy = strategyResolver.getPublishingStrategy(request.getStrategyType());
+            PostDefiningStrategy postDefiningStrategy = strategyResolver.getPostDefiningStrategy(request.getPostDefiningStrategyType());
+            Post post = postDefiningStrategy.definePost(request.getProducingChannelId());
 
-            strategy.publish(request);
+            PublishingStrategy publishingStrategy = strategyResolver.getPublishingStrategy(request.getPublishingStrategyType());
+            publishingStrategy.publish(post);
         } finally {
             UseContext.release(request.getProducingChannelId());
         }

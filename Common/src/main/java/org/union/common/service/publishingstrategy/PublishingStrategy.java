@@ -1,8 +1,17 @@
 package org.union.common.service.publishingstrategy;
 
-import org.union.common.model.request.PublishingRequest;
+import org.union.common.model.post.Post;
 
+/**
+ * Publishing strategy
+ */
 public interface PublishingStrategy {
 
-    void publish(PublishingRequest request) throws Exception;
+    /**
+     * Publish story to producing channel
+     *
+     * @param post post
+     * @throws Exception any exception
+     */
+    void publish(Post post) throws Exception;
 }

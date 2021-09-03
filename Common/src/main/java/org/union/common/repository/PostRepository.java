@@ -41,7 +41,6 @@ public interface PostRepository extends MongoRepository<Post, String> {
      * @param producingChannelId producing channel id
      * @return video post
      */
-    @Query("{ 'producingChannelId' : ?0,  }")
     Optional<Post> findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThanOrderByTakenAtDesc(String producingChannelId, int errorCountLimit);
 
     /**

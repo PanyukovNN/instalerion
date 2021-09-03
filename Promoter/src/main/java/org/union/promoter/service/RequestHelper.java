@@ -74,13 +74,17 @@ public class RequestHelper {
      *
      * @param request request
      */
-    public void validateLoaderRequest(PublishingRequest request) {
+    public void validatePublisherRequest(PublishingRequest request) {
         if (request.getProducingChannelId() == null) {
             throw new IllegalArgumentException(PRODUCING_CHANNEL_NULL_ID_ERROR_MSG);
         }
 
-        if (request.getStrategyType() == null) {
+        if (request.getPublishingStrategyType() == null) {
             throw new IllegalArgumentException(LOADING_STRATEGY_TYPE_NULL_ID_ERROR_MSG);
+        }
+
+        if (request.getPostDefiningStrategyType() == null) {
+            throw new IllegalArgumentException(POST_DEFINING_STRATEGY_NULL_ERROR_MSG);
         }
     }
 }

@@ -41,6 +41,9 @@ public class Constants {
     public static final String OBJECT_IN_USE_ERROR_MSG = "Object with id %s now in use.";
     public static final String LOADING_STRATEGY_RESOLVING_ERROR_MSG = "Ошибка при получении стратегии загрузки из контекста.";
     public static final String PUBLISHING_STRATEGY_RESOLVING_ERROR_MSG = "Ошибка при получении стратегии публикации из контекста.";
+    public static final String POST_DEFINING_STRATEGY_RESOLVING_ERROR_MSG = "Ошибка при получении стратегии определения поста для публикации из контекста.";
+    public static final String POST_DEFINING_STRATEGY_NOT_SET_ERROR_MSG = "Не задана стратегия определения поста для публикации.";
+    public static final String POST_DEFINING_STRATEGY_NULL_ERROR_MSG = "В запросе отсутсвуте стратегия определения поста для публикации.";
 
     /**
      * Messages
@@ -58,7 +61,10 @@ public class Constants {
     public static final String PRODUCING_CHANNELS_NOT_FOUND_MSG = "Не найдено ни одного канала публикации для пользователя %s.";
     public static final String LOADER_DISABLED_MSG = "Loader disabled.";
     public static final String PUBLISHER_DISABLED_MSG = "Publisher disabled.";
-    public static final String STORY_SUCCESSFULLY_PUBLISHED_MSG = "Стори с %s успешно опубликована в канале %s.";
+    public static final String POST_SUCCESSFULLY_PUBLISHED_MSG = "Пост %s успешно опубликован в канале %s.";
+    public static final String POST_PUBLISHING_STARTED_MSG = "Начинаю публикацию поста %s в канале %s.";
+    public static final String STORY_SUCCESSFULLY_PUBLISHED_MSG = "Стори %s успешно опубликована в канале %s.";
+    public static final String STORY_PUBLISHING_STARTED_MSG = "Начинаю публикацию стори %s в канале %s.";
 
     /**
      * Other
@@ -71,5 +77,6 @@ public class Constants {
     public static final int TRANSCODE_NOT_FINISHED_TRIES = 3;
     // Do not change text
     public static final String TRANSCODE_NOT_FINISHED_YET_ERROR_MSG = "Transcode not finished yet";
+    public static final int IG_CLIENT_EXPIRING_HOURS = 24;
 
 }

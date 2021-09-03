@@ -1,6 +1,5 @@
 package org.union.promoter.service;
 
-import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.actions.users.UserAction;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import com.github.instagram4j.instagram4j.requests.feed.FeedUserRequest;
@@ -10,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.union.common.model.ConsumingChannel;
+import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
 import org.union.common.service.DateTimeHelper;
 import org.union.common.service.InstaService;
@@ -45,12 +45,17 @@ public class LoaderService {
      * @throws ExecutionException exception
      */
     public List<TimelineMedia> loadConsumingChannelPosts(ProducingChannel producingChannel,
-                                                         IGClient client,
+                                                         InstaClient client,
                                                          ConsumingChannel consumingChannel,
                                                          LoadingVolume loadingVolume) throws InterruptedException, ExecutionException {
         String consumeChannelName = consumingChannel.getName();
 
-        UserAction userAction = client.actions().users().findByUsername(consumeChannelName).get();
+        //TODO create inner method
+        UserAction userAction = client.getIGClient()
+                .actions()
+                .users()
+                .findByUsername(consumeChannelName)
+                .get();
 
         List<TimelineMedia> timelineItems = new ArrayList<>();
 
@@ -62,7 +67,8 @@ public class LoaderService {
         // while has posts to load or loading is allowed
         while(leftToLoadPosts > 0 && continueLoading) {
             // Loads first 12 posts
-            FeedUserResponse feedUserResponse = client
+            //TODO create inner method
+            FeedUserResponse feedUserResponse = client.getIGClient()
                     .sendRequest(new FeedUserRequest(userAction.getUser().getPk(), maxId))
                     .get();
 

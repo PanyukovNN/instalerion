@@ -15,6 +15,7 @@ import org.union.common.service.DateTimeHelper;
 import org.union.common.service.PostService;
 import org.union.common.service.ProducingChannelService;
 import org.union.common.service.loadingstrategy.LoadingStrategyType;
+import org.union.common.service.publishingstrategy.PostDefiningStrategyType;
 import org.union.common.service.publishingstrategy.PublishingStrategyType;
 import org.union.instalerion.kafka.LoaderKafkaSender;
 import org.union.instalerion.kafka.PublisherKafkaSender;
@@ -41,11 +42,11 @@ public class InstalerionService {
 
     @Scheduled(fixedRateString = "${processor.scheduler.fixed.rate.mills}")
     public void schedule() {
-        if (dateTimeHelper.isNight()) {
-            logger.info(WORKING_ON_PAUSE_IN_NIGHT_MSG);
-
-            return;
-        }
+//        if (dateTimeHelper.isNight()) {
+//            logger.info(WORKING_ON_PAUSE_IN_NIGHT_MSG);
+//
+//            return;
+//        }
 
         List<Customer> customers = customerService.findAll();
 
@@ -95,9 +96,11 @@ public class InstalerionService {
 
         if (producingChannelService.isPublishingTime(producingChannel)) {
 //            PublishingStrategyType strategyType = PublishingStrategyType.INSTAGRAM_STORY;
-            PublishingStrategyType strategyType = PublishingStrategyType.RECENT_INSTAGRAM_POST;
+            PostDefiningStrategyType postDefiningStrategyType = PostDefiningStrategyType.MOST_RECENT;
+            PublishingStrategyType publishingStrategyType = PublishingStrategyType.INSTAGRAM_POST;
 
-            PublishingRequest request = new PublishingRequest(producingChannel.getId(), strategyType);
+            PublishingRequest request = new PublishingRequest(producingChannel.getId(),
+                    publishingStrategyType, postDefiningStrategyType);
 
             publisherKafkaSender.send(request);
         }

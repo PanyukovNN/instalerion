@@ -5,6 +5,7 @@ import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import org.union.common.exception.RequestException;
+import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +17,7 @@ import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.union.common.Constants.IG_CLIENT_EXPIRING_HOURS;
 import static org.union.common.Constants.PRODUCING_CHANNEL_TEMPORARY_BLOCKED_MSG;
 
 /**
@@ -28,7 +30,7 @@ public class InstaService {
     @Value("${device.number:0}")
     public int deviceNumber;
 
-    private final Map<String, IGClient> clientContext = new HashMap<>();
+    private final Map<String, InstaClient> clientContext = new HashMap<>();
 
     private final DateTimeHelper dateTimeHelper;
     private final EncryptionUtil encryptionUtil;
@@ -41,7 +43,7 @@ public class InstaService {
      * @return logged in instagram client
      * @throws IGLoginException exception while log in
      */
-    public synchronized IGClient getClient(ProducingChannel producingChannel) throws IGLoginException {
+    public synchronized InstaClient getClient(ProducingChannel producingChannel) throws IGLoginException {
         if (producingChannelService.isBlocked(producingChannel)) {
             throw new RequestException(String.format(PRODUCING_CHANNEL_TEMPORARY_BLOCKED_MSG,
                     producingChannel.getId(),
@@ -49,11 +51,15 @@ public class InstaService {
         }
 
         try {
-            IGClient client = clientContext.get(producingChannel.getId());
+            InstaClient client = clientContext.get(producingChannel.getId());
 
-            if (client == null || !client.isLoggedIn()) {
-                client = login(producingChannel);
-                client.setDevice(IGAndroidDevice.GOOD_DEVICES[deviceNumber]);
+            if (client == null
+                    || client.getIGClient() == null
+                    || !client.getIGClient().isLoggedIn()
+                    || isSessionExpired(client)) {
+                IGClient iGClient = login(producingChannel);
+
+                client = new InstaClient(iGClient, dateTimeHelper.getCurrentDateTime());
 
                 clientContext.put(producingChannel.getId(), client);
             }
@@ -69,15 +75,24 @@ public class InstaService {
         }
     }
 
+    private boolean isSessionExpired(InstaClient client) {
+        return client.getLoginTime().isBefore(
+                dateTimeHelper.getCurrentDateTime().minusHours(IG_CLIENT_EXPIRING_HOURS));
+    }
+
     private IGClient login(ProducingChannel producingChannel) throws IGLoginException {
         return login(producingChannel.getLogin(), producingChannel.getPassword());
     }
 
     private IGClient login(String login, String encryptedPassword) throws IGLoginException {
-        return IGClient.builder()
+        IGClient iGclient = IGClient.builder()
                 .username(login)
                 .password(encryptionUtil.getTextEncryptor().decrypt(encryptedPassword))
                 .login();
+
+        iGclient.setDevice(IGAndroidDevice.GOOD_DEVICES[deviceNumber]);
+
+        return iGclient;
     }
 
     /**

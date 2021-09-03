@@ -1,6 +1,7 @@
 package org.union.common.model.request;
 
 import lombok.*;
+import org.union.common.service.publishingstrategy.PostDefiningStrategyType;
 import org.union.common.service.publishingstrategy.PublishingStrategyType;
 
 /**
@@ -14,5 +15,6 @@ import org.union.common.service.publishingstrategy.PublishingStrategyType;
 public class PublishingRequest extends KafkaRequest {
 
     private String producingChannelId;
-    private PublishingStrategyType strategyType;
+    private PublishingStrategyType publishingStrategyType;
+    private PostDefiningStrategyType postDefiningStrategyType;
 }

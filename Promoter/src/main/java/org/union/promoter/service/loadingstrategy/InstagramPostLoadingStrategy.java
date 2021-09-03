@@ -1,6 +1,5 @@
 package org.union.promoter.service.loadingstrategy;
 
-import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineImageMedia;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
@@ -14,6 +13,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.union.common.model.ConsumingChannel;
+import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.ImagePost;
 import org.union.common.model.post.MediaType;
@@ -57,7 +57,7 @@ public class InstagramPostLoadingStrategy implements LoadingStrategy {
                 .orElseThrow(() -> new NotFoundException(String.format(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, request.getProducingChannelId())));
 
         // Login to access instagram account
-        IGClient client = instaService.getClient(producingChannel);
+        InstaClient client = instaService.getClient(producingChannel);
 
         List<ConsumingChannel> consumingChannels = producingChannel.getConsumingChannels();
 
@@ -71,7 +71,7 @@ public class InstagramPostLoadingStrategy implements LoadingStrategy {
     }
 
     private void processConsumeChannel(ProducingChannel producingChannel,
-                                       IGClient client,
+                                       InstaClient client,
                                        ConsumingChannel consumingChannel,
                                        LoadingVolume loadingVolume) {
         try {

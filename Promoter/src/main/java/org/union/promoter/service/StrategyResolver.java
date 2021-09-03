@@ -7,19 +7,22 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.union.common.service.loadingstrategy.LoadingStrategy;
 import org.union.common.service.loadingstrategy.LoadingStrategyType;
+import org.union.common.service.publishingstrategy.PostDefiningStrategy;
+import org.union.common.service.publishingstrategy.PostDefiningStrategyType;
 import org.union.common.service.publishingstrategy.PublishingStrategy;
 import org.union.common.service.publishingstrategy.PublishingStrategyType;
 import org.union.promoter.kafka.LoaderKafkaListener;
 import org.union.promoter.service.loadingstrategy.InstagramPostLoadingStrategy;
-import org.union.promoter.service.publishingstrategy.post.InstagramRecentPostPublishingStrategy;
-import org.union.promoter.service.publishingstrategy.story.InstagramBaseStoryPublishingStrategy;
+import org.union.promoter.service.publishingstrategy.InstagramPostPublishingStrategy;
+import org.union.promoter.service.publishingstrategy.InstagramStoryPublishingStrategy;
+import org.union.promoter.service.publishingstrategy.postdefiningstrategy.RatedPostDefiningStrategy;
+import org.union.promoter.service.publishingstrategy.postdefiningstrategy.RecentPostDefiningStrategy;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.union.common.Constants.LOADING_STRATEGY_RESOLVING_ERROR_MSG;
-import static org.union.common.Constants.PUBLISHING_STRATEGY_RESOLVING_ERROR_MSG;
+import static org.union.common.Constants.*;
 
 /**
  * Resolver to get strategy by type
@@ -31,6 +34,7 @@ public class StrategyResolver {
     private final Logger logger = LoggerFactory.getLogger(LoaderKafkaListener.class);
     private final Map<LoadingStrategyType, Class<? extends LoadingStrategy>> loadingStrategyMap = new HashMap<>();
     private final Map<PublishingStrategyType, Class<? extends PublishingStrategy>> publishingStrategyMap = new HashMap<>();
+    private final Map<PostDefiningStrategyType, Class<? extends PostDefiningStrategy>> postDefiningStrategyMap = new HashMap<>();
 
     private final ApplicationContext context;
 
@@ -38,8 +42,11 @@ public class StrategyResolver {
     public void postConstruct() {
         loadingStrategyMap.put(LoadingStrategyType.INSTAGRAM_POSTS, InstagramPostLoadingStrategy.class);
 
-        publishingStrategyMap.put(PublishingStrategyType.RECENT_INSTAGRAM_STORY, InstagramRecentPostPublishingStrategy.class);
-        publishingStrategyMap.put(PublishingStrategyType.RECENT_INSTAGRAM_POST, InstagramRecentPostPublishingStrategy.class);
+        publishingStrategyMap.put(PublishingStrategyType.INSTAGRAM_STORY, InstagramStoryPublishingStrategy.class);
+        publishingStrategyMap.put(PublishingStrategyType.INSTAGRAM_POST, InstagramPostPublishingStrategy.class);
+
+        postDefiningStrategyMap.put(PostDefiningStrategyType.MOST_RATED, RatedPostDefiningStrategy.class);
+        postDefiningStrategyMap.put(PostDefiningStrategyType.MOST_RECENT, RecentPostDefiningStrategy.class);
     }
 
     /**
@@ -73,6 +80,24 @@ public class StrategyResolver {
             return context.getBean(strategyClass);
         } catch (Exception e) {
             logger.error(PUBLISHING_STRATEGY_RESOLVING_ERROR_MSG);
+
+            throw e;
+        }
+    }
+
+    /**
+     * Returns post defining strategy by type
+     *
+     * @param strategyType type of strategy
+     * @return publishing strategy
+     */
+    public PostDefiningStrategy getPostDefiningStrategy(PostDefiningStrategyType strategyType) {
+        try {
+            Class<? extends PostDefiningStrategy> strategyClass = postDefiningStrategyMap.get(strategyType);
+
+            return context.getBean(strategyClass);
+        } catch (Exception e) {
+            logger.error(POST_DEFINING_STRATEGY_RESOLVING_ERROR_MSG);
 
             throw e;
         }
