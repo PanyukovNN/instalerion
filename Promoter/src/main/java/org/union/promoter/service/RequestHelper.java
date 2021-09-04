@@ -31,18 +31,16 @@ public class RequestHelper {
     /**
      * Checks too often requests
      */
-    public void checkOftenRequests(String topicName) {
+    public boolean isOftenRequests(String topicName) {
         LocalDateTime lastRequestDateTime = topicRequestContext.get(topicName);
 
         if (lastRequestDateTime == null) {
-            return;
+            return false;
         }
 
         int minutesDiff = dateTimeHelper.minuteFromNow(lastRequestDateTime);
 
-        if (minRequestPeriod > minutesDiff) {
-            throw new RequestException(String.format(TOO_OFTEN_REQUESTS_ERROR_MSG, topicName));
-        }
+        return minRequestPeriod > minutesDiff;
     }
 
     /**

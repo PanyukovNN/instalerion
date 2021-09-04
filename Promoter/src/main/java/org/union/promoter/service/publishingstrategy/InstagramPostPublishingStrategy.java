@@ -4,16 +4,22 @@ import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.union.common.model.InstaClient;
-import org.union.common.model.post.Post;
+import org.union.common.model.ProducingChannel;
+import org.union.common.model.post.PublicationType;
 import org.union.common.service.*;
 
 import java.io.File;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import static org.apache.logging.log4j.util.Strings.EMPTY;
-import static org.union.common.Constants.POST_PUBLISHING_STARTED_MSG;
-import static org.union.common.Constants.POST_SUCCESSFULLY_PUBLISHED_MSG;
+import static org.union.common.Constants.*;
 
 /**
  * Strategy to publish a post in an instagram feed
@@ -39,13 +45,13 @@ public class InstagramPostPublishingStrategy extends InstagramBasePublishingStra
     }
 
     @Override
-    protected MediaResponse uploadPhoto(Post post, File imageFile, InstaClient client) throws InterruptedException, ExecutionException {
-        return client.uploadPhotoPost(imageFile, getCaption(post));
+    protected MediaResponse uploadPhoto(List<String> hashtags, File imageFile, InstaClient client) throws InterruptedException, ExecutionException {
+        return client.uploadPhotoPost(imageFile, getCaption(hashtags));
     }
 
     @Override
-    protected MediaResponse uploadVideo(Post post, File videoFile, File coverFile, InstaClient client) throws ExecutionException, InterruptedException {
-        return client.uploadVideoPost(videoFile, coverFile, getCaption(post));
+    protected MediaResponse uploadVideo(List<String> hashtags, File videoFile, File coverFile, InstaClient client) throws ExecutionException, InterruptedException {
+        return client.uploadVideoPost(videoFile, coverFile, getCaption(hashtags));
 
     }
 
@@ -55,15 +61,26 @@ public class InstagramPostPublishingStrategy extends InstagramBasePublishingStra
     }
 
     @Override
+    protected void setLastPublicationDateTime(ProducingChannel producingChannel, LocalDateTime now) {
+        producingChannel.getPublicationTimeMap().put(PublicationType.INSTAGRAM_POST, now);
+    }
+
+    @Override
     protected void logSuccessPublishing(String postId, String producingChannelId) {
         logger.info(String.format(POST_SUCCESSFULLY_PUBLISHED_MSG, postId, producingChannelId));
     }
 
-    private String getCaption(Post post) {
-        return EMPTY;
-        //post.getDescription();
-//        StringUtils.hasText(post.getDescription())
-//                ? post.getDescription() + "\n\n" + String.format(SOURCE_STRING_TEMPLATE, post.getCode())
-//                : String.format(SOURCE_STRING_TEMPLATE, post.getCode());
+    private String getCaption(List<String> hashtags) {
+        if (CollectionUtils.isEmpty(hashtags)) {
+            return EMPTY;
+        }
+
+        List<String> randomHashtags = new ArrayList<>(hashtags);
+        Collections.shuffle(randomHashtags);
+
+        return randomHashtags.stream()
+                .limit(POST_HASHTAG_NUMBER)
+                .map(tag -> "#" + tag)
+                .collect(Collectors.joining(" "));
     }
 }

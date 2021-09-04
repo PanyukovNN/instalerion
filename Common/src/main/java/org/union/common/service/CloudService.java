@@ -17,6 +17,8 @@ import java.util.List;
 public class CloudService {
 
     private static final String CLOUD_PATH = "cloud/";
+    public static final String VIDEO_PREFIX = "video_";
+    public static final String IMAGE_PREFIX = "image_";
 
     /**
      * Save a file by url to the cloud
@@ -37,11 +39,9 @@ public class CloudService {
      */
     public void saveVideoPosts(List<VideoPost> videoPosts) throws IOException {
         for (VideoPost videoPost : videoPosts) {
-            // Сохраняем видео
-            saveByUrl(videoPost.getVideoUrl(), videoPost.getCode() + ".mp4");
+            saveByUrl(videoPost.getVideoUrl(), VIDEO_PREFIX + videoPost.getCode());
 
-            // Сохраняем фото обложки
-            saveByUrl(videoPost.getImageUrl(), videoPost.getCode() + ".jpg");
+            saveByUrl(videoPost.getImageUrl(), IMAGE_PREFIX + videoPost.getCode());
         }
     }
 
@@ -53,7 +53,7 @@ public class CloudService {
      */
     public void saveImagePosts(List<ImagePost> imagePosts) throws IOException {
         for (ImagePost imagePost : imagePosts) {
-            saveByUrl(imagePost.getImageUrl(), imagePost.getCode() + ".jpg");
+            saveByUrl(imagePost.getImageUrl(), IMAGE_PREFIX + imagePost.getCode());
         }
     }
 
@@ -64,7 +64,7 @@ public class CloudService {
      * @return video file
      */
     public File getVideoFileByCode(String code) {
-        return new File(CLOUD_PATH + code + ".mp4");
+        return new File(CLOUD_PATH + VIDEO_PREFIX + code);
     }
 
     /**
@@ -74,6 +74,6 @@ public class CloudService {
      * @return photo file
      */
     public File getImageFileByCode(String code) {
-        return new File(CLOUD_PATH + code + ".jpg");
+        return new File(CLOUD_PATH + IMAGE_PREFIX + code);
     }
 }

@@ -19,8 +19,7 @@ import org.union.common.service.ProducingChannelService;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.union.common.Constants.CUSTOMER_NOT_FOUND_ERROR_MSG;
-import static org.union.common.Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG;
+import static org.union.common.Constants.*;
 
 @RestController
 @RequestMapping("/post")
@@ -32,6 +31,12 @@ public class PostController {
     @GetMapping("/all")
     public List<Post> getAllPosts() {
         return postService.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public Post getById(@PathVariable String id) {
+        return postService.findById(id)
+                .orElseThrow(() -> new NotFoundException(POST_NOT_FOUND_ERROR_MSG));
     }
 
     @GetMapping("/remove-all")

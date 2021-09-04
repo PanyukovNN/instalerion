@@ -1,9 +1,12 @@
 package org.union.common.service;
 
+import org.springframework.util.CollectionUtils;
 import org.union.common.exception.NotFoundException;
+import org.union.common.model.ChannelSubject;
 import org.union.common.model.ConsumingChannel;
 import org.union.common.model.Customer;
 import org.union.common.model.ProducingChannel;
+import org.union.common.model.post.PublicationType;
 import org.union.common.repository.ProducingChannelRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -11,9 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.union.common.Constants;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.union.common.Constants.UNBLOCK_PRODUCING_CHANNEL_PERIOD_DAYS;
 
@@ -42,7 +43,10 @@ public class ProducingChannelService {
                                String login,
                                String password,
                                List<ConsumingChannel> consumingChannels,
-                               int postingPeriod,
+                               int postPublishingPeriod,
+                               int storyPublishingPeriod,
+                               ChannelSubject subject,
+                               List<String> hashtags,
                                Customer customer) {
         ProducingChannel producingChannel = new ProducingChannel();
         if (producingChannelId != null) {
@@ -57,7 +61,16 @@ public class ProducingChannelService {
         List<ConsumingChannel> savedConsumingChannels = consumingChannelService.saveAll(consumingChannels);
         producingChannel.setConsumingChannels(savedConsumingChannels);
 
-        producingChannel.setPostingPeriod(postingPeriod);
+        // All periods have to be set
+        Map<PublicationType, Integer> publishingPeriodMap = producingChannel.getPublishingPeriodMap();
+        publishingPeriodMap.put(PublicationType.INSTAGRAM_POST, postPublishingPeriod);
+        publishingPeriodMap.put(PublicationType.INSTAGRAM_STORY, storyPublishingPeriod);
+
+        producingChannel.setChannelSubject(subject);
+        if (CollectionUtils.isEmpty(hashtags)) {
+            setDefultHashtags(producingChannel);
+        }
+
         producingChannel.setCustomer(customer);
 
         producingChannelRepository.save(producingChannel);
@@ -93,19 +106,18 @@ public class ProducingChannelService {
      * @param producingChannel producing channel
      * @return is publishing time
      */
-    public boolean isPublishingTime(ProducingChannel producingChannel) {
-        int prosingPeriod = producingChannel.getPostingPeriod();
+    public boolean isPostPublishingTime(ProducingChannel producingChannel) {
+        return isPublishingTime(producingChannel, PublicationType.INSTAGRAM_POST);
+    }
 
-        LocalDateTime lastPostingDateTime = producingChannel.getLastPostingDateTime();
-
-        // if first publication
-        if (lastPostingDateTime == null) {
-            return true;
-        }
-
-        int minutesFromLastPosting = dateTimeHelper.minuteFromNow(lastPostingDateTime);
-
-        return minutesFromLastPosting >= prosingPeriod;
+    /**
+     * Is it time to publish story
+     *
+     * @param producingChannel producing channel
+     * @return is publishing time
+     */
+    public boolean isStoryPublishingTime(ProducingChannel producingChannel) {
+        return isPublishingTime(producingChannel, PublicationType.INSTAGRAM_STORY);
     }
 
     /**
@@ -115,7 +127,14 @@ public class ProducingChannelService {
      * @return is loading time
      */
     public boolean isLoadingTime(ProducingChannel producingChannel) {
-        int prosingPeriod = producingChannel.getPostingPeriod() * 2 / 3;
+        int postingPeriod = producingChannel.getPublishingPeriodMap()
+                .getOrDefault(PublicationType.INSTAGRAM_POST, 0);
+
+        if (postingPeriod == 0) {
+            return false;
+        }
+
+        int loadingPeriod = postingPeriod * 2 / 3;
 
         LocalDateTime lastLoadingDateTime = producingChannel.getLastLoadingDateTime();
 
@@ -126,7 +145,7 @@ public class ProducingChannelService {
 
         int minutesFromLastLoading = dateTimeHelper.minuteFromNow(lastLoadingDateTime);
 
-        return minutesFromLastLoading >= prosingPeriod;
+        return minutesFromLastLoading >= loadingPeriod;
     }
 
     public List<ProducingChannel> findAll() {
@@ -172,4 +191,43 @@ public class ProducingChannelService {
                 producingChannel.getBlockingTime().plusDays(UNBLOCK_PRODUCING_CHANNEL_PERIOD_DAYS));
     }
 
+    private void setDefultHashtags(ProducingChannel producingChannel) {
+        //TODO вынести в файл
+        List<String> humorHashtags = Arrays.asList(
+                "юмор", "жизненно", "жиза", "смешно", "смешныевидосы", "видеоинста", "смех",
+                "смайлик", "камеди", "приколы", "бузова", "бородина", "дом2", "звёзды",
+                "инстаприколы", "интересныефакты", "смешнаяроссия", "тутсмешно", "шутки",
+                "instavideo", "шуткадня", "приколысживотными", "котята", "видеосживотными",
+                "смешныеживотные", "приколдня", "прикольныеживотные", "прикольноевидео", "tiktok_russia",
+                "тиктокприколы", "новостидня", "инстановости", "video_russia", "ольгабузова",
+                "шоубизнес", "инсташутка", "популярноевидео", "лучшеевидео", "смешное", "животные",
+                "лайк", "интересныесобытия", "позитив", "смешныесобаки", "котики",
+                "милыекотики", "лучшеевидео", "домашниеживотные"
+        );
+
+        if (producingChannel.getChannelSubject() == ChannelSubject.HUMOR) {
+            producingChannel.setHashtags(humorHashtags);
+        }
+    }
+
+    private boolean isPublishingTime(ProducingChannel producingChannel, PublicationType instagramPost) {
+        int postingPeriod = producingChannel.getPublishingPeriodMap()
+                .getOrDefault(instagramPost, 0);
+
+        if (postingPeriod == 0) {
+            return false;
+        }
+
+        LocalDateTime lastPostingDateTime = producingChannel.getPublicationTimeMap()
+                .get(instagramPost);
+
+        // if first publication
+        if (lastPostingDateTime == null) {
+            return true;
+        }
+
+        int minutesFromLastPosting = dateTimeHelper.minuteFromNow(lastPostingDateTime);
+
+        return minutesFromLastPosting >= postingPeriod;
+    }
 }

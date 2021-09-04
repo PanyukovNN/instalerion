@@ -14,14 +14,9 @@ public abstract class BasePostDefiningStrategy implements PostDefiningStrategy {
     /**
      * Checks post availability for publishing
      *
-     * @param producingChannelId id of producing channel
      * @param post post
      */
-    protected void checkPost(String producingChannelId, Post post) {
-        if (post == null) {
-            throw new RequestException(String.format(POST_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG, producingChannelId));
-        }
-
+    protected void checkPost(Post post) {
         if (post.getPublishDateTime() != null) {
             throw new RequestException(POST_ALREADY_PUBLISHED_ERROR_MSG);
         }

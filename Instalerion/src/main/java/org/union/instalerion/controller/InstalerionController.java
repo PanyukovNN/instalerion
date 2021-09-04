@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.union.common.exception.NotFoundException;
+import org.union.common.model.ChannelSubject;
 import org.union.common.model.ConsumingChannel;
 import org.union.common.model.Customer;
 import org.union.common.model.ProducingChannel;
@@ -12,7 +13,6 @@ import org.union.common.model.request.ChangeConsumingChannelsRequest;
 import org.union.common.model.request.CreateUpdateProducingChannelRequest;
 import org.union.common.service.ConsumingChannelService;
 import org.union.common.service.CustomerService;
-import org.union.common.service.PostService;
 import org.union.common.service.ProducingChannelService;
 
 import java.util.List;
@@ -82,7 +82,10 @@ public class InstalerionController {
                 request.getLogin(),
                 request.getPassword(),
                 consumingChannels,
-                request.getPostingPeriod(),
+                request.getPostPublishingPeriod(),
+                request.getStoryPublishingPeriod(),
+                request.getSubject(),
+                request.getHashtags(),
                 customer);
         customerService.save(customer);
 

@@ -1,15 +1,24 @@
 package org.union.promoter.service.publishingstrategy;
 
+import com.github.instagram4j.instagram4j.models.media.reel.item.ReelMetadataItem;
+import com.github.instagram4j.instagram4j.models.media.reel.item.StoryHashtagsItem;
 import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.union.common.model.InstaClient;
+import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.Post;
+import org.union.common.model.post.PublicationType;
 import org.union.common.service.*;
 
 import java.io.File;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import static org.union.common.Constants.STORY_PUBLISHING_STARTED_MSG;
 import static org.union.common.Constants.STORY_SUCCESSFULLY_PUBLISHED_MSG;
@@ -38,18 +47,41 @@ public class InstagramStoryPublishingStrategy extends InstagramBasePublishingStr
     }
 
     @Override
-    protected MediaResponse uploadPhoto(Post post, File imageFile, InstaClient client) throws InterruptedException, ExecutionException {
-        return client.uploadPhotoStory(imageFile);
+    protected MediaResponse uploadPhoto(List<String> hashtags, File imageFile, InstaClient client) throws InterruptedException, ExecutionException {
+        List<String> randomHashtags = new ArrayList<>(hashtags);
+        Collections.shuffle(randomHashtags);
+
+        List<ReelMetadataItem> storyHashtagsItems = randomHashtags.stream()
+                .map(hashtag -> StoryHashtagsItem.builder()
+                        .tag_name(hashtag)
+                        .build())
+                .collect(Collectors.toList());
+
+        return client.uploadPhotoStory(imageFile, storyHashtagsItems);
     }
 
     @Override
-    protected MediaResponse uploadVideo(Post post, File videoFile, File coverFile, InstaClient client) throws ExecutionException, InterruptedException {
-        return client.uploadVideoStory(videoFile, coverFile);
+    protected MediaResponse uploadVideo(List<String> hashtags, File videoFile, File coverFile, InstaClient client) throws ExecutionException, InterruptedException {
+        List<String> randomHashtags = new ArrayList<>(hashtags);
+        Collections.shuffle(randomHashtags);
+
+        List<ReelMetadataItem> storyHashtagsItems = randomHashtags.stream()
+                .map(hashtag -> StoryHashtagsItem.builder()
+                        .tag_name(hashtag)
+                        .build())
+                .collect(Collectors.toList());
+
+        return client.uploadVideoStory(videoFile, coverFile, storyHashtagsItems);
     }
 
     @Override
     protected void logStartPublishing(String postId, String producingChannelId) {
         logger.info(String.format(STORY_PUBLISHING_STARTED_MSG, postId, producingChannelId));
+    }
+
+    @Override
+    protected void setLastPublicationDateTime(ProducingChannel producingChannel, LocalDateTime now) {
+        producingChannel.getPublicationTimeMap().put(PublicationType.INSTAGRAM_STORY, now);
     }
 
     @Override

@@ -39,12 +39,16 @@ public class PublisherKafkaListener {
         }
 
         try {
-            requestHelper.checkOftenRequests(topicName);
+            if (requestHelper.isOftenRequests(topicName)) {
+                logger.info(String.format(TOO_OFTEN_REQUESTS_ERROR_MSG, topicName));
+
+                return;
+            }
 
             PublishingRequest request = kafkaHelper.deserialize(rawRequest, PublishingRequest.class);
             requestHelper.validatePublisherRequest(request);
 
-            logger.info(String.format(PUBLISHING_REQUEST_RECEIVED_MSG, request.getProducingChannelId()));
+            logger.info(String.format(PUBLISHING_REQUEST_RECEIVED_MSG, request));
 
             publisherRequestProcessor.processPublishRequest(request);
 

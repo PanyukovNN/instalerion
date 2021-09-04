@@ -14,11 +14,12 @@ public class Constants {
     public static final String TRANSFORM_TO_IMAGE_POST_ERROR_MSG = "Произошла ошибка во время преобразования TimelineImageMedia в ImagePost: %s";
     public static final String PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG = "Не найден канал публикации с id %s";
     public static final String POST_NOT_FOUND_ERROR_MSG = "Не найден пост для канала публикации с id %s";
-    public static final String POST_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG = "Пост для публикации в канале %s не найден.";
+    public static final String POST_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG = "Не найден пост для публикации в канале %s.";
+    public static final String STORY_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG = "Не найдена стори для публикации в канале %s.";
     public static final String POST_ALREADY_PUBLISHED_ERROR_MSG = "Пост уже опубликован. Повторная публикация запрещена.";
     public static final String POST_TOO_MANY_PUBLISHING_ERRORS = "Превышено количество попыток публикации поста.";
     public static final String FILE_NOT_FOUND_ERROR_MSG = "Файл с code %s не обнаружен.";
-    public static final String ERROR_WHILE_PUBLICATION = "Произошла ошибка при публикации видео поста с id %s";
+    public static final String ERROR_WHILE_PUBLICATION = "Произошла ошибка при публикации %s";
     public static final String ERROR_WHILE_LOADING = "Произошла ошибка при загрузке видео для клиента с id %s";
     public static final String NULL_CONSUMING_CHANNEL_ERROR_MSG = "Consuming channel is null";
     public static final String TOO_OFTEN_REQUESTS_ERROR_MSG = "Выполнение %s отменено из-за слишком частых запросов.";
@@ -48,8 +49,8 @@ public class Constants {
     /**
      * Messages
      */
-    public static final String PUBLISHING_REQUEST_RECEIVED_MSG = "Получен запрос на публикацию поста для аккаунта id %s.";
-    public static final String LOADING_REQUEST_RECEIVED_MSG = "Получен запрос на загрузку постов аккаунта id %s.";
+    public static final String PUBLISHING_REQUEST_RECEIVED_MSG = "Получен запрос на публикацию %s.";
+    public static final String LOADING_REQUEST_RECEIVED_MSG = "Получен запрос на загрузку %s.";
     public static final String WORKING_ON_PAUSE_IN_NIGHT_MSG = "В период с 23:00 до 09:00 публикация не осуществляется.";
     public static final String LOADER_REQUEST_SUCCESSFULLY_SENT = "Запрос на загрузку постов успешно отправлен: %s";
     public static final String PUBLISHER_REQUEST_SUCCESSFULLY_SENT = "Запрос на публикацию поста успешно отправлен: %s";
@@ -65,6 +66,7 @@ public class Constants {
     public static final String POST_PUBLISHING_STARTED_MSG = "Начинаю публикацию поста %s в канале %s.";
     public static final String STORY_SUCCESSFULLY_PUBLISHED_MSG = "Стори %s успешно опубликована в канале %s.";
     public static final String STORY_PUBLISHING_STARTED_MSG = "Начинаю публикацию стори %s в канале %s.";
+    public static final String REQUEST_FOR_PUBLICATION_COULD_BE_SENT_BEFORE_LOADING_MSG = "Запросы на публикацию не отправлены, поскольку не произведено ни одной загрузки постов.";
 
     /**
      * Other
@@ -76,7 +78,8 @@ public class Constants {
     public static final LoadingVolume STANDARD_LOADING_VOLUME = new LoadingVolume(5, 15);
     public static final int TRANSCODE_NOT_FINISHED_TRIES = 3;
     // Do not change text
-    public static final String TRANSCODE_NOT_FINISHED_YET_ERROR_MSG = "Transcode not finished yet";
+    public static final String TRANSCODE_NOT_FINISHED_YET_ERROR_MSG = "Transcode not finished yet.";
     public static final int IG_CLIENT_EXPIRING_HOURS = 24;
+    public static final int POST_HASHTAG_NUMBER = 20;
 
 }

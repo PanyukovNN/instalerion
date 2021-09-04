@@ -12,7 +12,6 @@ import org.union.common.model.request.LoadingRequest;
 import org.union.common.model.request.PublishingRequest;
 import org.union.common.service.CustomerService;
 import org.union.common.service.DateTimeHelper;
-import org.union.common.service.PostService;
 import org.union.common.service.ProducingChannelService;
 import org.union.common.service.loadingstrategy.LoadingStrategyType;
 import org.union.common.service.publishingstrategy.PostDefiningStrategyType;
@@ -33,7 +32,6 @@ public class InstalerionService {
 
     private final Logger logger = LoggerFactory.getLogger(InstalerionService.class);
 
-    private final PostService postService;
     private final DateTimeHelper dateTimeHelper;
     private final CustomerService customerService;
     private final LoaderKafkaSender loaderKafkaSender;
@@ -42,11 +40,11 @@ public class InstalerionService {
 
     @Scheduled(fixedRateString = "${processor.scheduler.fixed.rate.mills}")
     public void schedule() {
-//        if (dateTimeHelper.isNight()) {
-//            logger.info(WORKING_ON_PAUSE_IN_NIGHT_MSG);
-//
-//            return;
-//        }
+        if (dateTimeHelper.isNight()) {
+            logger.info(WORKING_ON_PAUSE_IN_NIGHT_MSG);
+
+            return;
+        }
 
         List<Customer> customers = customerService.findAll();
 
@@ -94,10 +92,23 @@ public class InstalerionService {
             loaderKafkaSender.send(request);
         }
 
-        if (producingChannelService.isPublishingTime(producingChannel)) {
-//            PublishingStrategyType strategyType = PublishingStrategyType.INSTAGRAM_STORY;
-            PostDefiningStrategyType postDefiningStrategyType = PostDefiningStrategyType.MOST_RECENT;
+        if (producingChannel.getLastLoadingDateTime() == null) {
+            logger.info(REQUEST_FOR_PUBLICATION_COULD_BE_SENT_BEFORE_LOADING_MSG);
+        }
+
+        if (producingChannelService.isPostPublishingTime(producingChannel)) {
+            PostDefiningStrategyType postDefiningStrategyType = PostDefiningStrategyType.MOST_RECENT_POST;
             PublishingStrategyType publishingStrategyType = PublishingStrategyType.INSTAGRAM_POST;
+
+            PublishingRequest request = new PublishingRequest(producingChannel.getId(),
+                    publishingStrategyType, postDefiningStrategyType);
+
+            publisherKafkaSender.send(request);
+        }
+
+        if (producingChannelService.isStoryPublishingTime(producingChannel)) {
+            PostDefiningStrategyType postDefiningStrategyType = PostDefiningStrategyType.MOST_RECENT_STORY;
+            PublishingStrategyType publishingStrategyType = PublishingStrategyType.INSTAGRAM_STORY;
 
             PublishingRequest request = new PublishingRequest(producingChannel.getId(),
                     publishingStrategyType, postDefiningStrategyType);

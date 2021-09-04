@@ -39,12 +39,16 @@ public class LoaderKafkaListener {
         }
 
         try {
-            requestHelper.checkOftenRequests(topicName);
+            if (requestHelper.isOftenRequests(topicName)) {
+                logger.info(String.format(TOO_OFTEN_REQUESTS_ERROR_MSG, topicName));
+
+                return;
+            }
 
             LoadingRequest request = kafkaHelper.deserialize(rawRequest, LoadingRequest.class);
             requestHelper.validateLoaderRequest(request);
 
-            logger.info(String.format(LOADING_REQUEST_RECEIVED_MSG, request.getProducingChannelId()));
+            logger.info(String.format(LOADING_REQUEST_RECEIVED_MSG, request));
 
             loaderRequestProcessor.processLoadingRequest(request);
 

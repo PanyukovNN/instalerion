@@ -134,7 +134,9 @@ public class LoaderService {
             // check outer links
             return captionText.contains("@")
                     || captionText.contains("http://")
-                    || captionText.contains("https://");
+                    || captionText.contains("https://")
+                    || captionText.contains("родолжение")
+                    || captionText.contains("итать далее");
         }
 
         return false;

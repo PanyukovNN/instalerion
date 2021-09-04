@@ -7,9 +7,12 @@ import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.union.common.model.post.PublicationType;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Channel where posts will be published
@@ -40,10 +43,11 @@ public class ProducingChannel {
     @DBRef
     private List<ConsumingChannel> consumingChannels;
 
+
     /**
-     * Date time of last posting
+     * Map of publication type and its last publishing date time
      */
-    private LocalDateTime lastPostingDateTime;
+    private Map<PublicationType, LocalDateTime> publicationTimeMap = new HashMap<>();
 
     /**
      * Date time of last loading
@@ -51,9 +55,9 @@ public class ProducingChannel {
     private LocalDateTime lastLoadingDateTime;
 
     /**
-     * Posting period in minutes
+     * Map of posting period in minutes by publication type
      */
-    private int postingPeriod;
+    private Map<PublicationType, Integer> publishingPeriodMap = new HashMap<>();
 
     /**
      * Customer
@@ -70,4 +74,14 @@ public class ProducingChannel {
      * Time when blocking started
      */
     private LocalDateTime blockingTime;
+
+    /**
+     * Producing channel subject
+     */
+    private ChannelSubject channelSubject;
+
+    /**
+     * List of hashtags (without # symbol)
+     */
+    private List<String> hashtags;
 }

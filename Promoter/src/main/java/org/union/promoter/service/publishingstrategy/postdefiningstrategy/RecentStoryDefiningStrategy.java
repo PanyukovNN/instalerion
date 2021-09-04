@@ -8,22 +8,22 @@ import org.union.common.exception.RequestException;
 import org.union.common.model.post.Post;
 import org.union.common.service.PostService;
 
-import static org.union.common.Constants.POST_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG;
+import static org.union.common.Constants.STORY_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG;
 
 /**
- * Most rated post defining strategy
+ * Most recent story defining strategy
  */
 @Service
 @RequiredArgsConstructor
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class RatedPostDefiningStrategy extends BasePostDefiningStrategy {
+public class RecentStoryDefiningStrategy extends BasePostDefiningStrategy {
 
     private final PostService postService;
 
     @Override
     public Post definePost(String producingChannelId) {
-        Post post = postService.findMostRecentPost(producingChannelId)
-                .orElseThrow(() -> new RequestException(String.format(POST_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG, producingChannelId)));
+        Post post = postService.findMostRecentStory(producingChannelId)
+                .orElseThrow(() -> new RequestException(String.format(STORY_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG, producingChannelId)));
 
         checkPost(post);
 

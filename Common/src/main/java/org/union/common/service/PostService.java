@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.union.common.Constants;
 import org.union.common.model.ProducingChannel;
@@ -21,6 +22,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final DateTimeHelper dateTimeHelper;
+    private final MongoTemplate mongoTemplate;
 
     public boolean exists(String code, String producingChannelId) {
         return postRepository.existsByCodeAndProducingChannelId(code, producingChannelId);
@@ -69,7 +71,11 @@ public class PostService {
         Pageable pageable = PageRequest.of(0, 1, sort);
 
         //TODO найти более красивый способ достать только 1 пост
-        return Optional.ofNullable(postRepository.findMostRecentStory(producingChannelId, Constants.PUBLISHING_ERROR_COUNT_LIMIT, pageable).getContent().get(0));
+        List<Post> content = postRepository.findMostRecentStory(producingChannelId, Constants.PUBLISHING_ERROR_COUNT_LIMIT, pageable).getContent();
+
+        return !content.isEmpty()
+                ? Optional.of(content.get(0))
+                : Optional.empty();
     }
 
     public void removeAll() {

@@ -17,6 +17,7 @@ import org.union.promoter.service.publishingstrategy.InstagramPostPublishingStra
 import org.union.promoter.service.publishingstrategy.InstagramStoryPublishingStrategy;
 import org.union.promoter.service.publishingstrategy.postdefiningstrategy.RatedPostDefiningStrategy;
 import org.union.promoter.service.publishingstrategy.postdefiningstrategy.RecentPostDefiningStrategy;
+import org.union.promoter.service.publishingstrategy.postdefiningstrategy.RecentStoryDefiningStrategy;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
@@ -45,8 +46,9 @@ public class StrategyResolver {
         publishingStrategyMap.put(PublishingStrategyType.INSTAGRAM_STORY, InstagramStoryPublishingStrategy.class);
         publishingStrategyMap.put(PublishingStrategyType.INSTAGRAM_POST, InstagramPostPublishingStrategy.class);
 
-        postDefiningStrategyMap.put(PostDefiningStrategyType.MOST_RATED, RatedPostDefiningStrategy.class);
-        postDefiningStrategyMap.put(PostDefiningStrategyType.MOST_RECENT, RecentPostDefiningStrategy.class);
+        postDefiningStrategyMap.put(PostDefiningStrategyType.MOST_RATED_POST, RatedPostDefiningStrategy.class);
+        postDefiningStrategyMap.put(PostDefiningStrategyType.MOST_RECENT_POST, RecentPostDefiningStrategy.class);
+        postDefiningStrategyMap.put(PostDefiningStrategyType.MOST_RECENT_STORY, RecentStoryDefiningStrategy.class);
     }
 
     /**

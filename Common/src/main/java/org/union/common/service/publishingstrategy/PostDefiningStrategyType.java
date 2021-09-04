@@ -5,6 +5,9 @@ package org.union.common.service.publishingstrategy;
  */
 public enum PostDefiningStrategyType {
 
-    MOST_RECENT,
-    MOST_RATED
+    MOST_RECENT_POST,
+    MOST_RATED_POST,
+    RANDOM_POST,
+    MOST_RECENT_STORY,
+    RANDOM_STORY
 }

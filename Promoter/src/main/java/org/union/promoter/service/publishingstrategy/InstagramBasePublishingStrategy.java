@@ -19,6 +19,7 @@ import org.union.common.service.publishingstrategy.PublishingStrategy;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static org.union.common.Constants.*;
@@ -51,13 +52,13 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
             // Login to instagram account
             InstaClient client = instaService.getClient(producingChannel);
 
-            processPublishing(post, client);
+            processPublishing(producingChannel.getHashtags(), post, client);
 
             LocalDateTime now = dateTimeHelper.getCurrentDateTime();
             post.setPublishDateTime(now);
             postService.save(post);
 
-            producingChannel.setLastPostingDateTime(now);
+            setLastPublicationDateTime(producingChannel, now);
             producingChannelService.save(producingChannel);
 
             logSuccessPublishing(post.getId(), producingChannelId);
@@ -69,15 +70,25 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
         }
     }
 
-    private void processPublishing(Post post, InstaClient client) throws Exception {
+    /**
+     * Publish post wrapping
+     * If an instagram returns error "Transcode not finished yet.",
+     * then make at most 3 tries to publish.
+     *
+     * @param hashtags list of hashtags
+     * @param post post
+     * @param client instagram client
+     * @throws Exception exception
+     */
+    private void processPublishing(List<String> hashtags, Post post, InstaClient client) throws Exception {
         int tries = TRANSCODE_NOT_FINISHED_TRIES;
         while (tries > 0) {
             try {
-                publishPost(post, client);
+                publishPost(hashtags, post, client);
 
                 break;
             } catch (Exception e) {
-                if (e.getMessage().equals(TRANSCODE_NOT_FINISHED_YET_ERROR_MSG)) {
+                if (e.getMessage().contains(TRANSCODE_NOT_FINISHED_YET_ERROR_MSG)) {
                     logger.info(TRANSCODE_NOT_FINISHED_YET_ERROR_MSG);
 
                     tries--;
@@ -88,13 +99,13 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
         }
     }
 
-    protected void publishPost(Post post, InstaClient client) throws ExecutionException, InterruptedException {
+    private void publishPost(List<String> hashtags, Post post, InstaClient client) throws ExecutionException, InterruptedException {
         MediaResponse response;
 
         if (post.getMediaType().equals(MediaType.IMAGE.getValue())) {
-            response = publishImage(post.getId(), client);
+            response = publishImage(hashtags, post.getId(), client);
         } else if (post.getMediaType().equals(MediaType.VIDEO.getValue())) {
-            response = publishVideo(post.getId(), client);
+            response = publishVideo(hashtags, post.getId(), client);
         } else {
             throw new RequestException(String.format(UNRECOGNIZED_MEDIA_TYPE_ERROR_MSG, post.getId()));
         }
@@ -102,7 +113,7 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
         checkResponse(response, client, post);
     }
 
-    private MediaResponse publishImage(String postId, InstaClient client) throws ExecutionException, InterruptedException {
+    private MediaResponse publishImage(List<String> hashtags, String postId, InstaClient client) throws ExecutionException, InterruptedException {
         ImagePost imagePost = imagePostService.findById(postId)
                 .orElseThrow(() -> new org.union.common.exception.NotFoundException(String.format(IMAGE_POST_NOT_FOUND_ERROR_MSG, postId)));
 
@@ -112,10 +123,10 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
             throw new RequestException(String.format(FILE_NOT_FOUND_ERROR_MSG, imagePost.getCode()));
         }
 
-        return uploadPhoto(imagePost, imageFile, client);
+        return uploadPhoto(hashtags, imageFile, client);
     }
 
-    private MediaResponse publishVideo(String postId, InstaClient client) throws ExecutionException, InterruptedException {
+    private MediaResponse publishVideo(List<String> hashtags, String postId, InstaClient client) throws ExecutionException, InterruptedException {
         VideoPost videoPost = videoPostService.findById(postId)
                 .orElseThrow(() -> new NotFoundException(String.format(VIDEO_POST_NOT_FOUND_ERROR_MSG, postId)));
 
@@ -130,9 +141,7 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
             throw new RequestException(String.format(FILE_NOT_FOUND_ERROR_MSG, videoPost.getCode()));
         }
 
-//        StoryHashtagsItem.builder()
-
-        return uploadVideo(videoPost, videoFile, coverFile, client);
+        return uploadVideo(hashtags, videoFile, coverFile, client);
     }
 
     /**
@@ -144,7 +153,7 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
      * @throws ExecutionException future exception
      * @throws InterruptedException future exception
      */
-    protected void checkResponse(MediaResponse response, InstaClient client, Post post) throws ExecutionException, InterruptedException {
+    private void checkResponse(MediaResponse response, InstaClient client, Post post) throws ExecutionException, InterruptedException {
         if (response == null) {
             throw new RequestException(NO_PUBLISHING_ANSWER_FROM_INSTAGRAM_ERROR_MSG);
         }
@@ -178,19 +187,19 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
     /**
      * Uploads photo
      *
-     * @param post post
+     * @param hashtags list of hashtags
      * @param imageFile file of image
      * @param client instagram client
      * @return media response
      * @throws InterruptedException exception
      * @throws ExecutionException exception
      */
-    protected abstract MediaResponse uploadPhoto(Post post, File imageFile, InstaClient client) throws InterruptedException, ExecutionException;
+    protected abstract MediaResponse uploadPhoto(List<String> hashtags, File imageFile, InstaClient client) throws InterruptedException, ExecutionException;
 
     /**
      * Uploads photo video
      *
-     * @param post post
+     * @param hashtags list of hashtags
      * @param videoFile file of video
      * @param coverFile file of video cover
      * @param client instagram client
@@ -198,7 +207,7 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
      * @throws InterruptedException exception
      * @throws ExecutionException exception
      */
-    protected abstract MediaResponse uploadVideo(Post post, File videoFile, File coverFile, InstaClient client) throws ExecutionException, InterruptedException;
+    protected abstract MediaResponse uploadVideo(List<String> hashtags, File videoFile, File coverFile, InstaClient client) throws ExecutionException, InterruptedException;
 
     /**
      * Log special message when publishing started
@@ -207,6 +216,14 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
      * @param producingChannelId id of producing channel
      */
     protected abstract void logStartPublishing(String postId, String producingChannelId);
+
+    /**
+     * Set date time of last publication in producing channel
+     *
+     * @param producingChannel producing channel
+     * @param now current time
+     */
+    protected abstract void setLastPublicationDateTime(ProducingChannel producingChannel, LocalDateTime now);
 
     /**
      * Log special message after successful publishing

@@ -1,6 +1,7 @@
 package org.union.common.model;
 
 import com.github.instagram4j.instagram4j.IGClient;
+import com.github.instagram4j.instagram4j.models.media.reel.item.ReelMetadataItem;
 import com.github.instagram4j.instagram4j.requests.media.MediaInfoRequest;
 import com.github.instagram4j.instagram4j.responses.media.MediaInfoResponse;
 import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
@@ -9,6 +10,7 @@ import lombok.Setter;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -67,13 +69,14 @@ public class InstaClient {
      * Uploads image story
      *
      * @param imageFile file of image
+     * @param metadata story metadata
      * @return response
      */
-    public MediaResponse uploadPhotoStory(File imageFile) throws ExecutionException, InterruptedException {
+    public MediaResponse uploadPhotoStory(File imageFile, List<ReelMetadataItem> metadata) throws ExecutionException, InterruptedException {
         return iGClient
                 .actions()
                 .story()
-                .uploadPhoto(imageFile)
+                .uploadPhoto(imageFile, metadata)
                 .get();
     }
 
@@ -82,13 +85,14 @@ public class InstaClient {
      *
      * @param videoFile file of video
      * @param coverFile file of cover
+     * @param metadata story metadata
      * @return response
      */
-    public MediaResponse uploadVideoStory(File videoFile, File coverFile) throws ExecutionException, InterruptedException {
+    public MediaResponse uploadVideoStory(File videoFile, File coverFile, List<ReelMetadataItem> metadata) throws ExecutionException, InterruptedException {
         return iGClient
                 .actions()
                 .story()
-                .uploadVideo(videoFile, coverFile)
+                .uploadVideo(videoFile, coverFile, metadata)
                 .get();
     }
 
