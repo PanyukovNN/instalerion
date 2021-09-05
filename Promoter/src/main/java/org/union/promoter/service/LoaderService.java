@@ -75,16 +75,16 @@ public class LoaderService {
             FeedUserResponse feedUserResponse = client.getIGClient()
                     .sendRequest(new FeedUserRequest(userAction.getUser().getPk(), maxId))
                     .get();
-
-            FeedUserStoryResponse userStoryResponse = client.getIGClient()
-                    .sendRequest(new FeedUserStoryRequest(userAction.getUser().getPk()))
-                    .get();
-
-            StoryHashtagsItem
-
-            Reel reel = userStoryResponse.getReel();
-
-            reel.getItems();
+//
+//            FeedUserStoryResponse userStoryResponse = client.getIGClient()
+//                    .sendRequest(new FeedUserStoryRequest(userAction.getUser().getPk()))
+//                    .get();
+//
+//            StoryHashtagsItem
+//
+//            Reel reel = userStoryResponse.getReel();
+//
+//            reel.getItems();
 
 
             // Set max_id for next pagination request
