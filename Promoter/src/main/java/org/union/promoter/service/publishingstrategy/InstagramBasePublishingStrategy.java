@@ -54,7 +54,7 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
             processPublishing(producingChannel.getHashtags(), post, client);
 
             LocalDateTime now = dateTimeHelper.getCurrentDateTime();
-            post.setPublishDateTime(now);
+            setPostPublicationDateTime(post, now);
             postService.save(post);
 
             setLastPublicationDateTime(producingChannel, now);
@@ -216,6 +216,14 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
      * @param producingChannelId id of producing channel
      */
     protected abstract void logStartPublishing(String postId, String producingChannelId);
+
+    /**
+     * Set date time of post publication
+     *
+     * @param post post
+     * @param now current time
+     */
+    protected abstract void setPostPublicationDateTime(Post post, LocalDateTime now);
 
     /**
      * Set date time of last publication in producing channel

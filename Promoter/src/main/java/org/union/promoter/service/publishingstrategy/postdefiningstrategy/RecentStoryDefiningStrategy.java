@@ -25,7 +25,7 @@ public class RecentStoryDefiningStrategy extends BasePostDefiningStrategy {
         Post post = postService.findMostRecentStory(producingChannelId)
                 .orElseThrow(() -> new RequestException(String.format(STORY_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG, producingChannelId)));
 
-        checkPost(post);
+        checkStory(post);
 
         return post;
     }

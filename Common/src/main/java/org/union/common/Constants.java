@@ -17,6 +17,7 @@ public class Constants {
     public static final String POST_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG = "Не найден пост для публикации в канале %s.";
     public static final String STORY_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG = "Не найдена стори для публикации в канале %s.";
     public static final String POST_ALREADY_PUBLISHED_ERROR_MSG = "Пост уже опубликован. Повторная публикация запрещена.";
+    public static final String STORY_ALREADY_PUBLISHED_ERROR_MSG = "Стори уже опубликована. Повторная публикация запрещена.";
     public static final String POST_TOO_MANY_PUBLISHING_ERRORS = "Превышено количество попыток публикации поста.";
     public static final String FILE_NOT_FOUND_ERROR_MSG = "Файл с code %s не обнаружен.";
     public static final String ERROR_WHILE_PUBLICATION = "Произошла ошибка при публикации %s";

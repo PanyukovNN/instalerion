@@ -51,7 +51,7 @@ public class InstagramPostLoadingStrategy implements LoadingStrategy {
     private final ConsumingChannelService consumingChannelService;
 
     @Override
-    public void load(LoadingRequest request) throws IGLoginException, NotFoundException, ExecutionException, InterruptedException {
+    public void load(LoadingRequest request) throws IGLoginException, NotFoundException {
         ProducingChannel producingChannel = producingChannelService.findById(request.getProducingChannelId())
                 .orElseThrow(() -> new NotFoundException(String.format(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, request.getProducingChannelId())));
 
@@ -105,7 +105,8 @@ public class InstagramPostLoadingStrategy implements LoadingStrategy {
         try {
             List<TimelineMedia> timelineItems = loaderService.loadConsumingChannelPosts(producingChannel, client, consumingChannel, loadingVolume);
 
-            List<Post> publishedPosts = postService.findPublished(producingChannel);
+            //TODO check for stories
+            List<Post> publishedPosts = postService.findPublished(producingChannel, PublicationType.INSTAGRAM_POST);
             ConsecutiveMatcher matcher = imageMatcher.createMatcher(publishedPosts);
 
             processVideoPosts(matcher, producingChannel, consumingChannel, timelineItems);

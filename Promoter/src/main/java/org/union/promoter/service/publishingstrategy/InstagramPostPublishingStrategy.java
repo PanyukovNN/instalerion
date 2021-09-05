@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
+import org.union.common.model.post.Post;
 import org.union.common.model.post.PublicationType;
 import org.union.common.service.*;
 
@@ -58,6 +59,11 @@ public class InstagramPostPublishingStrategy extends InstagramBasePublishingStra
     @Override
     protected void logStartPublishing(String postId, String producingChannelId) {
         logger.info(String.format(POST_PUBLISHING_STARTED_MSG, postId, producingChannelId));
+    }
+
+    @Override
+    protected void setPostPublicationDateTime(Post post, LocalDateTime now) {
+        post.getPublishedTimeByType().put(PublicationType.INSTAGRAM_POST, now);
     }
 
     @Override
