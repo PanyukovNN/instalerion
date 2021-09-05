@@ -10,9 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
@@ -23,10 +21,10 @@ public class ProducingChannelDto {
     private String id;
     private String login;
     private String password;
-    private List<String> consumingChannelNames;
-    private Map<String, String> publicationTimeMap;
+    private List<String> consumingChannelNames = new ArrayList<>();
+    private Map<String, String> publicationTimeMap = new HashMap<>();
     private String lastLoadingDateTime;
-    private Map<String, Integer> publishingPeriodMap;
+    private Map<String, Integer> publishingPeriodMap = new HashMap<>();
     private String customerId;
 
     public ProducingChannelDto(ProducingChannel producingChannel) {
