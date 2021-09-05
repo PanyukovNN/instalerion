@@ -4,18 +4,20 @@ import com.github.instagram4j.instagram4j.IGAndroidDevice;
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
+import lombok.RequiredArgsConstructor;
+import okhttp3.OkHttpClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.union.common.exception.RequestException;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static org.union.common.Constants.IG_CLIENT_EXPIRING_HOURS;
 import static org.union.common.Constants.PRODUCING_CHANNEL_TEMPORARY_BLOCKED_MSG;
@@ -91,6 +93,14 @@ public class InstaService {
                 .login();
 
         iGclient.setDevice(IGAndroidDevice.GOOD_DEVICES[deviceNumber]);
+        // increase timeouts
+        OkHttpClient httpClient = iGclient
+                .getHttpClient()
+                .newBuilder()
+                .readTimeout(60, TimeUnit.SECONDS)
+                .connectTimeout(60, TimeUnit.SECONDS)
+                .build();
+        iGclient.setHttpClient(httpClient);
 
         return iGclient;
     }
