@@ -34,36 +34,5 @@ public class InstalerionApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-//        Post post1 = new Post();
-//        post1.setCode("1");
-//        post1.getPublishedTimeByType().put(PublicationType.INSTAGRAM_POST, LocalDateTime.now());
-//        post1.setProducingChannelId("6134bcec27411d5faf124a1c");
-//        post1.setRating(new PostRating(1d));
-//
-//        Post post2 = new Post();
-//        post2.setCode("2");
-//        post2.getPublishedTimeByType().put(PublicationType.INSTAGRAM_STORY, LocalDateTime.now());
-//        post2.setProducingChannelId("6134bcec27411d5faf124a1c");
-//        post2.setRating(new PostRating(2d));
-//
-//        Post post3 = new Post();
-//        post3.setCode("3");
-//        post3.getPublishedTimeByType().put(PublicationType.INSTAGRAM_STORY, LocalDateTime.now());
-//        post3.setProducingChannelId("6134bcec27411d5faf124a1c");
-//        post3.setRating(new PostRating(3d));
-//
-//        postService.save(post1);
-//        postService.save(post2);
-//        postService.save(post3);
-
-//        ProducingChannel producingChannel = producingChannelService.findById("6134bcec27411d5faf124a1c").get();
-
-        System.out.println("Ищу пост");
-        Post post = postService.findMostRatedPost("6134bcec27411d5faf124a1c").get();
-
-        System.out.println(post);
-
-//        System.out.println("Нашел " + list.size() + " шт.");
-//        list.forEach(System.out::println);
     }
 }
