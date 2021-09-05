@@ -4,6 +4,8 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Base class of posts
@@ -46,9 +48,9 @@ public class Post {
     private String mediaType;
 
     /**
-     * Date time of the post publishing
+     * Map of post publishing time by type
      */
-    private LocalDateTime publishDateTime;
+    private Map<PublicationType, LocalDateTime> publishedTimeByType = new HashMap<>();
 
     /**
      * Date time when post was taken

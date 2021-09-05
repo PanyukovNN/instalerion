@@ -5,12 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.union.common.Constants;
 import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.Post;
 import org.union.common.model.post.PostRating;
+import org.union.common.model.post.PublicationType;
 import org.union.common.repository.PostRepository;
 
 import java.time.LocalDateTime;
@@ -20,26 +20,52 @@ import java.util.Optional;
 import static org.union.common.Constants.HOURS_PASSED_FROM_TAKEN_AT_FOR_RATING_CALCULATION;
 import static org.union.common.Constants.LAST_UNRATED_POSTS_SCAN_LIMIT;
 
+/**
+ * Service for posts
+ */
 @Service
 @RequiredArgsConstructor
 public class PostService {
 
     private final PostRepository postRepository;
     private final DateTimeHelper dateTimeHelper;
-    private final MongoTemplate mongoTemplate;
 
+    /**
+     * Does post with unique code exists in producing chanel
+     *
+     * @param code unique code
+     * @param producingChannelId producing channel id
+     * @return does the post exists in db
+     */
     public boolean exists(String code, String producingChannelId) {
         return postRepository.existsByCodeAndProducingChannelId(code, producingChannelId);
     }
 
+    /**
+     * Save the post
+     *
+     * @param post post
+     * @return saved post
+     */
     public Post save(Post post) {
         return postRepository.save(post);
     }
 
+    /**
+     * Find all posts
+     *
+     * @return list of posts
+     */
     public List<Post> findAll() {
         return postRepository.findAll();
     }
 
+    /**
+     * Find post by id
+     *
+     * @param postId post id
+     * @return optional of post
+     */
     public Optional<Post> findById(String postId) {
         return postRepository.findById(postId);
     }
@@ -51,7 +77,16 @@ public class PostService {
      * @return optional of post
      */
     public Optional<Post> findMostRatedPost(String producingChannelId) {
-        return postRepository.findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThanOrderByRatingDesc(producingChannelId, Constants.PUBLISHING_ERROR_COUNT_LIMIT);
+        Sort sort = Sort.by(Sort.Direction.DESC, "rating.value");
+        Pageable pageable = PageRequest.of(0, 1, sort);
+
+        List<Post> content = postRepository.findMostRated(
+                producingChannelId,
+                PublicationType.INSTAGRAM_POST,
+                Constants.PUBLISHING_ERROR_COUNT_LIMIT,
+                pageable).getContent();
+
+        return !content.isEmpty() ? Optional.of(content.get(0)) : Optional.empty();
     }
 
     /**
@@ -61,7 +96,16 @@ public class PostService {
      * @return optional of post
      */
     public Optional<Post> findMostRecentPost(String producingChannelId) {
-        return postRepository.findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThanOrderByTakenAtDesc(producingChannelId, Constants.PUBLISHING_ERROR_COUNT_LIMIT);
+        Sort sort = Sort.by(Sort.Direction.DESC, "takenAt");
+        Pageable pageable = PageRequest.of(0, 1, sort);
+
+        List<Post> content = postRepository.findMostRecentPost(
+                producingChannelId,
+                PublicationType.INSTAGRAM_POST,
+                Constants.PUBLISHING_ERROR_COUNT_LIMIT,
+                pageable).getContent();
+
+        return !content.isEmpty() ? Optional.of(content.get(0)) : Optional.empty();
     }
 
     /**
@@ -90,11 +134,13 @@ public class PostService {
         Sort sort = Sort.by(Sort.Direction.DESC, "takenAt");
         Pageable pageable = PageRequest.of(0, 1, sort);
 
-        List<Post> content = postRepository.findMostRecentStory(producingChannelId, Constants.PUBLISHING_ERROR_COUNT_LIMIT, pageable).getContent();
+        List<Post> content = postRepository.findMostRecentStory(
+                producingChannelId,
+                PublicationType.INSTAGRAM_STORY,
+                Constants.PUBLISHING_ERROR_COUNT_LIMIT,
+                pageable).getContent();
 
-        return !content.isEmpty()
-                ? Optional.of(content.get(0))
-                : Optional.empty();
+        return !content.isEmpty() ? Optional.of(content.get(0)) : Optional.empty();
     }
 
     public void removeAll() {
@@ -114,8 +160,34 @@ public class PostService {
         return calculateRating(media.getComment_count(), media.getLike_count(), viewCount, takenAt);
     }
 
-    public List<Post> findPublishedInProducingChannel(ProducingChannel producingChannel) {
-        return postRepository.findByProducingChannelIdAndPublishDateTimeIsNotNull(producingChannel.getId());
+    /**
+     * Returns list of published posts by producing channel an publication type
+     *
+     * @param producingChannel producing channel
+     * @param publicationType type of publication
+     * @return list of published posts
+     */
+    public List<Post> findPublished(ProducingChannel producingChannel, PublicationType publicationType) {
+        return postRepository.findPublishedByProducingChannelAndPublicationType(
+                producingChannel.getId(), publicationType);
+    }
+
+    /**
+     * Save all posts
+     *
+     * @param posts list of posts
+     */
+    public void saveAll(List<Post> posts) {
+        postRepository.saveAll(posts);
+    }
+
+    /**
+     * Returns all posts with errors
+     *
+     * @return list of posts with errors
+     */
+    public List<Post> findAllWithErrors() {
+        return postRepository.findByPublishingErrorCountGreaterThanEqual(1);
     }
 
     private PostRating calculateRating(int commentCount, int likeCount, int viewCount, LocalDateTime takenAt) {
@@ -135,21 +207,5 @@ public class PostService {
         rating.setValue((double) (commentCount + likeCount) / viewCount);
 
         return rating;
-    }
-
-    /**
-     * Save all posts
-     *
-     * @param posts list of posts
-     */
-    public void saveAll(List<Post> posts) {
-        postRepository.saveAll(posts);
-    }
-
-    /**
-     * Returns all posts with errors
-     */
-    public List<Post> findAllWithErrors() {
-        return postRepository.findByPublishingErrorCountGreaterThanEqual(1);
     }
 }

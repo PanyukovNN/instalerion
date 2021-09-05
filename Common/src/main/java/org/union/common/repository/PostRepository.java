@@ -2,15 +2,14 @@ package org.union.common.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.union.common.model.post.Post;
+import org.union.common.model.post.PublicationType;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Posts repository
@@ -23,44 +22,74 @@ public interface PostRepository extends MongoRepository<Post, String> {
      *
      * @param code unique code of post
      * @param producingChannelId id of producing channel
-     * @return exists
+     * @return does post exists
      */
     // TODO create index
     boolean existsByCodeAndProducingChannelId(String code, String producingChannelId);
 
     /**
-     * Find unpublished post by producing channel id with highest rating
+     * Find unpublished post by producing channel id with highest (not null) rating
      *
-     * @param producingChannelId producing channel id
-     * @return video post
-     */
-    Optional<Post> findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThanOrderByRatingDesc(String producingChannelId, int errorCountLimit);
-
-    /**
-     * Find unpublished post by producing channel id downloaded most recently
-     *
-     * @param producingChannelId producing channel id
-     * @return video post
-     */
-    Optional<Post> findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThanOrderByTakenAtDesc(String producingChannelId, int errorCountLimit);
-
-    /**
-     * Find unpublished post by producing channel id downloaded most recently
-     *
-     * @param producingChannelId producing channel id
+     * @param producingChannelId id of producing channel
+     * @param publicationType type of publication
      * @param errorCountLimit limit of errors
      * @param pageable page info
-     * @return video post
+     * @return most rated post
      */
     @Query("{ " +
             "'producingChannelId' : ?0, " +
-            "'publishDateTime' : null, " +
+            "'publishedTimeByType.?1' : null, " +
+            "'publishingErrorCount' : { '$lt' : ?2 }, " +
+            "'rating' : {$ne : null} " +
+            " }")
+    Page<Post> findMostRated(String producingChannelId, PublicationType publicationType, int errorCountLimit, Pageable pageable);
+
+    /**
+     * Find unpublished post by producing channel id downloaded most recently
+     *
+     * @param producingChannelId producing channel id
+     * @param publicationType type of publication
+     * @param errorCountLimit limit of errors
+     * @param pageable page info
+     * @return post
+     */
+    @Query("{ " +
+            "'producingChannelId' : ?0, " +
+            "'publishedTimeByType.?1' : null, " +
             "'publishingErrorCount' : { '$lt' : ?1 }, " +
+            " }")
+    Page<Post> findMostRecentPost(String producingChannelId, PublicationType publicationType, int errorCountLimit, Pageable pageable);
+
+    /**
+     * Find unpublished story by producing channel id downloaded most recently
+     * (duration less than 15 seconds)
+     *
+     * @param producingChannelId producing channel id
+     * @param publicationType type of publication
+     * @param errorCountLimit limit of errors
+     * @param pageable page info
+     * @return post
+     */
+    @Query("{ " +
+            "'producingChannelId' : ?0, " +
+            "'publishedTimeByType.?1' : null, " +
+            "'publishingErrorCount' : { '$lt' : ?2 }, " +
             "'$or' : [ { 'duration' : null }, { 'duration' : { '$lte' : 15 } } ] " +
             " }")
-    Page<Post> findMostRecentStory(String producingChannelId, int errorCountLimit, Pageable pageable);
+    Page<Post> findMostRecentStory(String producingChannelId, PublicationType publicationType, int errorCountLimit, Pageable pageable);
 
-    List<Post> findByProducingChannelIdAndPublishDateTimeIsNotNull(String producingChannelId);
+    /**
+     * Find posts published in producing channel by publicationType
+     *
+     * @param producingChannelId id of producing channel
+     * @param publicationType type of publication
+     * @return list of published posts
+     */
+    @Query("{ " +
+            "'producingChannelId' : ?0, " +
+            "'publishedTimeByType.?1' : {$ne : null} " +
+            " }")
+    List<Post> findPublishedByProducingChannelAndPublicationType(String producingChannelId, PublicationType publicationType);
 
     /**
      * Find unrated post by producing channel id

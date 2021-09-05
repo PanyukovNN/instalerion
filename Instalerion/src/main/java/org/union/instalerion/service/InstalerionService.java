@@ -84,6 +84,16 @@ public class InstalerionService {
             return;
         }
 
+        sendLoadingRequests(producingChannel);
+
+        if (producingChannel.getLastLoadingDateTime() != null) {
+            sendPublishingRequests(producingChannel);
+        } else {
+            logger.info(REQUEST_FOR_PUBLICATION_COULD_BE_SENT_BEFORE_LOADING_MSG);
+        }
+    }
+
+    private void sendLoadingRequests(ProducingChannel producingChannel) {
         if (producingChannelService.isLoadingTime(producingChannel)) {
             LoadingStrategyType strategyType = LoadingStrategyType.INSTAGRAM_POSTS;
 
@@ -91,11 +101,9 @@ public class InstalerionService {
 
             loaderKafkaSender.send(request);
         }
+    }
 
-        if (producingChannel.getLastLoadingDateTime() == null) {
-            logger.info(REQUEST_FOR_PUBLICATION_COULD_BE_SENT_BEFORE_LOADING_MSG);
-        }
-
+    private void sendPublishingRequests(ProducingChannel producingChannel) {
         if (producingChannelService.isPostPublishingTime(producingChannel)) {
             PostDefiningStrategyType postDefiningStrategyType = PostDefiningStrategyType.MOST_RECENT_POST;
             PublishingStrategyType publishingStrategyType = PublishingStrategyType.INSTAGRAM_POST;

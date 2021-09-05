@@ -222,16 +222,16 @@ public class ProducingChannelService {
             return false;
         }
 
-        LocalDateTime lastPostingDateTime = producingChannel.getPublicationTimeMap()
+        LocalDateTime lastPublishingDateTime = producingChannel.getPublicationTimeMap()
                 .get(instagramPost);
 
         // if first publication
-        if (lastPostingDateTime == null) {
+        if (lastPublishingDateTime == null) {
             return true;
         }
 
-        int minutesFromLastPosting = dateTimeHelper.minuteFromNow(lastPostingDateTime);
+        int minutesFromLastPublishing = dateTimeHelper.minuteFromNow(lastPublishingDateTime);
 
-        return minutesFromLastPosting >= postingPeriod;
+        return minutesFromLastPublishing >= postingPeriod;
     }
 }

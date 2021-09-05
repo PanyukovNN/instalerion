@@ -105,7 +105,7 @@ public class InstagramPostLoadingStrategy implements LoadingStrategy {
         try {
             List<TimelineMedia> timelineItems = loaderService.loadConsumingChannelPosts(producingChannel, client, consumingChannel, loadingVolume);
 
-            List<Post> publishedPosts = postService.findPublishedInProducingChannel(producingChannel);
+            List<Post> publishedPosts = postService.findPublished(producingChannel);
             ConsecutiveMatcher matcher = imageMatcher.createMatcher(publishedPosts);
 
             processVideoPosts(matcher, producingChannel, consumingChannel, timelineItems);
