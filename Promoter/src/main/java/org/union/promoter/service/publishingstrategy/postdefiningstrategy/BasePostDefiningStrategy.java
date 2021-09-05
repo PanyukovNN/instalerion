@@ -2,7 +2,6 @@ package org.union.promoter.service.publishingstrategy.postdefiningstrategy;
 
 import org.union.common.exception.RequestException;
 import org.union.common.model.post.Post;
-import org.union.common.service.publishingstrategy.PostDefiningStrategy;
 
 import static org.union.common.Constants.*;
 

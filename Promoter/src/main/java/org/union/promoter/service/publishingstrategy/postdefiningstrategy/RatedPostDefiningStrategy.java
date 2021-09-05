@@ -22,8 +22,10 @@ public class RatedPostDefiningStrategy extends BasePostDefiningStrategy {
 
     @Override
     public Post definePost(String producingChannelId) {
-        Post post = postService.findMostRecentPost(producingChannelId)
-                .orElseThrow(() -> new RequestException(String.format(POST_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG, producingChannelId)));
+        // if can't find most rated post, then try to find most recent
+        Post post = postService.findMostRatedPost(producingChannelId)
+                .orElse(postService.findMostRecentPost(producingChannelId)
+                        .orElseThrow(() -> new RequestException(String.format(POST_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG, producingChannelId))));
 
         checkPost(post);
 

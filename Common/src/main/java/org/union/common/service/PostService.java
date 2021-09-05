@@ -10,11 +10,15 @@ import org.springframework.stereotype.Service;
 import org.union.common.Constants;
 import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.Post;
+import org.union.common.model.post.PostRating;
 import org.union.common.repository.PostRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
+import static org.union.common.Constants.HOURS_PASSED_FROM_TAKEN_AT_FOR_RATING_CALCULATION;
+import static org.union.common.Constants.LAST_UNRATED_POSTS_SCAN_LIMIT;
 
 @Service
 @RequiredArgsConstructor
@@ -46,7 +50,7 @@ public class PostService {
      * @param producingChannelId id of producing channel
      * @return optional of post
      */
-    public Optional<Post> findMostRated(String producingChannelId) {
+    public Optional<Post> findMostRatedPost(String producingChannelId) {
         return postRepository.findFirstByProducingChannelIdAndPublishDateTimeIsNullAndPublishingErrorCountLessThanOrderByRatingDesc(producingChannelId, Constants.PUBLISHING_ERROR_COUNT_LIMIT);
     }
 
@@ -61,6 +65,22 @@ public class PostService {
     }
 
     /**
+     * Returns unrated posts, which were published not earlier than last 24 hours,
+     * Max amount of posts defined in property LAST_UNRATED_POSTS_SCAN_LIMIT
+     *
+     * @return list of unrated posts
+     */
+    public List<Post> findLastUnratedPost(String producingChannelId) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "takenAt");
+        Pageable pageable = PageRequest.of(0, LAST_UNRATED_POSTS_SCAN_LIMIT, sort);
+
+        LocalDateTime earlier = dateTimeHelper.getCurrentDateTime().minusHours(HOURS_PASSED_FROM_TAKEN_AT_FOR_RATING_CALCULATION);
+
+        return postRepository.findLastUnratedPosts(producingChannelId, earlier, Constants.PUBLISHING_ERROR_COUNT_LIMIT, pageable)
+                .getContent();
+    }
+
+    /**
      * Returns unpublished post most recently downloaded
      *
      * @param producingChannelId id of producing channel
@@ -70,7 +90,6 @@ public class PostService {
         Sort sort = Sort.by(Sort.Direction.DESC, "takenAt");
         Pageable pageable = PageRequest.of(0, 1, sort);
 
-        //TODO найти более красивый способ достать только 1 пост
         List<Post> content = postRepository.findMostRecentStory(producingChannelId, Constants.PUBLISHING_ERROR_COUNT_LIMIT, pageable).getContent();
 
         return !content.isEmpty()
@@ -87,24 +106,50 @@ public class PostService {
      * To calculate rate post must be published not earlier that 24 hours from now
      *
      * @param media timeline media
-     * @param takenAt when post was taken
      * @param viewCount count of views
+     * @param takenAt when post was taken
      * @return post rating
      */
-    public double calculateRating(TimelineMedia media, LocalDateTime takenAt, int viewCount) {
-        if (takenAt == null
-                || takenAt.isAfter(dateTimeHelper.getCurrentDateTime().minusDays(1))) {
-            return -1d;
-        }
-
-        if (viewCount == 0) {
-            return 0d;
-        }
-
-        return (double) (media.getComment_count() + media.getLike_count()) / viewCount;
+    public PostRating calculateRating(TimelineMedia media, int viewCount, LocalDateTime takenAt) {
+        return calculateRating(media.getComment_count(), media.getLike_count(), viewCount, takenAt);
     }
 
     public List<Post> findPublishedInProducingChannel(ProducingChannel producingChannel) {
         return postRepository.findByProducingChannelIdAndPublishDateTimeIsNotNull(producingChannel.getId());
+    }
+
+    private PostRating calculateRating(int commentCount, int likeCount, int viewCount, LocalDateTime takenAt) {
+        PostRating rating = new PostRating();
+
+        if (takenAt == null
+                || takenAt.isAfter(dateTimeHelper.getCurrentDateTime().minusHours(HOURS_PASSED_FROM_TAKEN_AT_FOR_RATING_CALCULATION))) {
+            return rating;
+        }
+
+        if (viewCount == 0) {
+            rating.setImpossibleToCalculate(true);
+
+            return rating;
+        }
+
+        rating.setValue((double) (commentCount + likeCount) / viewCount);
+
+        return rating;
+    }
+
+    /**
+     * Save all posts
+     *
+     * @param posts list of posts
+     */
+    public void saveAll(List<Post> posts) {
+        postRepository.saveAll(posts);
+    }
+
+    /**
+     * Returns all posts with errors
+     */
+    public List<Post> findAllWithErrors() {
+        return postRepository.findByPublishingErrorCountGreaterThanEqual(1);
     }
 }

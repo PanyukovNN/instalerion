@@ -66,9 +66,11 @@ public class ProducingChannelService {
         publishingPeriodMap.put(PublicationType.INSTAGRAM_POST, postPublishingPeriod);
         publishingPeriodMap.put(PublicationType.INSTAGRAM_STORY, storyPublishingPeriod);
 
-        producingChannel.setChannelSubject(subject);
-        if (CollectionUtils.isEmpty(hashtags)) {
-            setDefultHashtags(producingChannel);
+        if (subject != null && subject != ChannelSubject.NONE) {
+            producingChannel.setChannelSubject(subject);
+            producingChannel.setHashtags(!CollectionUtils.isEmpty(hashtags)
+                    ? hashtags
+                    : getDefaultHashtagsBySubject(subject));
         }
 
         producingChannel.setCustomer(customer);
@@ -191,7 +193,7 @@ public class ProducingChannelService {
                 producingChannel.getBlockingTime().plusDays(UNBLOCK_PRODUCING_CHANNEL_PERIOD_DAYS));
     }
 
-    private void setDefultHashtags(ProducingChannel producingChannel) {
+    private List<String> getDefaultHashtagsBySubject(ChannelSubject subject) {
         //TODO вынести в файл
         List<String> humorHashtags = Arrays.asList(
                 "юмор", "жизненно", "жиза", "смешно", "смешныевидосы", "видеоинста", "смех",
@@ -205,9 +207,11 @@ public class ProducingChannelService {
                 "милыекотики", "лучшеевидео", "домашниеживотные"
         );
 
-        if (producingChannel.getChannelSubject() == ChannelSubject.HUMOR) {
-            producingChannel.setHashtags(humorHashtags);
+        if (subject == ChannelSubject.HUMOR) {
+            return humorHashtags;
         }
+
+        return Collections.emptyList();
     }
 
     private boolean isPublishingTime(ProducingChannel producingChannel, PublicationType instagramPost) {

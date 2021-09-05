@@ -1,4 +1,4 @@
-package org.union.common.service.publishingstrategy;
+package org.union.promoter.service.publishingstrategy.postdefiningstrategy;
 
 import org.union.common.model.post.Post;
 

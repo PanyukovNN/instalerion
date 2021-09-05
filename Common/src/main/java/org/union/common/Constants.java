@@ -81,5 +81,7 @@ public class Constants {
     public static final String TRANSCODE_NOT_FINISHED_YET_ERROR_MSG = "Transcode not finished yet.";
     public static final int IG_CLIENT_EXPIRING_HOURS = 24;
     public static final int POST_HASHTAG_NUMBER = 20;
+    public static final int LAST_UNRATED_POSTS_SCAN_LIMIT = 25;
+    public static final int HOURS_PASSED_FROM_TAKEN_AT_FOR_RATING_CALCULATION = 24;
 
 }

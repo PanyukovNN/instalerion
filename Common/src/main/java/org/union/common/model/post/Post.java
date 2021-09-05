@@ -61,11 +61,19 @@ public class Post {
     private int publishingErrorCount;
 
     /**
-     * Rating of post
-     * Negative rating is "null rating"
-     * Zero rating is "impossible to calculate"
+     * Message of error if publication failed
      */
-    private double rating;
+    private String publishingErrorMsg;
+
+    /**
+     * Rating of post
+     */
+    private PostRating rating;
+
+    /**
+     * Instagram media identifier
+     */
+    private long mediaId;
 
     /**
      * Increase publishing errors counter

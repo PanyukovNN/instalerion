@@ -1,4 +1,4 @@
-package org.union.common.service.loadingstrategy;
+package org.union.promoter.service.loadingstrategy;
 
 import org.union.common.model.request.LoadingRequest;
 

@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.union.common.model.request.LoadingRequest;
 import org.union.common.service.UseContext;
-import org.union.common.service.loadingstrategy.LoadingStrategy;
+import org.union.promoter.service.loadingstrategy.LoadingStrategy;
 import org.union.promoter.service.StrategyResolver;
 
 /**

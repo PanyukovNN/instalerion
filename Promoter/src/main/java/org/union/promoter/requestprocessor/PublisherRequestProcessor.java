@@ -6,8 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.union.common.model.post.Post;
 import org.union.common.model.request.PublishingRequest;
 import org.union.common.service.UseContext;
-import org.union.common.service.publishingstrategy.PostDefiningStrategy;
-import org.union.common.service.publishingstrategy.PublishingStrategy;
+import org.union.promoter.service.publishingstrategy.postdefiningstrategy.PostDefiningStrategy;
+import org.union.promoter.service.publishingstrategy.PublishingStrategy;
 import org.union.promoter.service.StrategyResolver;
 
 /**

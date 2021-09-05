@@ -15,7 +15,6 @@ import org.union.common.model.post.MediaType;
 import org.union.common.model.post.Post;
 import org.union.common.model.post.VideoPost;
 import org.union.common.service.*;
-import org.union.common.service.publishingstrategy.PublishingStrategy;
 
 import java.io.File;
 import java.time.LocalDateTime;
@@ -64,6 +63,7 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
             logSuccessPublishing(post.getId(), producingChannelId);
         } catch (Exception e) {
             post.increasePublishingErrors();
+            post.setPublishingErrorMsg(e.getMessage());
             postService.save(post);
 
             throw e;
