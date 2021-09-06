@@ -46,6 +46,8 @@ public class Constants {
     public static final String POST_DEFINING_STRATEGY_RESOLVING_ERROR_MSG = "Ошибка при получении стратегии определения поста для публикации из контекста.";
     public static final String POST_DEFINING_STRATEGY_NOT_SET_ERROR_MSG = "Не задана стратегия определения поста для публикации.";
     public static final String POST_DEFINING_STRATEGY_NULL_ERROR_MSG = "В запросе отсутсвуте стратегия определения поста для публикации.";
+    public static final String POSTS_LOADING_SUCCESS_MSG = "Загрузка постов прошла успешно.";
+
 
     /**
      * Messages

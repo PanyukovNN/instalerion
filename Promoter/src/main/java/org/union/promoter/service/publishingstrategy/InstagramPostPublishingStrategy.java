@@ -29,6 +29,8 @@ import static org.union.common.Constants.*;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class InstagramPostPublishingStrategy extends InstagramBasePublishingStrategy {
 
+    private final InstaService instaService;
+
     public InstagramPostPublishingStrategy(PostService postService,
                                            CloudService cloudService,
                                            InstaService instaService,
@@ -43,16 +45,17 @@ public class InstagramPostPublishingStrategy extends InstagramBasePublishingStra
                 imagePostService,
                 videoPostService,
                 producingChannelService);
+        this.instaService = instaService;
     }
 
     @Override
     protected MediaResponse uploadPhoto(List<String> hashtags, File imageFile, InstaClient client) throws InterruptedException, ExecutionException {
-        return client.uploadPhotoPost(imageFile, getCaption(hashtags));
+        return instaService.uploadPhotoPost(client, imageFile, getCaption(hashtags));
     }
 
     @Override
     protected MediaResponse uploadVideo(List<String> hashtags, File videoFile, File coverFile, InstaClient client) throws ExecutionException, InterruptedException {
-        return client.uploadVideoPost(videoFile, coverFile, getCaption(hashtags));
+        return instaService.uploadVideoPost(client, videoFile, coverFile, getCaption(hashtags));
 
     }
 

@@ -12,7 +12,7 @@ import org.union.common.service.publishingstrategy.PostDefiningStrategyType;
 import org.union.promoter.service.publishingstrategy.PublishingStrategy;
 import org.union.common.service.publishingstrategy.PublishingStrategyType;
 import org.union.promoter.kafka.LoaderKafkaListener;
-import org.union.promoter.service.loadingstrategy.InstagramPostLoadingStrategy;
+import org.union.promoter.service.loadingstrategy.InstagramBaseLoadingStrategy;
 import org.union.promoter.service.publishingstrategy.InstagramPostPublishingStrategy;
 import org.union.promoter.service.publishingstrategy.InstagramStoryPublishingStrategy;
 import org.union.promoter.service.publishingstrategy.postdefiningstrategy.RatedPostDefiningStrategy;
@@ -41,7 +41,7 @@ public class StrategyResolver {
 
     @PostConstruct
     public void postConstruct() {
-        loadingStrategyMap.put(LoadingStrategyType.INSTAGRAM_POSTS, InstagramPostLoadingStrategy.class);
+        loadingStrategyMap.put(LoadingStrategyType.INSTAGRAM_POSTS, InstagramBaseLoadingStrategy.class);
 
         publishingStrategyMap.put(PublishingStrategyType.INSTAGRAM_STORY, InstagramStoryPublishingStrategy.class);
         publishingStrategyMap.put(PublishingStrategyType.INSTAGRAM_POST, InstagramPostPublishingStrategy.class);

@@ -6,6 +6,7 @@ import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.Post;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -29,6 +31,8 @@ import static org.union.common.Constants.STORY_SUCCESSFULLY_PUBLISHED_MSG;
 @Service
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class InstagramStoryPublishingStrategy extends InstagramBasePublishingStrategy {
+
+    private final InstaService instaService;
 
     public InstagramStoryPublishingStrategy(PostService postService,
                                             CloudService cloudService,
@@ -44,6 +48,7 @@ public class InstagramStoryPublishingStrategy extends InstagramBasePublishingStr
                 imagePostService,
                 videoPostService,
                 producingChannelService);
+        this.instaService = instaService;
     }
 
     @Override
@@ -57,21 +62,22 @@ public class InstagramStoryPublishingStrategy extends InstagramBasePublishingStr
                         .build())
                 .collect(Collectors.toList());
 
-        return client.uploadPhotoStory(imageFile, storyHashtagsItems);
+        return instaService.uploadPhotoStory(client, imageFile, storyHashtagsItems);
     }
 
     @Override
     protected MediaResponse uploadVideo(List<String> hashtags, File videoFile, File coverFile, InstaClient client) throws ExecutionException, InterruptedException {
-        List<String> randomHashtags = new ArrayList<>(hashtags);
-        Collections.shuffle(randomHashtags);
+        List<ReelMetadataItem> metadata = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(hashtags)) {
+            String randomHashtag = hashtags.get(new Random().nextInt(hashtags.size()));
+            StoryHashtagsItem storyHashtagsItem = StoryHashtagsItem.builder()
+                    .tag_name(randomHashtag)
+                    .build(); 
 
-        List<ReelMetadataItem> storyHashtagsItems = randomHashtags.stream()
-                .map(hashtag -> StoryHashtagsItem.builder()
-                        .tag_name(hashtag)
-                        .build())
-                .collect(Collectors.toList());
+            metadata.add(storyHashtagsItem);
+        }
 
-        return client.uploadVideoStory(videoFile, coverFile, storyHashtagsItems);
+        return instaService.uploadVideoStory(client, videoFile, coverFile, metadata);
     }
 
     @Override

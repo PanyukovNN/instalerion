@@ -169,7 +169,7 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
         long mediaId = response.getMedia().getPk();
 
         // request information about post from instagram
-        MediaInfoResponse mediaInfoResponse = client.requestMediaInfo(mediaId);
+        MediaInfoResponse mediaInfoResponse = instaService.requestMediaInfo(client, mediaId);
 
         if (mediaInfoResponse == null || mediaInfoResponse.getItems() == null) {
             throw new RequestException(String.format(POST_PUBLICATION_NOT_CONFIRMED_ERROR_MSG, post.getId()));

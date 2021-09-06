@@ -20,7 +20,7 @@ ext.library = [
 
         'springKafka':'org.springframework.kafka:spring-kafka:2.7.5',
 
-        'jImageHash':'com.github.kilianB:JImageHash:3.0.0',
+        'jImageHash':'com.github.kilianB:JImageHash:3.0.0'
 ]
 
 ext.libraryTest = [

@@ -3,7 +3,11 @@ package org.union.common.service;
 import com.github.instagram4j.instagram4j.IGAndroidDevice;
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
+import com.github.instagram4j.instagram4j.models.media.reel.item.ReelMetadataItem;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
+import com.github.instagram4j.instagram4j.requests.media.MediaInfoRequest;
+import com.github.instagram4j.instagram4j.responses.media.MediaInfoResponse;
+import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
 import lombok.RequiredArgsConstructor;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,11 +16,14 @@ import org.union.common.exception.RequestException;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
 
+import java.io.File;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static org.union.common.Constants.IG_CLIENT_EXPIRING_HOURS;
@@ -61,7 +68,7 @@ public class InstaService {
                     || isSessionExpired(client)) {
                 IGClient iGClient = login(producingChannel);
 
-                client = new InstaClient(iGClient, dateTimeHelper.getCurrentDateTime());
+                client = new InstaClient(iGClient, dateTimeHelper.getCurrentDateTime(), producingChannel.getId());
 
                 clientContext.put(producingChannel.getId(), client);
             }
@@ -75,6 +82,102 @@ public class InstaService {
 
             throw e;
         }
+    }
+
+    /**
+     * Get localDateTime from TimelineMedia taken_at time
+     *
+     * @param media TimelineMedia entity
+     * @return localDateTime
+     */
+    public LocalDateTime getTimelineMediaDateTime(TimelineMedia media) {
+        return Instant.ofEpochMilli(media.getTaken_at() * 1000)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+    }
+
+    /**
+     * Uploads image post
+     *
+     * @param client instagram client
+     * @param imageFile file of image
+     * @param caption description
+     * @return response
+     */
+    public MediaResponse uploadPhotoPost(InstaClient client, File imageFile, String caption) throws ExecutionException, InterruptedException {
+        return client
+                .getIGClient()
+                .actions()
+                .timeline()
+                .uploadPhoto(imageFile, caption)
+                .get();
+    }
+
+    /**
+     * Uploads video post
+     *
+     * @param client instagram client
+     * @param videoFile file of video
+     * @param coverFile file of cover
+     * @param caption description
+     * @return response
+     */
+    public MediaResponse uploadVideoPost(InstaClient client, File videoFile, File coverFile, String caption) throws ExecutionException, InterruptedException {
+        return client
+                .getIGClient()
+                .actions()
+                .timeline()
+                .uploadVideo(videoFile, coverFile, caption)
+                .get();
+    }
+
+    /**
+     * Uploads image story
+     *
+     * @param client instagram client
+     * @param imageFile file of image
+     * @param metadata story metadata
+     * @return response
+     */
+    public MediaResponse uploadPhotoStory(InstaClient client, File imageFile, List<ReelMetadataItem> metadata) throws ExecutionException, InterruptedException {
+        return client
+                .getIGClient()
+                .actions()
+                .story()
+                .uploadPhoto(imageFile, metadata)
+                .get();
+    }
+
+    /**
+     * Uploads video story
+     *
+     * @param client instagram client
+     * @param videoFile file of video
+     * @param coverFile file of cover
+     * @param metadata story metadata
+     * @return response
+     */
+    public MediaResponse uploadVideoStory(InstaClient client, File videoFile, File coverFile, List<ReelMetadataItem> metadata) throws ExecutionException, InterruptedException {
+        return client
+                .getIGClient()
+                .actions()
+                .story()
+                .uploadVideo(videoFile, coverFile, metadata)
+                .get();
+    }
+
+    /**
+     * Returns info about instagram media
+     *
+     * @param client instagram client
+     * @param mediaId id of media
+     * @return media info response
+     */
+    public MediaInfoResponse requestMediaInfo(InstaClient client, long mediaId) throws ExecutionException, InterruptedException {
+        return client
+                .getIGClient()
+                .sendRequest(new MediaInfoRequest(String.valueOf(mediaId)))
+                .get();
     }
 
     private boolean isSessionExpired(InstaClient client) {
@@ -103,17 +206,5 @@ public class InstaService {
         iGclient.setHttpClient(httpClient);
 
         return iGclient;
-    }
-
-    /**
-     * Get localDateTime from TimelineMedia taken_at time
-     *
-     * @param media TimelineMedia entity
-     * @return localDateTime
-     */
-    public LocalDateTime getTimelineMediaDateTime(TimelineMedia media) {
-        return Instant.ofEpochMilli(media.getTaken_at() * 1000)
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime();
     }
 }

@@ -4,7 +4,6 @@ import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineImageMedia;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineVideoMedia;
-import com.github.instagram4j.instagram4j.responses.media.MediaInfoResponse;
 import com.github.kilianB.matcher.persistent.ConsecutiveMatcher;
 import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.union.common.model.ConsumingChannel;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
@@ -26,7 +24,6 @@ import org.union.promoter.service.LoaderService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.apache.logging.log4j.util.Strings.EMPTY;
@@ -35,9 +32,9 @@ import static org.union.common.Constants.*;
 @Service
 @RequiredArgsConstructor
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class InstagramPostLoadingStrategy implements LoadingStrategy {
+public class InstagramBaseLoadingStrategy implements LoadingStrategy {
 
-    private final Logger logger = LoggerFactory.getLogger(InstagramPostLoadingStrategy.class);
+    private final Logger logger = LoggerFactory.getLogger(InstagramBaseLoadingStrategy.class);
 
     private final PostService postService;
     private final ImageMatcher imageMatcher;
@@ -55,7 +52,6 @@ public class InstagramPostLoadingStrategy implements LoadingStrategy {
         ProducingChannel producingChannel = producingChannelService.findById(request.getProducingChannelId())
                 .orElseThrow(() -> new NotFoundException(String.format(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, request.getProducingChannelId())));
 
-        // Login to access instagram account
         InstaClient client = instaService.getClient(producingChannel);
 
         List<ConsumingChannel> consumingChannels = producingChannel.getConsumingChannels();
@@ -68,34 +64,7 @@ public class InstagramPostLoadingStrategy implements LoadingStrategy {
         consumingChannelService.saveAll(consumingChannels);
         producingChannelService.save(producingChannel);
 
-//        updatePostsRating(producingChannel, client);
-    }
-
-    //TODO протестировать
-    private void updatePostsRating(ProducingChannel producingChannel, InstaClient client) throws ExecutionException, InterruptedException {
-        List<Post> lastUnratedPost = postService.findLastUnratedPost(producingChannel.getId());
-
-        for (Post post : lastUnratedPost) {
-            MediaInfoResponse infoResponse = client.requestMediaInfo(post.getMediaId());
-
-            if (infoResponse == null
-                    || CollectionUtils.isEmpty(infoResponse.getItems())
-                    || infoResponse.getItems().size() > 1) {
-                post.setRating(new PostRating(0d, true));
-            } else {
-                TimelineMedia media = infoResponse.getItems().get(0);
-
-                int viewCount = 0;
-                if (media.getMedia_type().equals(MediaType.VIDEO.getValue())) {
-                    viewCount = ((TimelineVideoMedia) media).getView_count();
-                } else if (media.getMedia_type().equals(MediaType.IMAGE.getValue())) {
-                    viewCount = ((TimelineImageMedia) media).getView_count();
-                }
-                post.setRating(postService.calculateRating(media, viewCount, post.getTakenAt()));
-            }
-        }
-
-        postService.saveAll(lastUnratedPost);
+        logger.info(POSTS_LOADING_SUCCESS_MSG);
     }
 
     private void processConsumeChannel(ProducingChannel producingChannel,
