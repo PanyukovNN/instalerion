@@ -10,8 +10,8 @@ import com.github.instagram4j.instagram4j.responses.media.MediaInfoResponse;
 import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
 import lombok.RequiredArgsConstructor;
 import okhttp3.OkHttpClient;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.union.common.exception.DeviceException;
 import org.union.common.exception.RequestException;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.union.common.Constants.IG_CLIENT_EXPIRING_HOURS;
 import static org.union.common.Constants.PRODUCING_CHANNEL_TEMPORARY_BLOCKED_MSG;
@@ -36,9 +38,9 @@ import static org.union.common.Constants.PRODUCING_CHANNEL_TEMPORARY_BLOCKED_MSG
 @RequiredArgsConstructor
 public class InstaService {
 
-    @Value("${device.number:0}")
-    public int deviceNumber;
-
+    private final List<Integer> deviceIndexes = IntStream.range(0, 6)
+            .boxed()
+            .collect(Collectors.toList());
     private final Map<String, InstaClient> clientContext = new HashMap<>();
 
     private final DateTimeHelper dateTimeHelper;
@@ -66,9 +68,11 @@ public class InstaService {
                     || client.getIGClient() == null
                     || !client.getIGClient().isLoggedIn()
                     || isSessionExpired(client)) {
-                IGClient iGClient = login(producingChannel);
+                int deviceIndex = getDeviceIndex(client);
 
-                client = new InstaClient(iGClient, dateTimeHelper.getCurrentDateTime(), producingChannel.getId());
+                IGClient iGClient = login(producingChannel, deviceIndex);
+
+                client = new InstaClient(iGClient, dateTimeHelper.getCurrentDateTime(), producingChannel.getId(), deviceIndex);
 
                 clientContext.put(producingChannel.getId(), client);
             }
@@ -81,6 +85,18 @@ public class InstaService {
             }
 
             throw e;
+        }
+    }
+
+    private int getDeviceIndex(InstaClient client) {
+        if (client != null) {
+            return client.getDeviceIndex();
+        } else {
+            if (deviceIndexes.isEmpty()) {
+                throw new DeviceException("Не хватает устройств для каналов потребления.");
+            }
+            deviceIndexes.remove(0);
+            return deviceIndexes.get(0);
         }
     }
 
@@ -185,17 +201,17 @@ public class InstaService {
                 dateTimeHelper.getCurrentDateTime().minusHours(IG_CLIENT_EXPIRING_HOURS));
     }
 
-    private IGClient login(ProducingChannel producingChannel) throws IGLoginException {
-        return login(producingChannel.getLogin(), producingChannel.getPassword());
+    private IGClient login(ProducingChannel producingChannel, int deviceIndex) throws IGLoginException {
+        return login(producingChannel.getLogin(), producingChannel.getPassword(), deviceIndex);
     }
 
-    private IGClient login(String login, String encryptedPassword) throws IGLoginException {
+    private IGClient login(String login, String encryptedPassword, int deviceIndex) throws IGLoginException {
         IGClient iGclient = IGClient.builder()
                 .username(login)
                 .password(encryptionUtil.getTextEncryptor().decrypt(encryptedPassword))
                 .login();
 
-        iGclient.setDevice(IGAndroidDevice.GOOD_DEVICES[deviceNumber]);
+        iGclient.setDevice(IGAndroidDevice.GOOD_DEVICES[deviceIndex]);
         // increase timeouts
         OkHttpClient httpClient = iGclient
                 .getHttpClient()

@@ -31,4 +31,9 @@ public class InstaClient {
      * Producing channel id
      */
     private String producingChannelId;
+
+    /**
+     * Index of device
+     */
+    private int deviceIndex;
 }
