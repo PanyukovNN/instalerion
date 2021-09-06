@@ -38,9 +38,11 @@ import static org.union.common.Constants.PRODUCING_CHANNEL_TEMPORARY_BLOCKED_MSG
 @RequiredArgsConstructor
 public class InstaService {
 
+    //TODO find better way
     private final List<Integer> deviceIndexes = IntStream.range(0, 6)
             .boxed()
             .collect(Collectors.toList());
+    private final Map<String, Integer> deviceIndexMap = new HashMap<>();
     private final Map<String, InstaClient> clientContext = new HashMap<>();
 
     private final DateTimeHelper dateTimeHelper;
@@ -63,13 +65,17 @@ public class InstaService {
 
         try {
             InstaClient client = clientContext.get(producingChannel.getId());
+            Integer deviceIndex = deviceIndexMap.get(producingChannel.getId());
+
+            if (deviceIndex == null) {
+                deviceIndex = getNextDeviceIndex();
+                deviceIndexMap.put(producingChannel.getId(), deviceIndex);
+            }
 
             if (client == null
                     || client.getIGClient() == null
                     || !client.getIGClient().isLoggedIn()
                     || isSessionExpired(client)) {
-                int deviceIndex = getDeviceIndex(client);
-
                 IGClient iGClient = login(producingChannel, deviceIndex);
 
                 client = new InstaClient(iGClient, dateTimeHelper.getCurrentDateTime(), producingChannel.getId(), deviceIndex);
@@ -80,7 +86,7 @@ public class InstaService {
             return client;
         } catch (IGLoginException e) {
             // if log in is blocked
-            if (e.getMessage().equals("Please wait a few minutes before you try again.")) {
+            if (e.getMessage().contains("Please wait a few minutes before you try again")) {
                 producingChannelService.setBlock(producingChannel);
             }
 
@@ -88,16 +94,14 @@ public class InstaService {
         }
     }
 
-    private int getDeviceIndex(InstaClient client) {
-        if (client != null) {
-            return client.getDeviceIndex();
-        } else {
-            if (deviceIndexes.isEmpty()) {
-                throw new DeviceException("Не хватает устройств для каналов потребления.");
-            }
-            deviceIndexes.remove(0);
-            return deviceIndexes.get(0);
+    private Integer getNextDeviceIndex() {
+        if (deviceIndexes.isEmpty()) {
+            throw new DeviceException("Не хватает устройств для каналов потребления.");
         }
+        Integer deviceIndex = deviceIndexes.get(0);
+        deviceIndexes.remove(0);
+
+        return deviceIndex;
     }
 
     /**
