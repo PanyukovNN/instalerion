@@ -17,6 +17,8 @@ import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
 
 import java.io.File;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -216,12 +218,16 @@ public class InstaService {
                 .login();
 
         iGclient.setDevice(IGAndroidDevice.GOOD_DEVICES[deviceIndex]);
+
+//        Proxy proxyTest = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("ar.wg.finevpn.org", 993));
+
         // increase timeouts
         OkHttpClient httpClient = iGclient
                 .getHttpClient()
                 .newBuilder()
                 .readTimeout(60, TimeUnit.SECONDS)
                 .connectTimeout(60, TimeUnit.SECONDS)
+//                .proxy(proxyTest)
                 .build();
         iGclient.setHttpClient(httpClient);
 
