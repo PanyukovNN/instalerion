@@ -219,15 +219,15 @@ public class InstaService {
 
         iGclient.setDevice(IGAndroidDevice.GOOD_DEVICES[deviceIndex]);
 
-//        Proxy proxyTest = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("ar.wg.finevpn.org", 993));
+        Proxy proxyTest = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("135.148.27.27", 8080));
 
-        // increase timeouts
+        // configure http client
         OkHttpClient httpClient = iGclient
                 .getHttpClient()
                 .newBuilder()
                 .readTimeout(60, TimeUnit.SECONDS)
                 .connectTimeout(60, TimeUnit.SECONDS)
-//                .proxy(proxyTest)
+                .proxy(proxyTest)
                 .build();
         iGclient.setHttpClient(httpClient);
 
