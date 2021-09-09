@@ -26,11 +26,6 @@ public class Post {
     private String producingChannelId;
 
     /**
-     * Url of an image (a cover for video posts)
-     */
-    private String imageUrl;
-
-    /**
      * Post author description
      */
     private String description;
@@ -39,13 +34,6 @@ public class Post {
      * Unique instagram code
      */
     private String code;
-
-    /**
-     * From instagram4j
-     * 1 - image
-     * 2 - video
-     */
-    private String mediaType;
 
     /**
      * Map of post publishing time by type
@@ -71,11 +59,6 @@ public class Post {
      * Rating of post
      */
     private PostRating rating;
-
-    /**
-     * Instagram media identifier
-     */
-    private long mediaId;
 
     /**
      * Increase publishing errors counter
