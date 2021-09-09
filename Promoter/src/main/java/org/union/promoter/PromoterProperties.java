@@ -6,6 +6,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PromoterProperties {
 
-    public static boolean loadingEnabled = false;
-    public static boolean publishingEnabled = true;
+    public static boolean loadingEnabled = true;
+    public static boolean publishingEnabled = false;
 }

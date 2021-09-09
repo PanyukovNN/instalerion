@@ -9,7 +9,7 @@ import com.github.instagram4j.instagram4j.requests.media.MediaInfoRequest;
 import com.github.instagram4j.instagram4j.responses.media.MediaInfoResponse;
 import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
 import lombok.RequiredArgsConstructor;
-import okhttp3.OkHttpClient;
+import okhttp3.*;
 import org.springframework.stereotype.Service;
 import org.union.common.exception.DeviceException;
 import org.union.common.exception.RequestException;
@@ -17,6 +17,7 @@ import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.time.Instant;
@@ -219,7 +220,17 @@ public class InstaService {
 
         iGclient.setDevice(IGAndroidDevice.GOOD_DEVICES[deviceIndex]);
 
-//        Proxy proxyTest = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("135.148.27.27", 8080));
+        Proxy proxyTest = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("217.29.53.64", 33177));
+        Authenticator testAuthenticator = new Authenticator() {
+            @Override
+            public Request authenticate(Route route, Response response) throws IOException {
+                if (responseCount(response) >= 3) {
+                    return null; // If we've failed 3 times, give up. - in real life, never give up!!
+                }
+                String credential = Credentials.basic("vXS77G", "bdR0po");
+                return response.request().newBuilder().header("Proxy-Authorization", credential).build();
+            }
+        };
 
         // configure http client
         OkHttpClient httpClient = iGclient
@@ -227,10 +238,19 @@ public class InstaService {
                 .newBuilder()
                 .readTimeout(60, TimeUnit.SECONDS)
                 .connectTimeout(60, TimeUnit.SECONDS)
-//                .proxy(proxyTest)
+                .proxy(proxyTest)
+                .proxyAuthenticator(testAuthenticator)
                 .build();
         iGclient.setHttpClient(httpClient);
 
         return iGclient;
+    }
+
+    private int responseCount(Response response) {
+        int result = 1;
+        while ((response = response.priorResponse()) != null) {
+            result++;
+        }
+        return result;
     }
 }
