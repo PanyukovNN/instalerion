@@ -10,10 +10,8 @@ import org.union.common.exception.NotFoundException;
 import org.union.common.exception.RequestException;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
-import org.union.common.model.post.ImagePost;
 import org.union.common.model.post.MediaType;
 import org.union.common.model.post.Post;
-import org.union.common.model.post.VideoPost;
 import org.union.common.service.*;
 
 import java.io.File;
@@ -35,8 +33,6 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
     private final CloudService cloudService;
     private final InstaService instaService;
     private final DateTimeHelper dateTimeHelper;
-    private final ImagePostService imagePostService;
-    private final VideoPostService videoPostService;
     private final ProducingChannelService producingChannelService;
 
     @Override
@@ -102,9 +98,9 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
     private void publishPost(List<String> hashtags, Post post, InstaClient client) throws ExecutionException, InterruptedException {
         MediaResponse response;
 
-        if (post.getMediaType().equals(MediaType.IMAGE.getValue())) {
+        if (post.getMediaInfo().getType() == MediaType.IMAGE) {
             response = publishImage(hashtags, post.getId(), client);
-        } else if (post.getMediaType().equals(MediaType.VIDEO.getValue())) {
+        } else if (post.getMediaInfo().getType() == MediaType.VIDEO) {
             response = publishVideo(hashtags, post.getId(), client);
         } else {
             throw new RequestException(String.format(UNRECOGNIZED_MEDIA_TYPE_ERROR_MSG, post.getId()));
@@ -114,7 +110,7 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
     }
 
     private MediaResponse publishImage(List<String> hashtags, String postId, InstaClient client) throws ExecutionException, InterruptedException {
-        ImagePost imagePost = imagePostService.findById(postId)
+        Post imagePost = postService.findById(postId)
                 .orElseThrow(() -> new org.union.common.exception.NotFoundException(String.format(IMAGE_POST_NOT_FOUND_ERROR_MSG, postId)));
 
         File imageFile = cloudService.getImageFileByCode(imagePost.getCode());
@@ -127,10 +123,10 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
     }
 
     private MediaResponse publishVideo(List<String> hashtags, String postId, InstaClient client) throws ExecutionException, InterruptedException {
-        VideoPost videoPost = videoPostService.findById(postId)
+        Post videoPost = postService.findById(postId)
                 .orElseThrow(() -> new NotFoundException(String.format(VIDEO_POST_NOT_FOUND_ERROR_MSG, postId)));
 
-        if (videoPost.getDuration() > 60) {
+        if (videoPost.getMediaInfo().getDuration() > 60) {
             throw new RequestException(TOO_LONG_VIDEO_ERROR_MSG);
         }
 

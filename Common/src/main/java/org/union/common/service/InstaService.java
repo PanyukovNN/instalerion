@@ -219,7 +219,7 @@ public class InstaService {
 
         iGclient.setDevice(IGAndroidDevice.GOOD_DEVICES[deviceIndex]);
 
-        Proxy proxyTest = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("135.148.27.27", 8080));
+//        Proxy proxyTest = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("135.148.27.27", 8080));
 
         // configure http client
         OkHttpClient httpClient = iGclient
@@ -227,7 +227,7 @@ public class InstaService {
                 .newBuilder()
                 .readTimeout(60, TimeUnit.SECONDS)
                 .connectTimeout(60, TimeUnit.SECONDS)
-                .proxy(proxyTest)
+//                .proxy(proxyTest)
                 .build();
         iGclient.setHttpClient(httpClient);
 

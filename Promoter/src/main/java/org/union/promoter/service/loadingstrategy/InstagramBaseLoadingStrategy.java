@@ -7,11 +7,13 @@ import com.github.instagram4j.instagram4j.models.media.timeline.TimelineVideoMed
 import com.github.kilianB.matcher.persistent.ConsecutiveMatcher;
 import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import org.union.common.exception.RequestException;
 import org.union.common.model.ConsumingChannel;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
@@ -42,8 +44,6 @@ public class InstagramBaseLoadingStrategy implements LoadingStrategy {
     private final InstaService instaService;
     private final LoaderService loaderService;
     private final DateTimeHelper dateTimeHelper;
-    private final ImagePostService imagePostService;
-    private final VideoPostService videoPostService;
     private final ProducingChannelService producingChannelService;
     private final ConsumingChannelService consumingChannelService;
 
@@ -86,56 +86,46 @@ public class InstagramBaseLoadingStrategy implements LoadingStrategy {
     }
 
     private void processVideoPosts(ConsecutiveMatcher matcher, ProducingChannel producingChannel, ConsumingChannel consumingChannel, List<TimelineMedia> timelineItems) throws IOException {
-        List<VideoPost> videoPosts = timelineItems.stream()
+        List<Post> videoPosts = timelineItems.stream()
                 .filter(TimelineVideoMedia.class::isInstance)
                 .map(TimelineVideoMedia.class::cast)
                 .filter(videoPost -> videoPost.getVideo_duration() <= 60)
                 .filter(videoPost -> videoPost.getMedia_type().equals(MediaType.VIDEO.getValue()))
                 .map(videoItem -> getVideoPost(producingChannel, videoItem))
-                .filter(videoPost -> imageMatcher.isUniqueImage(matcher, videoPost.getImageUrl(), videoPost.getCode()))
-                .map(videoPostService::save)
+                .filter(videoPost -> imageMatcher.isUniqueImage(matcher, videoPost.getMediaInfo().getImageUrl(), videoPost.getCode()))
+                .map(postService::save)
                 .collect(Collectors.toList());
 
-        cloudService.saveVideoPosts(videoPosts);
-        addVideoPostsToConsumingChannel(consumingChannel, videoPosts);
+        cloudService.savePostsMedia(videoPosts);
+        addPostsToConsumingChannel(consumingChannel, videoPosts);
 
         logger.info(String.format(SAVED_VIDEOS_FROM_CHANNEL_MSG, videoPosts.size(), consumingChannel.getName()));
     }
 
     private void processImagePosts(ConsecutiveMatcher matcher, ProducingChannel producingChannel, ConsumingChannel consumingChannel, List<TimelineMedia> timelineItems) throws IOException {
-        List<ImagePost> imagePosts = timelineItems.stream()
+        List<Post> imagePosts = timelineItems.stream()
                 .filter(TimelineImageMedia.class::isInstance)
                 .map(TimelineImageMedia.class::cast)
                 .filter(imageItem -> imageItem.getMedia_type().equals(MediaType.IMAGE.getValue()))
                 .map(imageItem -> getImagePost(producingChannel, imageItem))
-                .filter(imagePost -> imageMatcher.isUniqueImage(matcher, imagePost.getImageUrl(), imagePost.getCode()))
-                .map(imagePostService::save)
+                .filter(imagePost -> imageMatcher.isUniqueImage(matcher, imagePost.getMediaInfo().getImageUrl(), imagePost.getCode()))
+                .map(postService::save)
                 .collect(Collectors.toList());
 
-        cloudService.saveImagePosts(imagePosts);
-        addImagePostsToConsumingChannel(consumingChannel, imagePosts);
+        cloudService.savePostsMedia(imagePosts);
+        addPostsToConsumingChannel(consumingChannel, imagePosts);
 
         logger.info(String.format(SAVED_IMAGES_FROM_CHANNEL_MSG, imagePosts.size(), consumingChannel.getName()));
     }
 
-    private void addVideoPostsToConsumingChannel(ConsumingChannel consumingChannel, List<VideoPost> postsToAdd) {
-        List<Post> posts = consumingChannel.getVideoPosts();
+    private void addPostsToConsumingChannel(ConsumingChannel consumingChannel, List<Post> postsToAdd) {
+        List<Post> posts = consumingChannel.getPosts();
 
         if (posts == null) {
-            consumingChannel.setVideoPosts(new ArrayList<>());
+            consumingChannel.setPosts(new ArrayList<>());
         }
 
-        consumingChannel.getVideoPosts().addAll(postsToAdd);
-    }
-
-    private void addImagePostsToConsumingChannel(ConsumingChannel consumingChannel, List<ImagePost> postsToAdd) {
-        List<Post> posts = consumingChannel.getImagePosts();
-
-        if (posts == null) {
-            consumingChannel.setImagePosts(new ArrayList<>());
-        }
-
-        consumingChannel.getImagePosts().addAll(postsToAdd);
+        consumingChannel.getPosts().addAll(postsToAdd);
     }
 
     /**
@@ -145,14 +135,15 @@ public class InstagramBaseLoadingStrategy implements LoadingStrategy {
      * @param video timeline video media item
      * @return VideoPost
      */
-    private VideoPost getVideoPost(ProducingChannel producingChannel, TimelineVideoMedia video) {
-        VideoPost videoPost = new VideoPost();
+    private Post getVideoPost(ProducingChannel producingChannel, TimelineVideoMedia video) {
+        Post videoPost = new Post();
 
         try {
             fillPostInfo(videoPost, producingChannel, video, video.getView_count());
-            videoPost.setDuration(video.getVideo_duration());
-            videoPost.setVideoUrl(video.getVideo_versions().get(0).getUrl());
-            videoPost.setImageUrl(video.getImage_versions2().getCandidates().get(0).getUrl());
+            MediaInfo videoMediaInfo = videoPost.getMediaInfo();
+            videoMediaInfo.setDuration(video.getVideo_duration());
+            videoMediaInfo.setVideoUrl(video.getVideo_versions().get(0).getUrl());
+            videoMediaInfo.setImageUrl(video.getImage_versions2().getCandidates().get(0).getUrl());
         } catch (Exception e) {
             logger.error(String.format(TRANSFORM_TO_VIDEO_POST_ERROR_MSG, e.getMessage()), e);
         }
@@ -167,12 +158,13 @@ public class InstagramBaseLoadingStrategy implements LoadingStrategy {
      * @param image timeline image media item
      * @return ImagePost
      */
-    private ImagePost getImagePost(ProducingChannel producingChannel, TimelineImageMedia image) {
-        ImagePost imagePost = new ImagePost();
+    private Post getImagePost(ProducingChannel producingChannel, TimelineImageMedia image) {
+        Post imagePost = new Post();
 
         try {
             fillPostInfo(imagePost, producingChannel, image, image.getView_count());
-            imagePost.setImageUrl(image.getImage_versions2().getCandidates().get(0).getUrl());
+            MediaInfo imageMediaInfo = imagePost.getMediaInfo();
+            imageMediaInfo.setImageUrl(image.getImage_versions2().getCandidates().get(0).getUrl());
         } catch (Exception e) {
             logger.error(String.format(TRANSFORM_TO_IMAGE_POST_ERROR_MSG, e.getMessage()), e);
         }
@@ -184,9 +176,23 @@ public class InstagramBaseLoadingStrategy implements LoadingStrategy {
         post.setCode(media.getCode());
         post.setDescription(media.getCaption() != null ? media.getCaption().getText() : EMPTY);
         post.setTakenAt(instaService.getTimelineMediaDateTime(media));
-        post.setMediaId(media.getPk());
         post.setRating(postService.calculateRating(media, viewCount, post.getTakenAt()));
-        post.setMediaType(media.getMedia_type());
         post.setProducingChannelId(producingChannel.getId());
+
+        MediaInfo mediaInfo = new MediaInfo();
+        mediaInfo.setMediaId(media.getPk());
+        mediaInfo.setType(defineMediaType(media));
+        post.setMediaInfo(mediaInfo);
+    }
+
+    @NotNull
+    private MediaType defineMediaType(TimelineMedia media) {
+        for (MediaType mediaType : MediaType.values()) {
+            if (media.getMedia_type().equals(mediaType.getValue())) {
+                return mediaType;
+            }
+        }
+
+        throw new RequestException(UNABLE_TO_DEFINE_MEDIA_TYPE_MSG);
     }
 }

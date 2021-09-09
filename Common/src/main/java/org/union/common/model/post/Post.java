@@ -2,19 +2,21 @@ package org.union.common.model.post;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Base class of posts
+ * Posts (image and video)
  */
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(collection = "post")
 public class Post {
 
     @Id
@@ -59,6 +61,11 @@ public class Post {
      * Rating of post
      */
     private PostRating rating;
+
+    /**
+     * Image/video media info
+     */
+    private MediaInfo mediaInfo;
 
     /**
      * Increase publishing errors counter

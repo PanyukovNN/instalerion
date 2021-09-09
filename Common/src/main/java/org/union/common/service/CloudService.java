@@ -2,8 +2,8 @@ package org.union.common.service;
 
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
-import org.union.common.model.post.ImagePost;
-import org.union.common.model.post.VideoPost;
+import org.union.common.exception.CloudException;
+import org.union.common.model.post.Post;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,28 +32,23 @@ public class CloudService {
     }
 
     /**
-     * Save video posts files
+     * Save posts media files
      *
-     * @param videoPosts list of video posts
+     * @param posts list of posts
      * @throws IOException exception
      */
-    public void saveVideoPosts(List<VideoPost> videoPosts) throws IOException {
-        for (VideoPost videoPost : videoPosts) {
-            saveByUrl(videoPost.getVideoUrl(), VIDEO_PREFIX + videoPost.getCode());
+    public void savePostsMedia(List<Post> posts) throws IOException {
+        for (Post post : posts) {
+            if (post.getMediaInfo() == null) {
+                throw new CloudException("У поста нет информации о медиа.");
+            }
 
-            saveByUrl(videoPost.getImageUrl(), IMAGE_PREFIX + videoPost.getCode());
-        }
-    }
+            if (post.getMediaInfo().getVideoUrl() != null) {
+                saveByUrl(post.getMediaInfo().getVideoUrl(), VIDEO_PREFIX + post.getCode());
+            }
 
-    /**
-     * Save image posts files
-     *
-     * @param imagePosts list of image posts
-     * @throws IOException exception
-     */
-    public void saveImagePosts(List<ImagePost> imagePosts) throws IOException {
-        for (ImagePost imagePost : imagePosts) {
-            saveByUrl(imagePost.getImageUrl(), IMAGE_PREFIX + imagePost.getCode());
+            // image must be always
+            saveByUrl(post.getMediaInfo().getImageUrl(), IMAGE_PREFIX + post.getCode());
         }
     }
 

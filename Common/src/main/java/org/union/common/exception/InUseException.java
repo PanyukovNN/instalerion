@@ -1,7 +1,7 @@
 package org.union.common.exception;
 
 /**
- * Instance in use exception
+ * Exception when object is in use
  */
 public class InUseException extends InstalerionException {
 

@@ -1,7 +1,7 @@
 package org.union.common.exception;
 
 /**
- * Instance in use exception
+ * Device exception
  */
 public class DeviceException extends InstalerionException {
 

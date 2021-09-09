@@ -28,16 +28,10 @@ public class ConsumingChannel {
     private String name;
 
     /**
-     * List of video posts
+     * List of posts
      */
     @DBRef
-    private List<Post> videoPosts;
-
-    /**
-     * List of image posts
-     */
-    @DBRef
-    private List<Post> imagePosts;
+    private List<Post> posts;
 
     /**
      * ctor

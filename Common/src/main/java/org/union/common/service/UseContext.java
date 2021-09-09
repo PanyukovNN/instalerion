@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static org.union.common.Constants.ID_CANT_BE_NULL_ERROR_MSG;
-import static org.union.common.Constants.OBJECT_IN_USE_ERROR_MSG;
 
 /**
  * Service to control usage of objects by ids
@@ -18,17 +17,21 @@ public class UseContext {
 
     private final Set<String> inUseIds = new CopyOnWriteArraySet<>();
 
-    public void checkInUse(String id) {
+    public synchronized boolean checkInUseAndSet(String id) {
         if (!StringUtils.hasText(id)) {
             throw new InUseException(ID_CANT_BE_NULL_ERROR_MSG);
         }
 
         if (inUseIds.contains(id)) {
-            throw new InUseException(String.format(OBJECT_IN_USE_ERROR_MSG, id));
+            return true;
         }
+
+        setInUse(id);
+
+        return false;
     }
 
-    public void release(String id) {
+    public synchronized void release(String id) {
         if (!StringUtils.hasText(id)) {
             throw new InUseException(ID_CANT_BE_NULL_ERROR_MSG);
         }
@@ -36,7 +39,7 @@ public class UseContext {
         inUseIds.remove(id);
     }
 
-    public void setInUse(String id) {
+    public synchronized void setInUse(String id) {
         inUseIds.add(id);
     }
 }

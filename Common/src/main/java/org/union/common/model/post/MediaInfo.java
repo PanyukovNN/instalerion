@@ -7,7 +7,7 @@ import lombok.ToString;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
- * Image post
+ * Media information
  */
 @Getter
 @Setter
@@ -23,13 +23,21 @@ public class MediaInfo extends Post {
 
     /**
      * From instagram4j
-     * 1 - image
-     * 2 - video
      */
-    private String type;
+    private MediaType type;
 
     /**
      * Url of an image (a cover for video posts)
      */
     private String imageUrl;
+
+    /**
+     * Url of a video (null for photo posts)
+     */
+    private String videoUrl;
+
+    /**
+     * Video duration (null for photo posts)
+     */
+    private long duration;
 }

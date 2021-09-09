@@ -49,7 +49,7 @@ public class InstagramUpdateRatingLoadingStrategy implements LoadingStrategy {
         List<Post> lastUnratedPost = postService.findLastUnratedPost(producingChannel.getId());
 
         for (Post post : lastUnratedPost) {
-            MediaInfoResponse infoResponse = instaService.requestMediaInfo(client, post.getMediaId());
+            MediaInfoResponse infoResponse = instaService.requestMediaInfo(client, post.getMediaInfo().getMediaId());
 
             if (infoResponse == null
                     || CollectionUtils.isEmpty(infoResponse.getItems())

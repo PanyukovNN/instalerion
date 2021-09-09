@@ -35,15 +35,11 @@ public class InstagramPostPublishingStrategy extends InstagramBasePublishingStra
                                            CloudService cloudService,
                                            InstaService instaService,
                                            DateTimeHelper dateTimeHelper,
-                                           ImagePostService imagePostService,
-                                           VideoPostService videoPostService,
                                            ProducingChannelService producingChannelService) {
         super(postService,
                 cloudService,
                 instaService,
                 dateTimeHelper,
-                imagePostService,
-                videoPostService,
                 producingChannelService);
         this.instaService = instaService;
     }

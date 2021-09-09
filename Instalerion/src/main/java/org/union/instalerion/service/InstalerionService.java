@@ -22,6 +22,7 @@ import org.union.instalerion.kafka.PublisherKafkaSender;
 import java.util.List;
 
 import static org.union.common.Constants.*;
+import static org.union.instalerion.InstalerionProperties.publishAtNight;
 
 /**
  * Instalerion processor
@@ -40,7 +41,7 @@ public class InstalerionService {
 
     @Scheduled(fixedRateString = "${processor.scheduler.fixed.rate.mills}")
     public void schedule() {
-        if (dateTimeHelper.isNight()) {
+        if (dateTimeHelper.isNight() && !publishAtNight) {
             logger.info(WORKING_ON_PAUSE_IN_NIGHT_MSG);
 
             return;

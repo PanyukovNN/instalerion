@@ -70,6 +70,9 @@ public class Constants {
     public static final String STORY_SUCCESSFULLY_PUBLISHED_MSG = "Стори %s успешно опубликована в канале %s.";
     public static final String STORY_PUBLISHING_STARTED_MSG = "Начинаю публикацию стори %s в канале %s.";
     public static final String REQUEST_FOR_PUBLICATION_COULD_BE_SENT_BEFORE_LOADING_MSG = "Запросы на публикацию не отправлены, поскольку не произведено ни одной загрузки постов.";
+    public static final String PRODUCING_CHANNEL_IS_BUSY_MSG = "Канал публикации %s в настоящее время занят.";
+    public static final String UNABLE_TO_DEFINE_MEDIA_TYPE_MSG = "Не удалось определить тип медиа для поста.";
+
 
     /**
      * Other

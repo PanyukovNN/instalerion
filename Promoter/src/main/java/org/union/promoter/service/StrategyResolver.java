@@ -32,7 +32,7 @@ import static org.union.common.Constants.*;
 @RequiredArgsConstructor
 public class StrategyResolver {
 
-    private final Logger logger = LoggerFactory.getLogger(LoaderKafkaListener.class);
+    private final Logger logger = LoggerFactory.getLogger(StrategyResolver.class);
     private final Map<LoadingStrategyType, Class<? extends LoadingStrategy>> loadingStrategyMap = new HashMap<>();
     private final Map<PublishingStrategyType, Class<? extends PublishingStrategy>> publishingStrategyMap = new HashMap<>();
     private final Map<PostDefiningStrategyType, Class<? extends PostDefiningStrategy>> postDefiningStrategyMap = new HashMap<>();

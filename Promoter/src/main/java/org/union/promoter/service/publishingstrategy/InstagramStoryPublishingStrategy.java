@@ -38,15 +38,11 @@ public class InstagramStoryPublishingStrategy extends InstagramBasePublishingStr
                                             CloudService cloudService,
                                             InstaService instaService,
                                             DateTimeHelper dateTimeHelper,
-                                            ImagePostService imagePostService,
-                                            VideoPostService videoPostService,
                                             ProducingChannelService producingChannelService) {
         super(postService,
                 cloudService,
                 instaService,
                 dateTimeHelper,
-                imagePostService,
-                videoPostService,
                 producingChannelService);
         this.instaService = instaService;
     }
@@ -72,7 +68,7 @@ public class InstagramStoryPublishingStrategy extends InstagramBasePublishingStr
             String randomHashtag = hashtags.get(new Random().nextInt(hashtags.size()));
             StoryHashtagsItem storyHashtagsItem = StoryHashtagsItem.builder()
                     .tag_name(randomHashtag)
-                    .build(); 
+                    .build();
 
             metadata.add(storyHashtagsItem);
         }
