@@ -95,13 +95,13 @@ public class InstalerionService {
     }
 
     private void sendLoadingRequests(ProducingChannel producingChannel) {
-//        if (producingChannelService.isLoadingTime(producingChannel)) {
+        if (producingChannelService.isLoadingTime(producingChannel)) {
             LoadingStrategyType strategyType = LoadingStrategyType.INSTAGRAM_POSTS;
 
             LoadingRequest request = new LoadingRequest(producingChannel.getId(), strategyType, STANDARD_LOADING_VOLUME);
 
             loaderKafkaSender.send(request);
-//        }
+        }
     }
 
     private void sendPublishingRequests(ProducingChannel producingChannel) {

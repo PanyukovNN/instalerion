@@ -7,5 +7,5 @@ import lombok.NoArgsConstructor;
 public class PromoterProperties {
 
     public static boolean loadingEnabled = true;
-    public static boolean publishingEnabled = false;
+    public static boolean publishingEnabled = true;
 }
