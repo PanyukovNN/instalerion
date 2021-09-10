@@ -1,6 +1,5 @@
 package org.union.common.service;
 
-import com.github.instagram4j.instagram4j.IGAndroidDevice;
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
 import com.github.instagram4j.instagram4j.models.media.reel.item.ReelMetadataItem;
@@ -11,13 +10,13 @@ import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
 import lombok.RequiredArgsConstructor;
 import okhttp3.*;
 import org.springframework.stereotype.Service;
-import org.union.common.exception.DeviceException;
+import org.union.common.exception.ProxyException;
 import org.union.common.exception.RequestException;
+import org.union.common.model.ProxyServer;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.time.Instant;
@@ -28,11 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
-import static org.union.common.Constants.IG_CLIENT_EXPIRING_HOURS;
-import static org.union.common.Constants.PRODUCING_CHANNEL_TEMPORARY_BLOCKED_MSG;
+import static org.union.common.Constants.*;
 
 /**
  * Service to work with instagram
@@ -41,13 +37,9 @@ import static org.union.common.Constants.PRODUCING_CHANNEL_TEMPORARY_BLOCKED_MSG
 @RequiredArgsConstructor
 public class InstaService {
 
-    //TODO find better way
-    private final List<Integer> deviceIndexes = IntStream.range(0, 6)
-            .boxed()
-            .collect(Collectors.toList());
-    private final Map<String, Integer> deviceIndexMap = new HashMap<>();
     private final Map<String, InstaClient> clientContext = new HashMap<>();
 
+    private final ProxyService proxyService;
     private final DateTimeHelper dateTimeHelper;
     private final EncryptionUtil encryptionUtil;
     private final ProducingChannelService producingChannelService;
@@ -68,20 +60,24 @@ public class InstaService {
 
         try {
             InstaClient client = clientContext.get(producingChannel.getId());
-            Integer deviceIndex = deviceIndexMap.get(producingChannel.getId());
 
-            if (deviceIndex == null) {
-                deviceIndex = getNextDeviceIndex();
-                deviceIndexMap.put(producingChannel.getId(), deviceIndex);
+            if (producingChannel.getProxyServer() == null) {
+                ProxyServer proxyServer = proxyService.findAnyUnattached()
+                        .orElseThrow(() -> new ProxyException(NOT_FOUND_UNATTACHED_PROXY_SERVER_ERROR_MSG));
+
+                producingChannel.setProxyServer(proxyServer);
+                proxyServer.setProducingChannelId(producingChannel.getId());
+                proxyService.save(proxyServer);
+                producingChannelService.save(producingChannel);
             }
 
             if (client == null
                     || client.getIGClient() == null
                     || !client.getIGClient().isLoggedIn()
                     || isSessionExpired(client)) {
-                IGClient iGClient = login(producingChannel, deviceIndex);
+                IGClient iGClient = login(producingChannel);
 
-                client = new InstaClient(iGClient, dateTimeHelper.getCurrentDateTime(), producingChannel.getId(), deviceIndex);
+                client = new InstaClient(iGClient, dateTimeHelper.getCurrentDateTime(), producingChannel.getId());
 
                 clientContext.put(producingChannel.getId(), client);
             }
@@ -95,16 +91,6 @@ public class InstaService {
 
             throw e;
         }
-    }
-
-    private Integer getNextDeviceIndex() {
-        if (deviceIndexes.isEmpty()) {
-            throw new DeviceException("Не хватает устройств для каналов потребления.");
-        }
-        Integer deviceIndex = deviceIndexes.get(0);
-        deviceIndexes.remove(0);
-
-        return deviceIndex;
     }
 
     /**
@@ -208,29 +194,15 @@ public class InstaService {
                 dateTimeHelper.getCurrentDateTime().minusHours(IG_CLIENT_EXPIRING_HOURS));
     }
 
-    private IGClient login(ProducingChannel producingChannel, int deviceIndex) throws IGLoginException {
-        return login(producingChannel.getLogin(), producingChannel.getPassword(), deviceIndex);
+    private IGClient login(ProducingChannel producingChannel) throws IGLoginException {
+        return login(producingChannel.getLogin(), producingChannel.getPassword(), producingChannel.getProxyServer());
     }
 
-    private IGClient login(String login, String encryptedPassword, int deviceIndex) throws IGLoginException {
+    private IGClient login(String login, String encryptedPassword, ProxyServer proxyServer) throws IGLoginException {
         IGClient iGclient = IGClient.builder()
                 .username(login)
                 .password(encryptionUtil.getTextEncryptor().decrypt(encryptedPassword))
                 .login();
-
-        iGclient.setDevice(IGAndroidDevice.GOOD_DEVICES[deviceIndex]);
-
-        Proxy proxyTest = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("217.29.53.64", 33177));
-        Authenticator testAuthenticator = new Authenticator() {
-            @Override
-            public Request authenticate(Route route, Response response) throws IOException {
-                if (responseCount(response) >= 3) {
-                    return null; // If we've failed 3 times, give up. - in real life, never give up!!
-                }
-                String credential = Credentials.basic("vXS77G", "bdR0po");
-                return response.request().newBuilder().header("Proxy-Authorization", credential).build();
-            }
-        };
 
         // configure http client
         OkHttpClient httpClient = iGclient
@@ -238,12 +210,35 @@ public class InstaService {
                 .newBuilder()
                 .readTimeout(60, TimeUnit.SECONDS)
                 .connectTimeout(60, TimeUnit.SECONDS)
-                .proxy(proxyTest)
-                .proxyAuthenticator(testAuthenticator)
+                .proxy(createProxy(proxyServer))
+                .proxyAuthenticator(createProxyAuthenticator(proxyServer))
                 .build();
         iGclient.setHttpClient(httpClient);
 
         return iGclient;
+    }
+
+    private Proxy createProxy(ProxyServer proxyServer) {
+        if (proxyServer == null) {
+            return null;
+        }
+
+        return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyServer.getIp(), proxyServer.getPort()));
+    }
+
+    private Authenticator createProxyAuthenticator(ProxyServer proxyServer) {
+        if (proxyServer == null) {
+            return null;
+        }
+
+        return (route, response) -> {
+            if (responseCount(response) >= 3) {
+                return null;
+            }
+
+            String credential = Credentials.basic(proxyServer.getLogin(), proxyServer.getPassword());
+            return response.request().newBuilder().header("Proxy-Authorization", credential).build();
+        };
     }
 
     private int responseCount(Response response) {

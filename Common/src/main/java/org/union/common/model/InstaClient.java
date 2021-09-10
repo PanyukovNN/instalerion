@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "insta_client")
 public class InstaClient {
 
     /**
@@ -31,9 +30,4 @@ public class InstaClient {
      * Producing channel id
      */
     private String producingChannelId;
-
-    /**
-     * Index of device
-     */
-    private int deviceIndex;
 }

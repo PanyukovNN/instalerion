@@ -26,6 +26,7 @@ public class ProducingChannelDto {
     private String lastLoadingDateTime;
     private Map<String, Integer> publishingPeriodMap = new HashMap<>();
     private String customerId;
+    private String proxyServer;
 
     public ProducingChannelDto(ProducingChannel producingChannel) {
         if (producingChannel == null) {
@@ -57,5 +58,12 @@ public class ProducingChannelDto {
 
         if (producingChannel.getCustomer() != null) {
             this.customerId = producingChannel.getCustomer().getId();
-        }}
+        }
+
+        if (producingChannel.getProxyServer() != null) {
+            this.proxyServer = String.format("%s:%s",
+                    producingChannel.getProxyServer().getIp(),
+                    producingChannel.getProxyServer().getPort());
+        }
+    }
 }

@@ -84,4 +84,9 @@ public class ProducingChannel {
      * List of hashtags (without # symbol)
      */
     private List<String> hashtags;
+
+    /**
+     * Proxy server info
+     */
+    private ProxyServer proxyServer;
 }
