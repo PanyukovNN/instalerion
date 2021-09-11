@@ -78,7 +78,7 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
      */
     private void processPublishing(List<String> hashtags, Post post, InstaClient client) throws Exception {
         int tries = TRANSCODE_NOT_FINISHED_TRIES;
-        while (tries > 0) {
+        while (true) {
             try {
                 publishPost(hashtags, post, client);
 
@@ -88,6 +88,10 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
                     logger.info(TRANSCODE_NOT_FINISHED_YET_ERROR_MSG);
 
                     tries--;
+
+                    if (tries == 0) {
+                        throw e;
+                    }
                 } else {
                     throw e;
                 }

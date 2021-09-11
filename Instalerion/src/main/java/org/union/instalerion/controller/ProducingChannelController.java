@@ -7,12 +7,16 @@ import org.union.common.exception.NotFoundException;
 import org.union.common.model.ConsumingChannel;
 import org.union.common.model.Customer;
 import org.union.common.model.ProducingChannel;
+import org.union.common.model.ProxyServer;
 import org.union.common.model.dto.ProducingChannelDto;
+import org.union.common.model.post.PublicationType;
 import org.union.common.model.request.ChangeConsumingChannelsRequest;
 import org.union.common.model.request.CreateUpdateProducingChannelRequest;
+import org.union.common.model.request.SetProxyRequest;
 import org.union.common.service.ConsumingChannelService;
 import org.union.common.service.CustomerService;
 import org.union.common.service.ProducingChannelService;
+import org.union.common.service.ProxyService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,6 +29,7 @@ import static org.union.common.Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG;
 @RequestMapping("/producing-channel")
 public class ProducingChannelController {
 
+    private final ProxyService proxyService;
     private final CustomerService customerService;
     private final ProducingChannelService producingChannelService;
     private final ConsumingChannelService consumingChannelService;
@@ -110,5 +115,42 @@ public class ProducingChannelController {
                         .map(ConsumingChannel::getName)
                         .collect(Collectors.joining(",")),
                 producingChannel.getLogin());
+    }
+
+    @PostMapping(value = "/change-post-publishing-period")
+    public String changePostPublishingPeriod(
+            @RequestParam String producingChannelId,
+            @RequestParam int postPublishingPeriod) {
+        ProducingChannel producingChannel = producingChannelService.findById(producingChannelId)
+                .orElseThrow(() -> new NotFoundException(String.format(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, producingChannelId)));
+
+        producingChannel.getPublishingPeriodMap().put(PublicationType.INSTAGRAM_POST, postPublishingPeriod);
+        producingChannelService.save(producingChannel);
+
+        return "Publication period successfully updated.";
+    }
+
+    @PostMapping(value = "/set-proxy")
+    public String setProxy(@RequestBody SetProxyRequest request) {
+        ProducingChannel producingChannel = producingChannelService.findById(request.getProducingChannelId())
+                .orElseThrow(() -> new NotFoundException(String.format(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, request.getProducingChannelId())));
+
+        ProxyServer proxyServer = new ProxyServer(
+                request.getIp(),
+                request.getPort(),
+                request.getLogin(),
+                request.getPassword(),
+                request.getProducingChannelId());
+        proxyServer = proxyService.save(proxyServer);
+
+        // Release previous proxy
+        ProxyServer prodChannelProxyServer = producingChannel.getProxyServer();
+        prodChannelProxyServer.setProducingChannelId(null);
+        proxyService.save(prodChannelProxyServer);
+
+        producingChannel.setProxyServer(proxyServer);
+        producingChannelService.save(producingChannel);
+
+        return "Proxy server successfully set.";
     }
 }

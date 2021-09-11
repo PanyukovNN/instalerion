@@ -73,6 +73,8 @@ public class Constants {
     public static final String REQUEST_FOR_PUBLICATION_COULD_BE_SENT_BEFORE_LOADING_MSG = "Запросы на публикацию не отправлены, поскольку не произведено ни одной загрузки постов.";
     public static final String PRODUCING_CHANNEL_IS_BUSY_MSG = "Канал публикации %s в настоящее время занят.";
     public static final String UNABLE_TO_DEFINE_MEDIA_TYPE_MSG = "Не удалось определить тип медиа для поста.";
+    public static final String LOGIN_SESSION_DESERIALIZED_MSG = "Данные о сессии канала публикации \"%s\" восстановлены из файла.";
+    public static final String LOGGED_IN_AND_SERIALIZED_MSG = "Осуществлён вход в канал публикации \"%s\", данные сохранены в файл.";
 
 
     /**

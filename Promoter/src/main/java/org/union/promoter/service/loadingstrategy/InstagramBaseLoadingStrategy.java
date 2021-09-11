@@ -1,6 +1,5 @@
 package org.union.promoter.service.loadingstrategy;
 
-import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineImageMedia;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineVideoMedia;
@@ -17,7 +16,10 @@ import org.union.common.exception.RequestException;
 import org.union.common.model.ConsumingChannel;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
-import org.union.common.model.post.*;
+import org.union.common.model.post.MediaInfo;
+import org.union.common.model.post.MediaType;
+import org.union.common.model.post.Post;
+import org.union.common.model.post.PublicationType;
 import org.union.common.model.request.LoadingRequest;
 import org.union.common.service.*;
 import org.union.common.service.loadingstrategy.LoadingVolume;
@@ -48,7 +50,7 @@ public class InstagramBaseLoadingStrategy implements LoadingStrategy {
     private final ConsumingChannelService consumingChannelService;
 
     @Override
-    public void load(LoadingRequest request) throws IGLoginException, NotFoundException {
+    public void load(LoadingRequest request) throws Exception {
         ProducingChannel producingChannel = producingChannelService.findById(request.getProducingChannelId())
                 .orElseThrow(() -> new NotFoundException(String.format(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, request.getProducingChannelId())));
 

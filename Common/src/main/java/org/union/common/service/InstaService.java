@@ -7,8 +7,11 @@ import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import com.github.instagram4j.instagram4j.requests.media.MediaInfoRequest;
 import com.github.instagram4j.instagram4j.responses.media.MediaInfoResponse;
 import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
+import com.github.instagram4j.instagram4j.utils.SerializableCookieJar;
 import lombok.RequiredArgsConstructor;
 import okhttp3.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.union.common.exception.ProxyException;
 import org.union.common.exception.RequestException;
@@ -16,7 +19,8 @@ import org.union.common.model.ProxyServer;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
 
-import java.io.File;
+import javax.annotation.PostConstruct;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.time.Instant;
@@ -37,12 +41,26 @@ import static org.union.common.Constants.*;
 @RequiredArgsConstructor
 public class InstaService {
 
+    private final Logger logger = LoggerFactory.getLogger(InstaService.class);
+
+    private static final String CHANNEL_SESSIONS_PATH = "channel_sessions/";
+    private static final String COOKIE_POSTFIX = "_cookie";
+    private static final String TXT_FORMAT = ".txt";
     private final Map<String, InstaClient> clientContext = new HashMap<>();
 
     private final ProxyService proxyService;
     private final DateTimeHelper dateTimeHelper;
     private final EncryptionUtil encryptionUtil;
     private final ProducingChannelService producingChannelService;
+
+    @PostConstruct
+    private void postConstruct() {
+        File channelSessionsPath = new File(CHANNEL_SESSIONS_PATH);
+        if (!channelSessionsPath.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            channelSessionsPath.mkdir();
+        }
+    }
 
     /**
      * Returns logged in instagram client
@@ -51,7 +69,7 @@ public class InstaService {
      * @return logged in instagram client
      * @throws IGLoginException exception while log in
      */
-    public synchronized InstaClient getClient(ProducingChannel producingChannel) throws IGLoginException {
+    public synchronized InstaClient getClient(ProducingChannel producingChannel) throws Exception {
         if (producingChannelService.isBlocked(producingChannel)) {
             throw new RequestException(String.format(PRODUCING_CHANNEL_TEMPORARY_BLOCKED_MSG,
                     producingChannel.getId(),
@@ -83,7 +101,7 @@ public class InstaService {
             }
 
             return client;
-        } catch (IGLoginException e) {
+        } catch (Exception e) {
             // if log in is blocked
             if (e.getMessage().contains("Please wait a few minutes before you try again")) {
                 producingChannelService.setBlock(producingChannel);
@@ -194,26 +212,40 @@ public class InstaService {
                 dateTimeHelper.getCurrentDateTime().minusHours(IG_CLIENT_EXPIRING_HOURS));
     }
 
-    private IGClient login(ProducingChannel producingChannel) throws IGLoginException {
+    private IGClient login(ProducingChannel producingChannel) throws IOException, ClassNotFoundException {
         return login(producingChannel.getLogin(), producingChannel.getPassword(), producingChannel.getProxyServer());
     }
 
-    private IGClient login(String login, String encryptedPassword, ProxyServer proxyServer) throws IGLoginException {
+    private IGClient login(String login, String encryptedPassword, ProxyServer proxyServer) throws IOException, ClassNotFoundException {
+        File clientFile = new File(CHANNEL_SESSIONS_PATH + login + TXT_FORMAT);
+        File cookieFile = new File(CHANNEL_SESSIONS_PATH + login + COOKIE_POSTFIX + TXT_FORMAT);
+
+        // configure http client
+        OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder()
+                .readTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .connectTimeout(60, TimeUnit.SECONDS)
+                .callTimeout(60, TimeUnit.SECONDS)
+                .proxy(createProxy(proxyServer))
+                .proxyAuthenticator(createProxyAuthenticator(proxyServer))
+                .cookieJar(new SerializableCookieJar());
+
+        if (clientFile.exists()
+                && cookieFile.exists()) {
+            IGClient igClient = IGClient.deserialize(clientFile, cookieFile, httpClientBuilder);
+            logger.info(String.format(LOGIN_SESSION_DESERIALIZED_MSG, login));
+
+            return igClient;
+        }
+
         IGClient iGclient = IGClient.builder()
                 .username(login)
                 .password(encryptionUtil.getTextEncryptor().decrypt(encryptedPassword))
+                .client(httpClientBuilder.build())
                 .login();
 
-        // configure http client
-        OkHttpClient httpClient = iGclient
-                .getHttpClient()
-                .newBuilder()
-                .readTimeout(60, TimeUnit.SECONDS)
-                .connectTimeout(60, TimeUnit.SECONDS)
-                .proxy(createProxy(proxyServer))
-                .proxyAuthenticator(createProxyAuthenticator(proxyServer))
-                .build();
-        iGclient.setHttpClient(httpClient);
+        iGclient.serialize(clientFile, cookieFile);
+        logger.info(String.format(LOGGED_IN_AND_SERIALIZED_MSG, login));
 
         return iGclient;
     }

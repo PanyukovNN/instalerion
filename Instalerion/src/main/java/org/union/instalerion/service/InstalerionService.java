@@ -114,16 +114,6 @@ public class InstalerionService {
 
             publisherKafkaSender.send(request);
         }
-
-        if (producingChannelService.isStoryPublishingTime(producingChannel)) {
-            PostDefiningStrategyType postDefiningStrategyType = PostDefiningStrategyType.MOST_RECENT_STORY;
-            PublishingStrategyType publishingStrategyType = PublishingStrategyType.INSTAGRAM_STORY;
-
-            PublishingRequest request = new PublishingRequest(producingChannel.getId(),
-                    publishingStrategyType, postDefiningStrategyType);
-
-            publisherKafkaSender.send(request);
-        }
     }
 
     /**
