@@ -7,13 +7,13 @@ import org.union.instalerion.InstalerionProperties;
 
 @RestController
 @RequestMapping("/properties")
-public class InstalerionController {
+public class PropertiesController {
 
     @GetMapping("/switch-night-publishing")
     public String switchNightPublication() {
         InstalerionProperties.publishAtNight = !InstalerionProperties.publishAtNight;
 
-        return String.format("Publishing at night is \"%s\"",
+        return String.format("Publishing at night switched to \"%s\" state",
                 InstalerionProperties.publishAtNight ? "ENABLED" : "DISABLED");
     }
 }

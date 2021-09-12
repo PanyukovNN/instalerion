@@ -22,7 +22,7 @@ public class RecentPostDefiningStrategy extends BasePostDefiningStrategy {
 
     @Override
     public Post definePost(String producingChannelId) {
-        Post post = postService.findMostRecentStory(producingChannelId)
+        Post post = postService.findMostRecentPost(producingChannelId)
                 .orElseThrow(() -> new RequestException(String.format(POST_FOR_PUBLICATION_NOT_FOUND_ERROR_MSG, producingChannelId)));
 
         checkPost(post);
