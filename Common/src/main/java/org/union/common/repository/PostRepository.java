@@ -56,7 +56,7 @@ public interface PostRepository extends MongoRepository<Post, String> {
     @Query("{ " +
             "'producingChannelId' : ?0, " +
             "'publishedTimeByType.?1' : null, " +
-            "'publishingErrorCount' : { '$lt' : ?1 }, " +
+            "'publishingErrorCount' : { '$lt' : ?2 }, " +
             " }")
     Page<Post> findMostRecentPost(String producingChannelId, PublicationType publicationType, int errorCountLimit, Pageable pageable);
 

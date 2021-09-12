@@ -13,8 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Setter
 @ToString
 @NoArgsConstructor
-@Document(collection = "post")
-public class MediaInfo extends Post {
+public class MediaInfo {
 
     /**
      * Instagram media identifier
