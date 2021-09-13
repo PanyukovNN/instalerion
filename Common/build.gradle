@@ -1,19 +1,6 @@
 
 dependencies {
-    implementation rootProject.ext.library.mongo
-    implementation rootProject.ext.library.springKafka
-    implementation rootProject.ext.library.springBootWeb
-    implementation rootProject.ext.library.springBootDataMongo
-    implementation rootProject.ext.library.springSecurity
-    implementation rootProject.ext.library.springAOP
-    implementation rootProject.ext.library.jasypt
-    implementation (rootProject.ext.library.instagram4j) {
-        exclude group: 'com.squareup.okhttp3', module: 'okhttp'
-    }
-    implementation rootProject.ext.library.okhttp
-
-    // Для использования FileUtils
-    implementation 'commons-io:commons-io:2.8.0'
+    implementation rootProject.ext.library.commonsIo
 
     implementation rootProject.ext.library.jImageHash
 }

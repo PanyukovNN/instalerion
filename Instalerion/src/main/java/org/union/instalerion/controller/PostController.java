@@ -1,10 +1,7 @@
 package org.union.instalerion.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.union.common.exception.NotFoundException;
 import org.union.common.model.post.Post;
 import org.union.common.service.PostService;
@@ -25,8 +22,8 @@ public class PostController {
         return postService.findAll();
     }
 
-    @GetMapping("/{id}")
-    public Post getById(@PathVariable String id) {
+    @GetMapping("/")
+    public Post getById(@RequestParam String id) {
         return postService.findById(id)
                 .orElseThrow(() -> new NotFoundException(POST_NOT_FOUND_ERROR_MSG));
     }

@@ -1,28 +1,37 @@
 package org.union.common.service;
 
 import com.github.instagram4j.instagram4j.IGClient;
+import com.github.instagram4j.instagram4j.actions.media.MediaAction;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
+import com.github.instagram4j.instagram4j.models.media.UploadParameters;
 import com.github.instagram4j.instagram4j.models.media.reel.item.ReelMetadataItem;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
+import com.github.instagram4j.instagram4j.requests.media.MediaConfigureTimelineRequest;
 import com.github.instagram4j.instagram4j.requests.media.MediaInfoRequest;
+import com.github.instagram4j.instagram4j.responses.IGResponse;
 import com.github.instagram4j.instagram4j.responses.media.MediaInfoResponse;
 import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
 import com.github.instagram4j.instagram4j.utils.SerializableCookieJar;
 import lombok.RequiredArgsConstructor;
-import okhttp3.*;
+import okhttp3.Authenticator;
+import okhttp3.Credentials;
+import okhttp3.OkHttpClient;
+import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.union.common.exception.ProxyException;
 import org.union.common.exception.RequestException;
-import org.union.common.model.ProxyServer;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
+import org.union.common.model.ProxyServer;
 
 import javax.annotation.PostConstruct;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.nio.file.Files;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -126,44 +135,60 @@ public class InstaService {
     /**
      * Uploads image post
      *
-     * @param client instagram client
+     * @param client    instagram client
      * @param imageFile file of image
-     * @param caption description
+     * @param caption   description
      * @return response
      */
-    public MediaResponse uploadPhotoPost(InstaClient client, File imageFile, String caption) throws ExecutionException, InterruptedException {
+    public MediaResponse uploadPhotoPost(InstaClient client, File imageFile, String caption) {
         return client
                 .getIGClient()
                 .actions()
                 .timeline()
                 .uploadPhoto(imageFile, caption)
-                .get();
+                .join();
     }
 
     /**
-     * Uploads video post
+     * Upload video post
      *
-     * @param client instagram client
+     * @param client    instagram client
      * @param videoFile file of video
      * @param coverFile file of cover
-     * @param caption description
+     * @param caption   description
      * @return response
      */
-    public MediaResponse uploadVideoPost(InstaClient client, File videoFile, File coverFile, String caption) throws ExecutionException, InterruptedException {
-        return client
-                .getIGClient()
+    public MediaResponse uploadVideoPost(InstaClient client, File videoFile, File coverFile, String caption) throws IOException {
+        byte[] videoData = Files.readAllBytes(videoFile.toPath());
+        byte[] coverData = Files.readAllBytes(coverFile.toPath());
+
+        String upload_id = String.valueOf(System.currentTimeMillis());
+        IGResponse igResponse = client.getIGClient()
                 .actions()
-                .timeline()
-                .uploadVideo(videoFile, coverFile, caption)
-                .get();
+                .upload()
+                .videoWithCover(videoData, coverData,
+                        UploadParameters.forTimelineVideo(upload_id, false))
+                .join();
+
+        if (igResponse.getStatusCode() == 200) {
+            try {
+                Thread.sleep(PUBLISHING_SLEEP_SECONDS * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return client.getIGClient().actions().upload().finish(upload_id)
+                .thenCompose(response -> MediaAction.configureMediaToTimeline(client.getIGClient(), upload_id, new MediaConfigureTimelineRequest.MediaConfigurePayload().caption(caption)))
+                .join();
     }
 
     /**
-     * Uploads image story
+     * Upload image story
      *
-     * @param client instagram client
+     * @param client    instagram client
      * @param imageFile file of image
-     * @param metadata story metadata
+     * @param metadata  story metadata
      * @return response
      */
     public MediaResponse uploadPhotoStory(InstaClient client, File imageFile, List<ReelMetadataItem> metadata) throws ExecutionException, InterruptedException {
@@ -176,12 +201,12 @@ public class InstaService {
     }
 
     /**
-     * Uploads video story
+     * Upload video story
      *
-     * @param client instagram client
+     * @param client    instagram client
      * @param videoFile file of video
      * @param coverFile file of cover
-     * @param metadata story metadata
+     * @param metadata  story metadata
      * @return response
      */
     public MediaResponse uploadVideoStory(InstaClient client, File videoFile, File coverFile, List<ReelMetadataItem> metadata) throws ExecutionException, InterruptedException {
@@ -194,9 +219,9 @@ public class InstaService {
     }
 
     /**
-     * Returns info about instagram media
+     * Return info about instagram media
      *
-     * @param client instagram client
+     * @param client  instagram client
      * @param mediaId id of media
      * @return media info response
      */
@@ -222,10 +247,10 @@ public class InstaService {
 
         // configure http client
         OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder()
-                .readTimeout(60, TimeUnit.SECONDS)
-                .writeTimeout(60, TimeUnit.SECONDS)
-                .connectTimeout(60, TimeUnit.SECONDS)
-                .callTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60_000, TimeUnit.SECONDS)
+                .writeTimeout(60_000, TimeUnit.SECONDS)
+                .connectTimeout(60_000, TimeUnit.SECONDS)
+                .callTimeout(60_000, TimeUnit.SECONDS)
                 .proxy(createProxy(proxyServer))
                 .proxyAuthenticator(createProxyAuthenticator(proxyServer))
                 .cookieJar(new SerializableCookieJar());
@@ -278,6 +303,7 @@ public class InstaService {
         while ((response = response.priorResponse()) != null) {
             result++;
         }
+
         return result;
     }
 }

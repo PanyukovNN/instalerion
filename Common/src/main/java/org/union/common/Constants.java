@@ -85,12 +85,11 @@ public class Constants {
     public static final double IMAGE_MATCHING_THRESHOLD = 2d;
     public static final int UNBLOCK_PRODUCING_CHANNEL_PERIOD_DAYS = 1;
     public static final LoadingVolume STANDARD_LOADING_VOLUME = new LoadingVolume(5, 15);
-    public static final int TRANSCODE_NOT_FINISHED_TRIES = 3;
     // Do not change text
-    public static final String TRANSCODE_NOT_FINISHED_YET_ERROR_MSG = "Transcode not finished yet.";
     public static final int IG_CLIENT_EXPIRING_HOURS = 24;
     public static final int POST_HASHTAG_NUMBER = 20;
     public static final int LAST_UNRATED_POSTS_SCAN_LIMIT = 25;
     public static final int HOURS_PASSED_FROM_TAKEN_AT_FOR_RATING_CALCULATION = 24;
+    public static final int PUBLISHING_SLEEP_SECONDS = 20;
 
 }

@@ -12,6 +12,7 @@ import org.union.common.model.post.PublicationType;
 import org.union.common.service.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,7 +51,7 @@ public class InstagramPostPublishingStrategy extends InstagramBasePublishingStra
     }
 
     @Override
-    protected MediaResponse uploadVideo(List<String> hashtags, File videoFile, File coverFile, InstaClient client) throws ExecutionException, InterruptedException {
+    protected MediaResponse uploadVideo(List<String> hashtags, File videoFile, File coverFile, InstaClient client) throws IOException {
         return instaService.uploadVideoPost(client, videoFile, coverFile, getCaption(hashtags));
 
     }
