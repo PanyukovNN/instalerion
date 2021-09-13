@@ -145,8 +145,10 @@ public class ProducingChannelController {
 
         // Release previous proxy
         ProxyServer prodChannelProxyServer = producingChannel.getProxyServer();
-        prodChannelProxyServer.setProducingChannelId(null);
-        proxyService.save(prodChannelProxyServer);
+        if (prodChannelProxyServer != null) {
+            prodChannelProxyServer.setProducingChannelId(null);
+            proxyService.save(prodChannelProxyServer);
+        }
 
         producingChannel.setProxyServer(proxyServer);
         producingChannelService.save(producingChannel);

@@ -294,6 +294,7 @@ public class InstaService {
             }
 
             String credential = Credentials.basic(proxyServer.getLogin(), proxyServer.getPassword());
+
             return response.request().newBuilder().header("Proxy-Authorization", credential).build();
         };
     }
