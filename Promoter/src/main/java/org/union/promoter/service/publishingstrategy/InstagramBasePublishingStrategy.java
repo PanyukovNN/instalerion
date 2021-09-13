@@ -59,7 +59,7 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
 
             logSuccessPublishing(post.getId(), producingChannelId);
         } catch (Exception e) {
-//            post.increasePublishingErrors();
+            post.increasePublishingErrors();
             post.setPublishingErrorMsg(e.getMessage());
             postService.save(post);
 

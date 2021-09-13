@@ -53,7 +53,6 @@ public class InstagramPostPublishingStrategy extends InstagramBasePublishingStra
     @Override
     protected MediaResponse uploadVideo(List<String> hashtags, File videoFile, File coverFile, InstaClient client) throws IOException {
         return instaService.uploadVideoPost(client, videoFile, coverFile, getCaption(hashtags));
-
     }
 
     @Override
