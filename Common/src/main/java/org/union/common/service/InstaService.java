@@ -11,6 +11,7 @@ import com.github.instagram4j.instagram4j.requests.media.MediaInfoRequest;
 import com.github.instagram4j.instagram4j.responses.IGResponse;
 import com.github.instagram4j.instagram4j.responses.media.MediaInfoResponse;
 import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
+import com.github.instagram4j.instagram4j.utils.IGUtils;
 import com.github.instagram4j.instagram4j.utils.SerializableCookieJar;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Authenticator;
@@ -162,23 +163,16 @@ public class InstaService {
         byte[] videoData = Files.readAllBytes(videoFile.toPath());
         byte[] coverData = Files.readAllBytes(coverFile.toPath());
 
+        //TODO test it
         String upload_id = String.valueOf(System.currentTimeMillis());
-        IGResponse igResponse = client.getIGClient()
-                .actions()
-                .upload()
+        return client.getIGClient().actions().upload()
                 .videoWithCover(videoData, coverData,
                         UploadParameters.forTimelineVideo(upload_id, false))
-                .join();
+                .thenCompose(response -> {
+                    sleepSeconds(PUBLISHING_SLEEP_SECONDS);
 
-        if (igResponse.getStatusCode() == 200) {
-            try {
-                Thread.sleep(PUBLISHING_SLEEP_SECONDS * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return client.getIGClient().actions().upload().finish(upload_id)
+                    return client.getIGClient().actions().upload().finish(upload_id);
+                })
                 .thenCompose(response -> MediaAction.configureMediaToTimeline(client.getIGClient(), upload_id, new MediaConfigureTimelineRequest.MediaConfigurePayload().caption(caption)))
                 .join();
     }
@@ -247,10 +241,10 @@ public class InstaService {
 
         // configure http client
         OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder()
-                .readTimeout(60_000, TimeUnit.SECONDS)
-                .writeTimeout(60_000, TimeUnit.SECONDS)
-                .connectTimeout(60_000, TimeUnit.SECONDS)
-                .callTimeout(60_000, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .connectTimeout(60, TimeUnit.SECONDS)
+                .callTimeout(60, TimeUnit.SECONDS)
                 .proxy(createProxy(proxyServer))
                 .proxyAuthenticator(createProxyAuthenticator(proxyServer))
                 .cookieJar(new SerializableCookieJar());
@@ -306,5 +300,13 @@ public class InstaService {
         }
 
         return result;
+    }
+
+    private void sleepSeconds(long seconds) {
+        try {
+            TimeUnit.SECONDS.sleep(seconds);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
