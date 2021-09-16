@@ -2,7 +2,6 @@ package org.union.common.model;
 
 import com.github.instagram4j.instagram4j.IGClient;
 import lombok.*;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
@@ -30,4 +29,9 @@ public class InstaClient {
      * Producing channel id
      */
     private String producingChannelId;
+
+    /**
+     * Proxy server of producing channel (necessary in some scenarios)
+     */
+    private ProxyServer proxyServer;
 }

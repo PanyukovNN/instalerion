@@ -69,7 +69,5 @@ public class InstagramUpdateRatingLoadingStrategy implements LoadingStrategy {
         }
 
         postService.saveAll(lastUnratedPost);
-
-
     }
 }

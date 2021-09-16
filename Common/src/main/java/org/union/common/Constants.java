@@ -48,6 +48,7 @@ public class Constants {
     public static final String POST_DEFINING_STRATEGY_NULL_ERROR_MSG = "В запросе отсутсвуте стратегия определения поста для публикации.";
     public static final String POSTS_LOADING_SUCCESS_MSG = "Загрузка постов прошла успешно.";
     public static final String NOT_FOUND_UNATTACHED_PROXY_SERVER_ERROR_MSG = "Not found unattached proxy server.";
+    public static final String PROXY_SERVER_IS_NULL = "Прокси сервер не может быть null.";
 
 
     /**
@@ -91,5 +92,6 @@ public class Constants {
     public static final int LAST_UNRATED_POSTS_SCAN_LIMIT = 25;
     public static final int HOURS_PASSED_FROM_TAKEN_AT_FOR_RATING_CALCULATION = 24;
     public static final int PUBLISHING_SLEEP_SECONDS = 20;
+    public static final String PROXY_SERVER_ADDRESS_FORMAT = "%s:%s";
 
 }

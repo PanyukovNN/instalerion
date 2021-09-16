@@ -8,6 +8,9 @@ import org.union.common.repository.ProxyServerRepository;
 import java.util.List;
 import java.util.Optional;
 
+import static org.union.common.Constants.PROXY_SERVER_ADDRESS_FORMAT;
+import static org.union.common.Constants.PROXY_SERVER_IS_NULL;
+
 /**
  * Service for working with proxy service
  */
@@ -37,12 +40,12 @@ public class ProxyService {
     }
 
     /**
-     * Find any unattached proxy server
+     * Find any alive unattached proxy server
      *
      * @return optional of proxy server
      */
     public Optional<ProxyServer> findAnyUnattached() {
-        return proxyRepository.findFirstByProducingChannelIdIsNull();
+        return proxyRepository.findFirstByProducingChannelIdIsNullAndAliveIsTrue();
     }
 
     /**
@@ -61,5 +64,19 @@ public class ProxyService {
      */
     public void removeById(String id) {
         proxyRepository.deleteById(id);
+    }
+
+    /**
+     * Format full proxy address from ProxyServer
+     *
+     * @param proxyServer proxy server entity
+     * @return full proxy address
+     */
+    public String getFullProxyAddress(ProxyServer proxyServer) {
+        if (proxyServer == null) {
+            throw new IllegalArgumentException(PROXY_SERVER_IS_NULL);
+        }
+
+        return String.format(PROXY_SERVER_ADDRESS_FORMAT, proxyServer.getIp(), proxyServer.getPort());
     }
 }

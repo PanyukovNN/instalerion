@@ -8,10 +8,8 @@ import com.github.instagram4j.instagram4j.models.media.reel.item.ReelMetadataIte
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import com.github.instagram4j.instagram4j.requests.media.MediaConfigureTimelineRequest;
 import com.github.instagram4j.instagram4j.requests.media.MediaInfoRequest;
-import com.github.instagram4j.instagram4j.responses.IGResponse;
 import com.github.instagram4j.instagram4j.responses.media.MediaInfoResponse;
 import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
-import com.github.instagram4j.instagram4j.utils.IGUtils;
 import com.github.instagram4j.instagram4j.utils.SerializableCookieJar;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Authenticator;
@@ -89,14 +87,20 @@ public class InstaService {
         try {
             InstaClient client = clientContext.get(producingChannel.getId());
 
-            if (producingChannel.getProxyServer() == null) {
-                ProxyServer proxyServer = proxyService.findAnyUnattached()
+            ProxyServer currentProxy = producingChannel.getProxyServer();
+            boolean isDeadProxy = currentProxy != null && !currentProxy.isAlive();
+            if (currentProxy == null || isDeadProxy) {
+                ProxyServer unattachedProxyServer = proxyService.findAnyUnattached()
                         .orElseThrow(() -> new ProxyException(NOT_FOUND_UNATTACHED_PROXY_SERVER_ERROR_MSG));
 
-                producingChannel.setProxyServer(proxyServer);
-                proxyServer.setProducingChannelId(producingChannel.getId());
-                proxyService.save(proxyServer);
+                producingChannel.setProxyServer(unattachedProxyServer);
+                unattachedProxyServer.setProducingChannelId(producingChannel.getId());
+                proxyService.save(unattachedProxyServer);
                 producingChannelService.save(producingChannel);
+
+                if (isDeadProxy) {
+                    proxyService.removeById(currentProxy.getId());
+                }
             }
 
             if (client == null
@@ -105,7 +109,11 @@ public class InstaService {
                     || isSessionExpired(client)) {
                 IGClient iGClient = login(producingChannel);
 
-                client = new InstaClient(iGClient, dateTimeHelper.getCurrentDateTime(), producingChannel.getId());
+                client = new InstaClient(
+                        iGClient,
+                        dateTimeHelper.getCurrentDateTime(),
+                        producingChannel.getId(),
+                        producingChannel.getProxyServer());
 
                 clientContext.put(producingChannel.getId(), client);
             }
@@ -220,10 +228,28 @@ public class InstaService {
      * @return media info response
      */
     public MediaInfoResponse requestMediaInfo(InstaClient client, long mediaId) throws ExecutionException, InterruptedException {
-        return client
-                .getIGClient()
-                .sendRequest(new MediaInfoRequest(String.valueOf(mediaId)))
-                .get();
+//        ConnectException: Failed to connect to /217.29.63.40:45915
+
+        try {
+            return client
+                    .getIGClient()
+                    .sendRequest(new MediaInfoRequest(String.valueOf(mediaId)))
+                    .get();
+        } catch (ExecutionException e) {
+            // If impossible to connect via proxy
+            String proxyAddress = proxyService.getFullProxyAddress(client.getProxyServer());
+
+            if (e.getMessage().contains("ConnectException")
+                    && e.getMessage().contains(proxyAddress)) {
+                client.getProxyServer().setAlive(false);
+                proxyService.save(client.getProxyServer());
+
+                //TODO сеттить новый proxy и повторять запрос
+                throw new ProxyException(String.format("Proxy %s is dead.", client.getProxyServer().getId()));
+            }
+
+            throw e;
+        }
     }
 
     private boolean isSessionExpired(InstaClient client) {

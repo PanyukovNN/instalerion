@@ -15,7 +15,7 @@ import java.util.Optional;
 @Repository
 public interface ProxyServerRepository extends MongoRepository<ProxyServer, String> {
 
-    Optional<ProxyServer> findFirstByProducingChannelIdIsNull();
+    Optional<ProxyServer> findFirstByProducingChannelIdIsNullAndAliveIsTrue();
 
     Optional<ProxyServer> findByIpAndPort(String ip, int port);
 }

@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.union.common.Constants.PROXY_SERVER_ADDRESS_FORMAT;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -61,7 +63,7 @@ public class ProducingChannelDto {
         }
 
         if (producingChannel.getProxyServer() != null) {
-            this.proxyServer = String.format("%s:%s",
+            this.proxyServer = String.format(PROXY_SERVER_ADDRESS_FORMAT,
                     producingChannel.getProxyServer().getIp(),
                     producingChannel.getProxyServer().getPort());
         }
