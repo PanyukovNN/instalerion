@@ -1,5 +1,6 @@
 package org.union.promoter.service.loadingstrategy;
 
+import com.github.instagram4j.instagram4j.models.media.VideoVersionsMeta;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineImageMedia;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineVideoMedia;
@@ -92,6 +93,7 @@ public class InstagramBaseLoadingStrategy implements LoadingStrategy {
                 .filter(TimelineVideoMedia.class::isInstance)
                 .map(TimelineVideoMedia.class::cast)
                 .filter(videoPost -> videoPost.getVideo_duration() <= 60)
+                .filter(this::appropriateAspectRatio)
                 .filter(videoPost -> videoPost.getMedia_type().equals(MediaType.VIDEO.getValue()))
                 .map(videoItem -> getVideoPost(producingChannel, videoItem))
                 .filter(videoPost -> imageMatcher.isUniqueImage(matcher, videoPost.getMediaInfo().getImageUrl(), videoPost.getCode()))
@@ -128,6 +130,12 @@ public class InstagramBaseLoadingStrategy implements LoadingStrategy {
         }
 
         consumingChannel.getPosts().addAll(postsToAdd);
+    }
+
+    private boolean appropriateAspectRatio(TimelineVideoMedia videoPost) {
+        VideoVersionsMeta videoVersionsMeta = videoPost.getVideo_versions().get(0);
+
+        return videoVersionsMeta.getWidth() / (double) videoVersionsMeta.getHeight() >= POST_ASPECT_RATIO_THRESHOLD;
     }
 
     /**
@@ -174,7 +182,7 @@ public class InstagramBaseLoadingStrategy implements LoadingStrategy {
         return imagePost;
     }
 
-    public void fillPostInfo(Post post, ProducingChannel producingChannel, TimelineMedia media, int viewCount) {
+    private void fillPostInfo(Post post, ProducingChannel producingChannel, TimelineMedia media, int viewCount) {
         post.setCode(media.getCode());
         post.setDescription(media.getCaption() != null ? media.getCaption().getText() : EMPTY);
         post.setTakenAt(instaService.getTimelineMediaDateTime(media));

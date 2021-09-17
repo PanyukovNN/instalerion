@@ -48,7 +48,7 @@ public class Constants {
     public static final String POST_DEFINING_STRATEGY_NULL_ERROR_MSG = "В запросе отсутсвуте стратегия определения поста для публикации.";
     public static final String POSTS_LOADING_SUCCESS_MSG = "Загрузка постов прошла успешно.";
     public static final String NOT_FOUND_UNATTACHED_PROXY_SERVER_ERROR_MSG = "Not found unattached proxy server.";
-    public static final String PROXY_SERVER_IS_NULL = "Прокси сервер не может быть null.";
+    public static final String PROXY_SERVER_IS_NULL_ERROR_MSG = "Прокси сервер не может быть null.";
 
 
     /**
@@ -76,6 +76,7 @@ public class Constants {
     public static final String UNABLE_TO_DEFINE_MEDIA_TYPE_MSG = "Не удалось определить тип медиа для поста.";
     public static final String LOGIN_SESSION_DESERIALIZED_MSG = "Данные о сессии канала публикации \"%s\" восстановлены из файла.";
     public static final String LOGGED_IN_AND_SERIALIZED_MSG = "Осуществлён вход в канал публикации \"%s\", данные сохранены в файл.";
+    public static final String NEW_PROXY_ATTACHED_MSG = "Last proxy of producing channel is dead. New proxy attached.";
 
 
     /**
@@ -93,5 +94,6 @@ public class Constants {
     public static final int HOURS_PASSED_FROM_TAKEN_AT_FOR_RATING_CALCULATION = 24;
     public static final int PUBLISHING_SLEEP_SECONDS = 20;
     public static final String PROXY_SERVER_ADDRESS_FORMAT = "%s:%s";
+    public static final double POST_ASPECT_RATIO_THRESHOLD = 0.8;
 
 }

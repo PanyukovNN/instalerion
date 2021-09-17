@@ -8,7 +8,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.union.common.Constants;
 import org.union.common.model.ProducingChannel;
-import org.union.common.model.ProxyServer;
 import org.union.common.model.post.Post;
 import org.union.common.model.post.PostRating;
 import org.union.common.model.post.PublicationType;

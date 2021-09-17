@@ -31,7 +31,6 @@ public class InstalerionApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-//        2664066531644238551
         ProducingChannel producingChannel = producingChannelService.findById("6134bcec27411d5faf124a1c").orElse(null);
 
         InstaClient client = instaService.getClient(producingChannel);
@@ -40,5 +39,6 @@ public class InstalerionApplication implements CommandLineRunner {
 
         System.out.println(infoResponse);
 
+        // TODO написать функцию публикации по mediaId поста, тем самым будет проще тестировать и можно будет использовать ее в будущем
     }
 }

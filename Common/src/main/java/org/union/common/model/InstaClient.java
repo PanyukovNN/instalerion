@@ -33,5 +33,5 @@ public class InstaClient {
     /**
      * Proxy server of producing channel (necessary in some scenarios)
      */
-    private ProxyServer proxyServer;
+    private String proxyAddress;
 }

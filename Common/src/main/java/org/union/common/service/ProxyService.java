@@ -2,14 +2,15 @@ package org.union.common.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.union.common.exception.ProxyException;
+import org.union.common.model.ProducingChannel;
 import org.union.common.model.ProxyServer;
 import org.union.common.repository.ProxyServerRepository;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.union.common.Constants.PROXY_SERVER_ADDRESS_FORMAT;
-import static org.union.common.Constants.PROXY_SERVER_IS_NULL;
+import static org.union.common.Constants.*;
 
 /**
  * Service for working with proxy service
@@ -19,6 +20,7 @@ import static org.union.common.Constants.PROXY_SERVER_IS_NULL;
 public class ProxyService {
 
     private final ProxyServerRepository proxyRepository;
+    private final ProducingChannelService producingChannelService;
 
     /**
      * Save a proxy server
@@ -40,12 +42,12 @@ public class ProxyService {
     }
 
     /**
-     * Find any alive unattached proxy server
+     * Find any unattached proxy server
      *
      * @return optional of proxy server
      */
     public Optional<ProxyServer> findAnyUnattached() {
-        return proxyRepository.findFirstByProducingChannelIdIsNullAndAliveIsTrue();
+        return proxyRepository.findFirstByProducingChannelIdIsNull();
     }
 
     /**
@@ -63,6 +65,10 @@ public class ProxyService {
      * @param id id
      */
     public void removeById(String id) {
+        if (id == null) {
+            return;
+        }
+
         proxyRepository.deleteById(id);
     }
 
@@ -74,9 +80,27 @@ public class ProxyService {
      */
     public String getFullProxyAddress(ProxyServer proxyServer) {
         if (proxyServer == null) {
-            throw new IllegalArgumentException(PROXY_SERVER_IS_NULL);
+            throw new IllegalArgumentException(PROXY_SERVER_IS_NULL_ERROR_MSG);
         }
 
         return String.format(PROXY_SERVER_ADDRESS_FORMAT, proxyServer.getIp(), proxyServer.getPort());
+    }
+
+    /**
+     * Attach new proxy server to producing channel
+     *
+     * @param producingChannel producing channel entity
+     */
+    public void attachNewProxy(ProducingChannel producingChannel) {
+        ProxyServer unattachedProxyServer = this.findAnyUnattached()
+                .orElseThrow(() -> new ProxyException(NOT_FOUND_UNATTACHED_PROXY_SERVER_ERROR_MSG));
+
+        ProxyServer lastProxyServer = producingChannel.getProxyServer();
+        this.removeById(lastProxyServer.getId());
+
+        producingChannel.setProxyServer(unattachedProxyServer);
+        unattachedProxyServer.setProducingChannelId(producingChannel.getId());
+        this.save(unattachedProxyServer);
+        producingChannelService.save(producingChannel);
     }
 }

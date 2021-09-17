@@ -19,6 +19,7 @@ import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.union.common.exception.NotFoundException;
 import org.union.common.exception.ProxyException;
 import org.union.common.exception.RequestException;
 import org.union.common.model.InstaClient;
@@ -87,20 +88,8 @@ public class InstaService {
         try {
             InstaClient client = clientContext.get(producingChannel.getId());
 
-            ProxyServer currentProxy = producingChannel.getProxyServer();
-            boolean isDeadProxy = currentProxy != null && !currentProxy.isAlive();
-            if (currentProxy == null || isDeadProxy) {
-                ProxyServer unattachedProxyServer = proxyService.findAnyUnattached()
-                        .orElseThrow(() -> new ProxyException(NOT_FOUND_UNATTACHED_PROXY_SERVER_ERROR_MSG));
-
-                producingChannel.setProxyServer(unattachedProxyServer);
-                unattachedProxyServer.setProducingChannelId(producingChannel.getId());
-                proxyService.save(unattachedProxyServer);
-                producingChannelService.save(producingChannel);
-
-                if (isDeadProxy) {
-                    proxyService.removeById(currentProxy.getId());
-                }
+            if (producingChannel.getProxyServer() == null) {
+                proxyService.attachNewProxy(producingChannel);
             }
 
             if (client == null
@@ -113,7 +102,7 @@ public class InstaService {
                         iGClient,
                         dateTimeHelper.getCurrentDateTime(),
                         producingChannel.getId(),
-                        producingChannel.getProxyServer());
+                        proxyService.getFullProxyAddress(producingChannel.getProxyServer()));
 
                 clientContext.put(producingChannel.getId(), client);
             }
@@ -228,8 +217,6 @@ public class InstaService {
      * @return media info response
      */
     public MediaInfoResponse requestMediaInfo(InstaClient client, long mediaId) throws ExecutionException, InterruptedException {
-//        ConnectException: Failed to connect to /217.29.63.40:45915
-
         try {
             return client
                     .getIGClient()
@@ -237,15 +224,15 @@ public class InstaService {
                     .get();
         } catch (ExecutionException e) {
             // If impossible to connect via proxy
-            String proxyAddress = proxyService.getFullProxyAddress(client.getProxyServer());
+            String proxyAddress = client.getProxyAddress();
 
             if (e.getMessage().contains("ConnectException")
                     && e.getMessage().contains(proxyAddress)) {
-                client.getProxyServer().setAlive(false);
-                proxyService.save(client.getProxyServer());
+                ProducingChannel producingChannel = producingChannelService.findById(client.getProducingChannelId())
+                        .orElseThrow(() -> new NotFoundException(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG));
+                proxyService.attachNewProxy(producingChannel);
 
-                //TODO сеттить новый proxy и повторять запрос
-                throw new ProxyException(String.format("Proxy %s is dead.", client.getProxyServer().getId()));
+                throw new ProxyException(NEW_PROXY_ATTACHED_MSG);
             }
 
             throw e;

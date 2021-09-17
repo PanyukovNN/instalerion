@@ -46,11 +46,6 @@ public class ProxyServer {
     private String producingChannelId;
 
     /**
-     * Does proxy alive
-     */
-    private boolean alive = true;
-
-    /**
      * ctor
      *
      * @param ip ip
