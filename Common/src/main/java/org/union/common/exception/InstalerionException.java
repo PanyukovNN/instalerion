@@ -1,11 +1,13 @@
 package org.union.common.exception;
 
+import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Base application exception
  */
+@NoArgsConstructor
 public abstract class InstalerionException extends RuntimeException {
 
     private static final Logger LOG = LoggerFactory.getLogger(InstalerionException.class);

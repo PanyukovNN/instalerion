@@ -31,13 +31,13 @@ public class InstalerionApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        ProducingChannel producingChannel = producingChannelService.findById("6134bcec27411d5faf124a1c").orElse(null);
+//        ProducingChannel producingChannel = producingChannelService.findById("6134bcec27411d5faf124a1c").orElse(null);
 
-        InstaClient client = instaService.getClient(producingChannel);
+//        InstaClient client = instaService.getClient(producingChannel);
 
-        MediaInfoResponse infoResponse = instaService.requestMediaInfo(client, 2663773837658154216L);
-
-        System.out.println(infoResponse);
+//        MediaInfoResponse infoResponse = instaService.requestMediaInfo(client, 2663773837658154216L);
+//
+//        System.out.println(infoResponse);
 
         // TODO написать функцию публикации по mediaId поста, тем самым будет проще тестировать и можно будет использовать ее в будущем
     }

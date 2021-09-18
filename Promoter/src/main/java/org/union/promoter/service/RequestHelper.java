@@ -1,6 +1,7 @@
 package org.union.promoter.service;
 
 import org.union.common.exception.RequestException;
+import org.union.common.exception.TooOftenRequestException;
 import org.union.common.model.request.LoadingRequest;
 import org.union.common.model.request.PublishingRequest;
 import org.union.common.service.DateTimeHelper;
@@ -31,16 +32,18 @@ public class RequestHelper {
     /**
      * Checks too often requests
      */
-    public boolean isOftenRequests(String topicName) {
+    public void isOftenRequests(String topicName) {
         LocalDateTime lastRequestDateTime = topicRequestContext.get(topicName);
 
         if (lastRequestDateTime == null) {
-            return false;
+            throw new TooOftenRequestException();
         }
 
         int minutesDiff = dateTimeHelper.minuteFromNow(lastRequestDateTime);
 
-        return minRequestPeriod > minutesDiff;
+        if (minRequestPeriod > minutesDiff) {
+            throw new TooOftenRequestException();
+        }
     }
 
     /**

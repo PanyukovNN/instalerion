@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import org.union.common.exception.TooOftenRequestException;
 import org.union.common.model.request.LoadingRequest;
 import org.union.common.service.kafka.KafkaHelper;
 import org.union.promoter.PromoterProperties;
@@ -39,11 +40,7 @@ public class LoaderKafkaListener {
         }
 
         try {
-            if (requestHelper.isOftenRequests(topicName)) {
-                logger.info(String.format(TOO_OFTEN_REQUESTS_ERROR_MSG, topicName));
-
-                return;
-            }
+            requestHelper.isOftenRequests(topicName);
 
             LoadingRequest request = kafkaHelper.deserialize(rawRequest, LoadingRequest.class);
             requestHelper.validateLoaderRequest(request);
@@ -53,6 +50,8 @@ public class LoaderKafkaListener {
             loaderRequestProcessor.processLoadingRequest(request);
 
             requestHelper.requestFinished(topicName);
+        } catch (TooOftenRequestException e) {
+            logger.info(String.format(TOO_OFTEN_REQUESTS_ERROR_MSG, topicName));
         } catch (Exception e) {
             logger.error(String.format(ERROR_WHILE_LOADING, rawRequest), e);
         }

@@ -1,11 +1,17 @@
 package org.union.common.exception;
 
+import lombok.NoArgsConstructor;
+
 /**
  * Exception while request processing
  */
 public class RequestException extends InstalerionException {
 
     private static final String DEFAULT_MESSAGE = "Ошибка при обработке запроса";
+
+    public RequestException() {
+
+    }
 
     public RequestException(String message) {
         super(message);
