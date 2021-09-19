@@ -29,8 +29,7 @@ public class ProxyService {
      */
     public ProxyServer save(ProxyServer proxyServer) {
         if (proxyServer == null) {
-            //TODO throw exception
-            return null;
+            throw new ProxyException(NULL_FOR_SAVE_ERROR_MSG);
         }
 
         if (proxyServer.getId() == null) {

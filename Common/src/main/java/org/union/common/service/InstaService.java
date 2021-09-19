@@ -2,12 +2,15 @@ package org.union.common.service;
 
 import com.github.instagram4j.instagram4j.IGClient;
 import com.github.instagram4j.instagram4j.actions.media.MediaAction;
+import com.github.instagram4j.instagram4j.actions.users.UserAction;
 import com.github.instagram4j.instagram4j.exceptions.IGLoginException;
 import com.github.instagram4j.instagram4j.models.media.UploadParameters;
 import com.github.instagram4j.instagram4j.models.media.reel.item.ReelMetadataItem;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
+import com.github.instagram4j.instagram4j.requests.feed.FeedUserRequest;
 import com.github.instagram4j.instagram4j.requests.media.MediaConfigureTimelineRequest;
 import com.github.instagram4j.instagram4j.requests.media.MediaInfoRequest;
+import com.github.instagram4j.instagram4j.responses.feed.FeedUserResponse;
 import com.github.instagram4j.instagram4j.responses.media.MediaInfoResponse;
 import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
 import com.github.instagram4j.instagram4j.utils.SerializableCookieJar;
@@ -160,7 +163,6 @@ public class InstaService {
         byte[] videoData = Files.readAllBytes(videoFile.toPath());
         byte[] coverData = Files.readAllBytes(coverFile.toPath());
 
-        //TODO test it
         String upload_id = String.valueOf(System.currentTimeMillis());
         return client.getIGClient().actions().upload()
                 .videoWithCover(videoData, coverData,
@@ -237,6 +239,39 @@ public class InstaService {
 
             throw e;
         }
+    }
+
+    /**
+     * Return page of user feed
+     *
+     * @param client istagram client
+     * @param pk id of user
+     * @param maxId id of last loaded post (for loading next page)
+     * @return feed user response
+     * @throws ExecutionException exception
+     * @throws InterruptedException exception
+     */
+    public FeedUserResponse getFeedUserResponse(InstaClient client, long pk, String maxId) throws ExecutionException, InterruptedException {
+        return client.getIGClient()
+                .sendRequest(new FeedUserRequest(pk, maxId))
+                .get();
+    }
+
+    /**
+     * Return user action by channel name
+     *
+     * @param client instagram client
+     * @param channelName name of channel
+     * @return user action
+     * @throws ExecutionException exception
+     * @throws InterruptedException exception
+     */
+    public UserAction getUserAction(InstaClient client, String channelName) throws ExecutionException, InterruptedException {
+        return client.getIGClient()
+                .actions()
+                .users()
+                .findByUsername(channelName)
+                .get();
     }
 
     private boolean isSessionExpired(InstaClient client) {

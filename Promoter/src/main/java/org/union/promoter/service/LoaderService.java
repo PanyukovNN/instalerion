@@ -54,12 +54,7 @@ public class LoaderService {
                                                          LoadingVolume loadingVolume) throws InterruptedException, ExecutionException {
         String consumeChannelName = consumingChannel.getName();
 
-        //TODO create inner method
-        UserAction userAction = client.getIGClient()
-                .actions()
-                .users()
-                .findByUsername(consumeChannelName)
-                .get();
+        UserAction userAction = instaService.getUserAction(client, consumeChannelName);
 
         List<TimelineMedia> timelineItems = new ArrayList<>();
 
@@ -71,10 +66,8 @@ public class LoaderService {
         // while has posts to load or loading is allowed
         while(leftToLoadPosts > 0 && continueLoading) {
             // Loads first 12 posts
-            //TODO create inner method
-            FeedUserResponse feedUserResponse = client.getIGClient()
-                    .sendRequest(new FeedUserRequest(userAction.getUser().getPk(), maxId))
-                    .get();
+            FeedUserResponse feedUserResponse = instaService
+                    .getFeedUserResponse(client, userAction.getUser().getPk(), maxId);
 //
 //            FeedUserStoryResponse userStoryResponse = client.getIGClient()
 //                    .sendRequest(new FeedUserStoryRequest(userAction.getUser().getPk()))

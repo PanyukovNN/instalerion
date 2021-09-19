@@ -39,6 +39,6 @@ public class InstalerionApplication implements CommandLineRunner {
 //
 //        System.out.println(infoResponse);
 
-        // TODO написать функцию публикации по mediaId поста, тем самым будет проще тестировать и можно будет использовать ее в будущем
+        // TODO написать функцию публикации по mediaId и по code поста, тем самым будет проще тестировать и можно будет использовать ее в будущем
     }
 }
