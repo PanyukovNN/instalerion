@@ -12,7 +12,7 @@ import org.union.common.service.publishingstrategy.PublishingStrategyType;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class PublishingRequest extends KafkaRequest {
+public class PublishingRequest extends KafkaRequest implements ProducingChannelRequest {
 
     private String producingChannelId;
     private PublishingStrategyType publishingStrategyType;

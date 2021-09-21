@@ -1,13 +1,8 @@
 package org.union.promoter.service;
 
 import com.github.instagram4j.instagram4j.actions.users.UserAction;
-import com.github.instagram4j.instagram4j.models.feed.Reel;
-import com.github.instagram4j.instagram4j.models.media.reel.item.StoryHashtagsItem;
 import com.github.instagram4j.instagram4j.models.media.timeline.TimelineMedia;
-import com.github.instagram4j.instagram4j.requests.feed.FeedUserRequest;
-import com.github.instagram4j.instagram4j.requests.feed.FeedUserStoryRequest;
 import com.github.instagram4j.instagram4j.responses.feed.FeedUserResponse;
-import com.github.instagram4j.instagram4j.responses.feed.FeedUserStoryResponse;
 import io.micrometer.core.instrument.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

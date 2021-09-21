@@ -16,7 +16,7 @@ import static org.union.common.Constants.STANDARD_LOADING_VOLUME;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoadingRequest extends KafkaRequest implements Serializable {
+public class LoadingRequest extends KafkaRequest implements ProducingChannelRequest {
 
     private String producingChannelId;
     private LoadingStrategyType strategyType;

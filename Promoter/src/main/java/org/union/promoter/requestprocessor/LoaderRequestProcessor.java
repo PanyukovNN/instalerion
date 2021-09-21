@@ -1,16 +1,12 @@
 package org.union.promoter.requestprocessor;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.union.common.model.request.LoadingRequest;
-import org.union.common.service.UseContext;
+import org.union.promoter.requestprocessor.useaspect.ProducingChannelUse;
 import org.union.promoter.service.loadingstrategy.LoadingStrategy;
 import org.union.promoter.service.StrategyResolver;
-
-import static org.union.common.Constants.PRODUCING_CHANNEL_IS_BUSY_MSG;
 
 /**
  * Request processor for posts loading
@@ -19,7 +15,6 @@ import static org.union.common.Constants.PRODUCING_CHANNEL_IS_BUSY_MSG;
 @RequiredArgsConstructor
 public class LoaderRequestProcessor {
 
-    private final Logger logger = LoggerFactory.getLogger(LoaderRequestProcessor.class);
     private final StrategyResolver strategyResolver;
 
     /**
@@ -29,19 +24,10 @@ public class LoaderRequestProcessor {
      * @throws Exception exception
      */
     @Transactional
+    @ProducingChannelUse
     public void processLoadingRequest(LoadingRequest request) throws Exception {
-        try {
-            if (UseContext.checkInUseAndSet(request.getProducingChannelId())) {
-                logger.info(String.format(PRODUCING_CHANNEL_IS_BUSY_MSG, request.getProducingChannelId()));
+        LoadingStrategy strategy = strategyResolver.getLoadingStrategy(request.getStrategyType());
 
-                return;
-            }
-
-            LoadingStrategy strategy = strategyResolver.getLoadingStrategy(request.getStrategyType());
-
-            strategy.load(request);
-        } finally {
-            UseContext.release(request.getProducingChannelId());
-        }
+        strategy.load(request);
     }
 }

@@ -36,7 +36,7 @@ public class RequestHelper {
         LocalDateTime lastRequestDateTime = topicRequestContext.get(topicName);
 
         if (lastRequestDateTime == null) {
-            throw new TooOftenRequestException();
+            return;
         }
 
         int minutesDiff = dateTimeHelper.minuteFromNow(lastRequestDateTime);

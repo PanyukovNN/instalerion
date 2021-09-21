@@ -133,6 +133,7 @@ public class InstaService {
                 .toLocalDateTime();
     }
 
+    //TODO вынести в instaClient класс
     /**
      * Uploads image post
      *
@@ -350,6 +351,7 @@ public class InstaService {
         return result;
     }
 
+    //TODO move to util class
     private void sleepSeconds(long seconds) {
         try {
             TimeUnit.SECONDS.sleep(seconds);

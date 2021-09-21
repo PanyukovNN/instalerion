@@ -32,9 +32,9 @@ public class InstalerionApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 //        ProducingChannel producingChannel = producingChannelService.findById("6134bcec27411d5faf124a1c").orElse(null);
-
+//
 //        InstaClient client = instaService.getClient(producingChannel);
-
+//
 //        MediaInfoResponse infoResponse = instaService.requestMediaInfo(client, 2663773837658154216L);
 //
 //        System.out.println(infoResponse);

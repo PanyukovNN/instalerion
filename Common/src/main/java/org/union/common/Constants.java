@@ -57,7 +57,7 @@ public class Constants {
      */
     public static final String PUBLISHING_REQUEST_RECEIVED_MSG = "Получен запрос на публикацию %s.";
     public static final String LOADING_REQUEST_RECEIVED_MSG = "Получен запрос на загрузку %s.";
-    public static final String WORKING_ON_PAUSE_IN_NIGHT_MSG = "В период с 23:00 до 09:00 публикация не осуществляется.";
+    public static final String WORKING_ON_PAUSE_IN_NIGHT_MSG = "В период с 23:00 до 08:00 публикация не осуществляется.";
     public static final String LOADER_REQUEST_SUCCESSFULLY_SENT = "Запрос на загрузку постов успешно отправлен: %s";
     public static final String PUBLISHER_REQUEST_SUCCESSFULLY_SENT = "Запрос на публикацию поста успешно отправлен: %s";
     public static final String SAVED_IMAGES_FROM_CHANNEL_MSG = "Сохранено %d фото с канала %s";
