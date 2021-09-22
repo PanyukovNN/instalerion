@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.union.common.model.request.PublishingRequest;
 import org.union.common.service.kafka.KafkaHelper;
 import org.union.promoter.PromoterProperties;
-import org.union.promoter.kafka.requestaspect.ListenerWrapper;
+import org.union.promoter.kafka.requestaspect.ListenerChecker;
 import org.union.promoter.requestprocessor.PublisherRequestProcessor;
 import org.union.promoter.service.RequestHelper;
 
@@ -33,7 +33,7 @@ public class PublisherKafkaListener implements Listener {
     private final RequestHelper requestHelper;
     private final PublisherRequestProcessor publisherRequestProcessor;
 
-    @ListenerWrapper
+    @ListenerChecker
     @KafkaListener(topics = "${kafka.publisher.topic}", groupId = "${kafka.group}")
     public void listenPublisher(String rawRequest) throws Exception {
         if (!PromoterProperties.publishingEnabled) {

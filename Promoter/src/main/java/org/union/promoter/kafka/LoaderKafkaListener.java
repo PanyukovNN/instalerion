@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.union.common.model.request.LoadingRequest;
 import org.union.common.service.kafka.KafkaHelper;
 import org.union.promoter.PromoterProperties;
-import org.union.promoter.kafka.requestaspect.ListenerWrapper;
+import org.union.promoter.kafka.requestaspect.ListenerChecker;
 import org.union.promoter.requestprocessor.LoaderRequestProcessor;
 import org.union.promoter.service.RequestHelper;
 
@@ -33,7 +33,7 @@ public class LoaderKafkaListener implements Listener {
     private final RequestHelper requestHelper;
     private final LoaderRequestProcessor loaderRequestProcessor;
 
-    @ListenerWrapper
+    @ListenerChecker
     @KafkaListener(topics = "${kafka.loader.topic}", groupId = "${kafka.group}")
     public void listenLoader(String rawRequest) throws Exception {
         if (!PromoterProperties.loadingEnabled) {

@@ -10,3 +10,4 @@ build/
 /Dockerfile
 /DockerfilePromoter
 /cloud/
+/channel_sessions/

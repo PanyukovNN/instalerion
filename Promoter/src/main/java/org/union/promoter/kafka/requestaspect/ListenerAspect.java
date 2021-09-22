@@ -27,7 +27,7 @@ public class ListenerAspect {
 
     private final RequestHelper requestHelper;
 
-    @Around("@annotation(ListenerWrapper)")
+    @Around("@annotation(org.union.promoter.kafka.requestaspect.ListenerChecker)")
     public Object logKafkaListener(ProceedingJoinPoint joinPoint) throws Throwable {
         String rawRequest = (String) joinPoint.getArgs()[0];
         Listener listener = (Listener) joinPoint.getTarget();
