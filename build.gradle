@@ -49,7 +49,14 @@ allprojects {
         }
         implementation library.okhttp
 
-        testCompileOnly rootProject.ext.libraryTest.junit
+        testImplementation rootProject.ext.libraryTest.junit5api
+        testImplementation rootProject.ext.libraryTest.junit5engine
+        testImplementation rootProject.ext.libraryTest.mockito
+        testImplementation rootProject.ext.libraryTest.springTest
+    }
+
+    test {
+        useJUnitPlatform()
     }
 }
 
