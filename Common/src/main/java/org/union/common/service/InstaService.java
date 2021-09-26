@@ -169,7 +169,7 @@ public class InstaService {
                 .videoWithCover(videoData, coverData,
                         UploadParameters.forTimelineVideo(upload_id, false))
                 .thenCompose(response -> {
-                    sleepSeconds(PUBLISHING_SLEEP_SECONDS);
+                    Util.sleepSeconds(PUBLISHING_SLEEP_SECONDS);
 
                     return client.getIGClient().actions().upload().finish(upload_id);
                 })
@@ -349,14 +349,5 @@ public class InstaService {
         }
 
         return result;
-    }
-
-    //TODO move to util class
-    private void sleepSeconds(long seconds) {
-        try {
-            TimeUnit.SECONDS.sleep(seconds);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 }
