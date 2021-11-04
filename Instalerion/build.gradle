@@ -4,6 +4,8 @@ dependencies {
     implementation rootProject.ext.library.kafkaClients
 
     implementation project(':Common')
+
+    testImplementation rootProject.ext.library.commonsIo
 }
 
 bootJar {

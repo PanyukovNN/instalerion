@@ -9,10 +9,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.union.common.model.Customer;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
+import org.union.common.repository.CustomerRepository;
+import org.union.common.service.CustomerService;
 import org.union.common.service.InstaService;
 import org.union.common.service.ProducingChannelService;
+
+import java.util.Optional;
 
 @EnableScheduling
 @EnableMongoRepositories(basePackages = "org.union.common.repository")
@@ -24,6 +29,9 @@ public class InstalerionApplication implements CommandLineRunner {
 
     @Autowired
     ProducingChannelService producingChannelService;
+
+    @Autowired
+    CustomerRepository customerRepository;
 
     public static void main(String[] args) {
         SpringApplication.run(InstalerionApplication.class);
@@ -40,5 +48,16 @@ public class InstalerionApplication implements CommandLineRunner {
 //        System.out.println(infoResponse);
 
         // TODO написать функцию публикации по mediaId и по code поста, тем самым будет проще тестировать и можно будет использовать ее в будущем
+
+
+
+        Customer customer = new Customer();
+        customer.setUsername("user");
+        customer.setPassword("pass");
+        customerRepository.save(customer);
+
+        Customer dbCustomer = customerRepository.findById("6159fb02c5bec92ed057d045").get();
+        dbCustomer.setPassword("lalallala");
+        customerRepository.save(dbCustomer);
     }
 }

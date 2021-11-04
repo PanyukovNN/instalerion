@@ -49,14 +49,17 @@ allprojects {
         }
         implementation library.okhttp
 
+        testImplementation rootProject.ext.libraryTest.junit4
         testImplementation rootProject.ext.libraryTest.junit5api
         testImplementation rootProject.ext.libraryTest.junit5engine
         testImplementation rootProject.ext.libraryTest.mockito
-        testImplementation rootProject.ext.libraryTest.springTest
+        testImplementation rootProject.ext.libraryTest.powerMockito
+        testImplementation rootProject.ext.libraryTest.springBootTest
     }
 
     test {
         useJUnitPlatform()
+        useJUnit()
     }
 }
 

@@ -17,8 +17,8 @@ import java.util.List;
 public class CloudService {
 
     private static final String CLOUD_PATH = "cloud/";
-    public static final String VIDEO_PREFIX = "video_";
-    public static final String IMAGE_PREFIX = "image_";
+    private static final String VIDEO_PREFIX = "video_";
+    private static final String IMAGE_PREFIX = "image_";
 
     /**
      * Save a file by url to the cloud
