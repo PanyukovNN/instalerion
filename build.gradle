@@ -54,6 +54,7 @@ allprojects {
         testImplementation rootProject.ext.libraryTest.junit5engine
         testImplementation rootProject.ext.libraryTest.mockito
         testImplementation rootProject.ext.libraryTest.powerMockito
+        testImplementation rootProject.ext.libraryTest.powerMockitoJunit
         testImplementation rootProject.ext.libraryTest.springBootTest
     }
 

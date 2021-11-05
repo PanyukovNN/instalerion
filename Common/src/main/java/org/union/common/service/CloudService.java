@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
+import static org.union.common.Constants.POST_MEDIA_INFO_IS_NULL_ERROR_MSG;
+
 /**
  * Service for working with files in the cloud
  */
@@ -21,17 +23,6 @@ public class CloudService {
     private static final String IMAGE_PREFIX = "image_";
 
     /**
-     * Save a file by url to the cloud
-     *
-     * @param url url of file
-     * @param filename name of file
-     * @throws IOException exception
-     */
-    public void saveByUrl(String url, String filename) throws IOException {
-        FileUtils.copyURLToFile(new URL(url), new File(CLOUD_PATH + filename));
-    }
-
-    /**
      * Save posts media files
      *
      * @param posts list of posts
@@ -40,7 +31,7 @@ public class CloudService {
     public void savePostsMedia(List<Post> posts) throws IOException {
         for (Post post : posts) {
             if (post.getMediaInfo() == null) {
-                throw new CloudException("У поста нет информации о медиа.");
+                throw new CloudException(POST_MEDIA_INFO_IS_NULL_ERROR_MSG);
             }
 
             if (post.getMediaInfo().getVideoUrl() != null) {
@@ -70,5 +61,16 @@ public class CloudService {
      */
     public File getImageFileByCode(String code) {
         return new File(CLOUD_PATH + IMAGE_PREFIX + code);
+    }
+
+    /**
+     * Save a file by url to the cloud
+     *
+     * @param url url of file
+     * @param filename name of file
+     * @throws IOException exception
+     */
+    private void saveByUrl(String url, String filename) throws IOException {
+        FileUtils.copyURLToFile(new URL(url), new File(CLOUD_PATH + filename));
     }
 }

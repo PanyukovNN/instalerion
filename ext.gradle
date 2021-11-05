@@ -27,6 +27,7 @@ ext.library = [
 ext.libraryTest = [
         'mockito' : 'org.mockito:mockito-all:1.10.19',
         'powerMockito' : 'org.powermock:powermock-api-mockito:1.7.4',
+        'powerMockitoJunit' : 'org.powermock:powermock-module-junit4:1.7.4',
         'junit4' : 'junit:junit:4.12',
         'junit5api' : 'org.junit.jupiter:junit-jupiter-api:5.3.1',
         'junit5engine' : 'org.junit.jupiter:junit-jupiter-engine:5.3.1',

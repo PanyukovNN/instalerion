@@ -50,6 +50,7 @@ public class Constants {
     public static final String NOT_FOUND_UNATTACHED_PROXY_SERVER_ERROR_MSG = "Not found unattached proxy server.";
     public static final String PROXY_SERVER_IS_NULL_ERROR_MSG = "Прокси сервер не может быть null.";
     public static final String NULL_FOR_SAVE_ERROR_MSG = "Передан null объект для сохранения";
+    public static final String POST_MEDIA_INFO_IS_NULL_ERROR_MSG = "У поста нет информации о медиа.";
 
 
     /**
