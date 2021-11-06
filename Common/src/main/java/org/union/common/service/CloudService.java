@@ -2,6 +2,7 @@ package org.union.common.service;
 
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.union.common.exception.CloudException;
 import org.union.common.model.post.Post;
 
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
+import static org.union.common.Constants.CODE_COULD_NOT_BE_NULL_ERROR_MSG;
 import static org.union.common.Constants.POST_MEDIA_INFO_IS_NULL_ERROR_MSG;
 
 /**
@@ -50,6 +52,10 @@ public class CloudService {
      * @return video file
      */
     public File getVideoFileByCode(String code) {
+        if (!StringUtils.hasText(code)) {
+            throw new CloudException(CODE_COULD_NOT_BE_NULL_ERROR_MSG);
+        }
+
         return new File(CLOUD_PATH + VIDEO_PREFIX + code);
     }
 
@@ -60,6 +66,10 @@ public class CloudService {
      * @return photo file
      */
     public File getImageFileByCode(String code) {
+        if (!StringUtils.hasText(code)) {
+            throw new CloudException(CODE_COULD_NOT_BE_NULL_ERROR_MSG);
+        }
+
         return new File(CLOUD_PATH + IMAGE_PREFIX + code);
     }
 

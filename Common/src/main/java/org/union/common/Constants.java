@@ -51,6 +51,7 @@ public class Constants {
     public static final String PROXY_SERVER_IS_NULL_ERROR_MSG = "Прокси сервер не может быть null.";
     public static final String NULL_FOR_SAVE_ERROR_MSG = "Передан null объект для сохранения";
     public static final String POST_MEDIA_INFO_IS_NULL_ERROR_MSG = "У поста нет информации о медиа.";
+    public static final String CODE_COULD_NOT_BE_NULL_ERROR_MSG = "Code could not be null.";
 
 
     /**
