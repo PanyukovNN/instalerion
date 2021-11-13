@@ -5,6 +5,7 @@ dependencies {
 
     implementation project(':Common')
 
+    implementation rootProject.ext.library.jImageHash
     testImplementation rootProject.ext.library.commonsIo
 }
 
