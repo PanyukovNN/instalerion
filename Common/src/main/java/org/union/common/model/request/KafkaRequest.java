@@ -1,6 +1,5 @@
 package org.union.common.model.request;
 
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;

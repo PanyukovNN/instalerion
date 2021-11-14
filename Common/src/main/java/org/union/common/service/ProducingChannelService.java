@@ -1,22 +1,20 @@
 package org.union.common.service;
 
 import org.springframework.util.CollectionUtils;
+import org.union.common.Constants;
 import org.union.common.exception.NotFoundException;
-import org.union.common.model.ChannelSubject;
 import org.union.common.model.ConsumingChannel;
 import org.union.common.model.Customer;
 import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.PublicationType;
 import org.union.common.repository.ProducingChannelRepository;
+import org.union.common.model.ChannelSubject;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.union.common.Constants;
 
 import java.time.LocalDateTime;
 import java.util.*;
-
-import static org.union.common.Constants.UNBLOCK_PRODUCING_CHANNEL_PERIOD_DAYS;
 
 /**
  * Producing channels service
@@ -179,7 +177,7 @@ public class ProducingChannelService {
         }
 
         return producingChannel.getBlockingTime().isBefore(
-                dateTimeHelper.getCurrentDateTime().minusDays(UNBLOCK_PRODUCING_CHANNEL_PERIOD_DAYS));
+                dateTimeHelper.getCurrentDateTime().minusDays(Constants.UNBLOCK_PRODUCING_CHANNEL_PERIOD_DAYS));
     }
 
     /**
@@ -190,7 +188,7 @@ public class ProducingChannelService {
      */
     public String getUnblockingFormattedDateTime(ProducingChannel producingChannel) {
         return dateTimeHelper.formatFrontDateTime(
-                producingChannel.getBlockingTime().plusDays(UNBLOCK_PRODUCING_CHANNEL_PERIOD_DAYS));
+                producingChannel.getBlockingTime().plusDays(Constants.UNBLOCK_PRODUCING_CHANNEL_PERIOD_DAYS));
     }
 
     private List<String> getDefaultHashtagsBySubject(ChannelSubject subject) {

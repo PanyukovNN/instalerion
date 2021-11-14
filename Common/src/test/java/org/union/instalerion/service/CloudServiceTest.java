@@ -1,4 +1,4 @@
-package org.union.common.service;
+package org.union.instalerion.service;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -13,6 +13,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.union.common.exception.CloudException;
 import org.union.common.model.post.MediaInfo;
 import org.union.common.model.post.Post;
+import org.union.common.service.CloudService;
 
 import java.io.File;
 import java.io.IOException;

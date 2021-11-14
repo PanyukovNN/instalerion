@@ -1,5 +1,6 @@
 package org.union.common.service;
 
+import org.union.common.Constants;
 import org.union.common.model.ConsumingChannel;
 import org.union.common.repository.ConsumingChannelRepository;
 import lombok.RequiredArgsConstructor;
@@ -7,8 +8,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.union.common.Constants.NULL_CONSUMING_CHANNEL_ERROR_MSG;
 
 /**
  * Consuming channels service
@@ -26,7 +25,7 @@ public class ConsumingChannelService {
 
     public ConsumingChannel save(ConsumingChannel consumingChannel) {
         if (consumingChannel == null) {
-            throw new IllegalArgumentException(NULL_CONSUMING_CHANNEL_ERROR_MSG);
+            throw new IllegalArgumentException(Constants.NULL_CONSUMING_CHANNEL_ERROR_MSG);
         }
 
         if (!consumingChannel.isFromDb()) {

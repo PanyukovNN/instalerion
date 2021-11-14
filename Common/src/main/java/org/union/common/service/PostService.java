@@ -10,15 +10,12 @@ import org.union.common.Constants;
 import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.Post;
 import org.union.common.model.post.PostRating;
-import org.union.common.model.post.PublicationType;
 import org.union.common.repository.PostRepository;
+import org.union.common.model.post.PublicationType;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
-import static org.union.common.Constants.HOURS_PASSED_FROM_TAKEN_AT_FOR_RATING_CALCULATION;
-import static org.union.common.Constants.LAST_UNRATED_POSTS_SCAN_LIMIT;
 
 /**
  * Service for posts
@@ -116,9 +113,9 @@ public class PostService {
      */
     public List<Post> findLastUnratedPost(String producingChannelId) {
         Sort sort = Sort.by(Sort.Direction.DESC, "takenAt");
-        Pageable pageable = PageRequest.of(0, LAST_UNRATED_POSTS_SCAN_LIMIT, sort);
+        Pageable pageable = PageRequest.of(0, Constants.LAST_UNRATED_POSTS_SCAN_LIMIT, sort);
 
-        LocalDateTime earlier = dateTimeHelper.getCurrentDateTime().minusHours(HOURS_PASSED_FROM_TAKEN_AT_FOR_RATING_CALCULATION);
+        LocalDateTime earlier = dateTimeHelper.getCurrentDateTime().minusHours(Constants.HOURS_PASSED_FROM_TAKEN_AT_FOR_RATING_CALCULATION);
 
         return postRepository.findLastUnratedPosts(producingChannelId, earlier, Constants.PUBLISHING_ERROR_COUNT_LIMIT, pageable)
                 .getContent();
@@ -194,7 +191,7 @@ public class PostService {
         PostRating rating = new PostRating();
 
         if (takenAt == null
-                || takenAt.isAfter(dateTimeHelper.getCurrentDateTime().minusHours(HOURS_PASSED_FROM_TAKEN_AT_FOR_RATING_CALCULATION))) {
+                || takenAt.isAfter(dateTimeHelper.getCurrentDateTime().minusHours(Constants.HOURS_PASSED_FROM_TAKEN_AT_FOR_RATING_CALCULATION))) {
             return rating;
         }
 

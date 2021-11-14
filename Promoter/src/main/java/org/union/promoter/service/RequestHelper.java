@@ -1,6 +1,5 @@
 package org.union.promoter.service;
 
-import org.union.common.exception.RequestException;
 import org.union.common.exception.TooOftenRequestException;
 import org.union.common.model.request.LoadingRequest;
 import org.union.common.model.request.PublishingRequest;

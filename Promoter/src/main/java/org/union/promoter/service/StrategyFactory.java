@@ -3,8 +3,9 @@ package org.union.promoter.service;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
+import org.union.common.service.*;
+import org.union.instalerion.service.*;
 import org.union.common.service.loadingstrategy.LoadingStrategyType;
 import org.union.common.service.publishingstrategy.PostDefiningStrategyType;
 import org.union.common.service.publishingstrategy.PublishingStrategyType;
@@ -21,6 +22,7 @@ import org.union.promoter.service.publishingstrategy.postdefiningstrategy.Recent
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static org.union.common.Constants.*;
 
@@ -29,25 +31,53 @@ import static org.union.common.Constants.*;
  */
 @Service
 @RequiredArgsConstructor
-public class StrategyResolver {
+public class StrategyFactory {
 
-    private final Logger logger = LoggerFactory.getLogger(StrategyResolver.class);
-    private final Map<LoadingStrategyType, Class<? extends LoadingStrategy>> loadingStrategyMap = new HashMap<>();
-    private final Map<PublishingStrategyType, Class<? extends PublishingStrategy>> publishingStrategyMap = new HashMap<>();
-    private final Map<PostDefiningStrategyType, Class<? extends PostDefiningStrategy>> postDefiningStrategyMap = new HashMap<>();
+    private final Logger logger = LoggerFactory.getLogger(StrategyFactory.class);
+    private final Map<LoadingStrategyType, Supplier<LoadingStrategy>> loadingStrategyMap = new HashMap<>();
+    private final Map<PublishingStrategyType, Supplier<PublishingStrategy>> publishingStrategyMap = new HashMap<>();
+    private final Map<PostDefiningStrategyType, Supplier<PostDefiningStrategy>> postDefiningStrategyMap = new HashMap<>();
 
-    private final ApplicationContext context;
+    private final PostService postService;
+    private final ImageMatcher imageMatcher;
+    private final CloudService cloudService;
+    private final InstaService instaService;
+    private final LoaderService loaderService;
+    private final DateTimeHelper dateTimeHelper;
+    private final ProducingChannelService producingChannelService;
+    private final ConsumingChannelService consumingChannelService;
 
     @PostConstruct
     public void postConstruct() {
-        loadingStrategyMap.put(LoadingStrategyType.INSTAGRAM_POSTS, InstagramBaseLoadingStrategy.class);
+        loadingStrategyMap.put(LoadingStrategyType.INSTAGRAM_POSTS, () -> new InstagramBaseLoadingStrategy(
+                postService,
+                imageMatcher,
+                cloudService,
+                instaService,
+                loaderService,
+                dateTimeHelper,
+                producingChannelService,
+                consumingChannelService
+        ));
 
-        publishingStrategyMap.put(PublishingStrategyType.INSTAGRAM_STORY, InstagramStoryPublishingStrategy.class);
-        publishingStrategyMap.put(PublishingStrategyType.INSTAGRAM_POST, InstagramPostPublishingStrategy.class);
+        publishingStrategyMap.put(PublishingStrategyType.INSTAGRAM_STORY, () -> new InstagramStoryPublishingStrategy(
+                postService,
+                cloudService,
+                instaService,
+                dateTimeHelper,
+                producingChannelService
+        ));
+        publishingStrategyMap.put(PublishingStrategyType.INSTAGRAM_POST, () -> new InstagramPostPublishingStrategy(
+                postService,
+                cloudService,
+                instaService,
+                dateTimeHelper,
+                producingChannelService
+        ));
 
-        postDefiningStrategyMap.put(PostDefiningStrategyType.MOST_RATED_POST, RatedPostDefiningStrategy.class);
-        postDefiningStrategyMap.put(PostDefiningStrategyType.MOST_RECENT_POST, RecentPostDefiningStrategy.class);
-        postDefiningStrategyMap.put(PostDefiningStrategyType.MOST_RECENT_STORY, RecentStoryDefiningStrategy.class);
+        postDefiningStrategyMap.put(PostDefiningStrategyType.MOST_RATED_POST, () -> new RatedPostDefiningStrategy(postService));
+        postDefiningStrategyMap.put(PostDefiningStrategyType.MOST_RECENT_POST, () -> new RecentPostDefiningStrategy(postService));
+        postDefiningStrategyMap.put(PostDefiningStrategyType.MOST_RECENT_STORY, () -> new RecentStoryDefiningStrategy(postService));
     }
 
     /**
@@ -58,9 +88,7 @@ public class StrategyResolver {
      */
     public LoadingStrategy getLoadingStrategy(LoadingStrategyType strategyType) {
         try {
-            Class<? extends LoadingStrategy> strategyClass = loadingStrategyMap.get(strategyType);
-
-            return context.getBean(strategyClass);
+            return loadingStrategyMap.get(strategyType).get();
         } catch (Exception e) {
             logger.error(LOADING_STRATEGY_RESOLVING_ERROR_MSG);
 
@@ -76,9 +104,7 @@ public class StrategyResolver {
      */
     public PublishingStrategy getPublishingStrategy(PublishingStrategyType strategyType) {
         try {
-            Class<? extends PublishingStrategy> strategyClass = publishingStrategyMap.get(strategyType);
-
-            return context.getBean(strategyClass);
+            return publishingStrategyMap.get(strategyType).get();
         } catch (Exception e) {
             logger.error(PUBLISHING_STRATEGY_RESOLVING_ERROR_MSG);
 
@@ -94,9 +120,7 @@ public class StrategyResolver {
      */
     public PostDefiningStrategy getPostDefiningStrategy(PostDefiningStrategyType strategyType) {
         try {
-            Class<? extends PostDefiningStrategy> strategyClass = postDefiningStrategyMap.get(strategyType);
-
-            return context.getBean(strategyClass);
+            return postDefiningStrategyMap.get(strategyType).get();
         } catch (Exception e) {
             logger.error(POST_DEFINING_STRATEGY_RESOLVING_ERROR_MSG);
 

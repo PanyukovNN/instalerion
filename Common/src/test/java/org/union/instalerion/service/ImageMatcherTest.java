@@ -1,4 +1,4 @@
-package org.union.common.service;
+package org.union.instalerion.service;
 
 import com.github.kilianB.hashAlgorithms.PerceptiveHash;
 import com.github.kilianB.matcher.persistent.ConsecutiveMatcher;
@@ -9,6 +9,8 @@ import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.union.common.model.post.Post;
+import org.union.common.service.CloudService;
+import org.union.common.service.ImageMatcher;
 
 import java.io.File;
 import java.util.Collections;

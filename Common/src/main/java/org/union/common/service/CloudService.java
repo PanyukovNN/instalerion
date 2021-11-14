@@ -3,6 +3,7 @@ package org.union.common.service;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.union.common.Constants;
 import org.union.common.exception.CloudException;
 import org.union.common.model.post.Post;
 
@@ -10,9 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-
-import static org.union.common.Constants.CODE_COULD_NOT_BE_NULL_ERROR_MSG;
-import static org.union.common.Constants.POST_MEDIA_INFO_IS_NULL_ERROR_MSG;
 
 /**
  * Service for working with files in the cloud
@@ -33,7 +31,7 @@ public class CloudService {
     public void savePostsMedia(List<Post> posts) throws IOException {
         for (Post post : posts) {
             if (post.getMediaInfo() == null) {
-                throw new CloudException(POST_MEDIA_INFO_IS_NULL_ERROR_MSG);
+                throw new CloudException(Constants.POST_MEDIA_INFO_IS_NULL_ERROR_MSG);
             }
 
             if (post.getMediaInfo().getVideoUrl() != null) {
@@ -53,7 +51,7 @@ public class CloudService {
      */
     public File getVideoFileByCode(String code) {
         if (!StringUtils.hasText(code)) {
-            throw new CloudException(CODE_COULD_NOT_BE_NULL_ERROR_MSG);
+            throw new CloudException(Constants.CODE_COULD_NOT_BE_NULL_ERROR_MSG);
         }
 
         return new File(CLOUD_PATH + VIDEO_PREFIX + code);
@@ -67,7 +65,7 @@ public class CloudService {
      */
     public File getImageFileByCode(String code) {
         if (!StringUtils.hasText(code)) {
-            throw new CloudException(CODE_COULD_NOT_BE_NULL_ERROR_MSG);
+            throw new CloudException(Constants.CODE_COULD_NOT_BE_NULL_ERROR_MSG);
         }
 
         return new File(CLOUD_PATH + IMAGE_PREFIX + code);

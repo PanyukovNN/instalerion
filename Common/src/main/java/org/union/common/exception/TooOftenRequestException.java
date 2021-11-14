@@ -1,7 +1,5 @@
 package org.union.common.exception;
 
-import lombok.NoArgsConstructor;
-
 /**
  * Exception when requests are too often
  */

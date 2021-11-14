@@ -22,12 +22,13 @@ import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.union.common.exception.NotFoundException;
+import org.union.common.Constants;
 import org.union.common.exception.ProxyException;
 import org.union.common.exception.RequestException;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
 import org.union.common.model.ProxyServer;
+import org.union.common.exception.NotFoundException;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -43,8 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-
-import static org.union.common.Constants.*;
 
 /**
  * Service to work with instagram
@@ -83,7 +82,7 @@ public class InstaService {
      */
     public synchronized InstaClient getClient(ProducingChannel producingChannel) throws Exception {
         if (producingChannelService.isBlocked(producingChannel)) {
-            throw new RequestException(String.format(PRODUCING_CHANNEL_TEMPORARY_BLOCKED_MSG,
+            throw new RequestException(String.format(Constants.PRODUCING_CHANNEL_TEMPORARY_BLOCKED_MSG,
                     producingChannel.getId(),
                     producingChannelService.getUnblockingFormattedDateTime(producingChannel)));
         }
@@ -169,7 +168,7 @@ public class InstaService {
                 .videoWithCover(videoData, coverData,
                         UploadParameters.forTimelineVideo(upload_id, false))
                 .thenCompose(response -> {
-                    Util.sleepSeconds(PUBLISHING_SLEEP_SECONDS);
+                    Util.sleepSeconds(Constants.PUBLISHING_SLEEP_SECONDS);
 
                     return client.getIGClient().actions().upload().finish(upload_id);
                 })
@@ -232,10 +231,10 @@ public class InstaService {
             if (e.getMessage().contains("ConnectException")
                     && e.getMessage().contains(proxyAddress)) {
                 ProducingChannel producingChannel = producingChannelService.findById(client.getProducingChannelId())
-                        .orElseThrow(() -> new NotFoundException(PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG));
+                        .orElseThrow(() -> new NotFoundException(Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG));
                 proxyService.attachNewProxy(producingChannel);
 
-                throw new ProxyException(NEW_PROXY_ATTACHED_MSG);
+                throw new ProxyException(Constants.NEW_PROXY_ATTACHED_MSG);
             }
 
             throw e;
@@ -277,7 +276,7 @@ public class InstaService {
 
     private boolean isSessionExpired(InstaClient client) {
         return client.getLoginTime().isBefore(
-                dateTimeHelper.getCurrentDateTime().minusHours(IG_CLIENT_EXPIRING_HOURS));
+                dateTimeHelper.getCurrentDateTime().minusHours(Constants.IG_CLIENT_EXPIRING_HOURS));
     }
 
     private IGClient login(ProducingChannel producingChannel) throws IOException, ClassNotFoundException {
@@ -301,7 +300,7 @@ public class InstaService {
         if (clientFile.exists()
                 && cookieFile.exists()) {
             IGClient igClient = IGClient.deserialize(clientFile, cookieFile, httpClientBuilder);
-            logger.info(String.format(LOGIN_SESSION_DESERIALIZED_MSG, login));
+            logger.info(String.format(Constants.LOGIN_SESSION_DESERIALIZED_MSG, login));
 
             return igClient;
         }
@@ -313,7 +312,7 @@ public class InstaService {
                 .login();
 
         iGclient.serialize(clientFile, cookieFile);
-        logger.info(String.format(LOGGED_IN_AND_SERIALIZED_MSG, login));
+        logger.info(String.format(Constants.LOGGED_IN_AND_SERIALIZED_MSG, login));
 
         return iGclient;
     }

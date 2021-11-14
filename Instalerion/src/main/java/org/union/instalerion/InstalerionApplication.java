@@ -1,7 +1,5 @@
 package org.union.instalerion;
 
-import com.github.instagram4j.instagram4j.IGClient;
-import com.github.instagram4j.instagram4j.responses.media.MediaInfoResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -10,18 +8,13 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.union.common.model.Customer;
-import org.union.common.model.InstaClient;
-import org.union.common.model.ProducingChannel;
 import org.union.common.repository.CustomerRepository;
-import org.union.common.service.CustomerService;
 import org.union.common.service.InstaService;
 import org.union.common.service.ProducingChannelService;
 
-import java.util.Optional;
-
 @EnableScheduling
-@EnableMongoRepositories(basePackages = "org.union.common.repository")
-@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class}, scanBasePackages = {"org.union.instalerion", "org.union.common"})
+@EnableMongoRepositories(basePackages = "org.union.instalerion.repository")
+@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class}, scanBasePackages = {"org.union.instalerion", "org.union.instalerion"})
 public class InstalerionApplication implements CommandLineRunner {
 
     @Autowired

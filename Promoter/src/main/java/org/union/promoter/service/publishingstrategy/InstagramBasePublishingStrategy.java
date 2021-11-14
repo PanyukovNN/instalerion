@@ -13,6 +13,7 @@ import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.MediaType;
 import org.union.common.model.post.Post;
 import org.union.common.service.*;
+import org.union.instalerion.service.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +44,7 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
         logStartPublishing(post.getId(), producingChannelId);
         try {
             ProducingChannel producingChannel = producingChannelService.findById(post.getProducingChannelId())
-                    .orElseThrow(() -> new org.union.common.exception.NotFoundException(String.format(Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, post.getProducingChannelId())));
+                    .orElseThrow(() -> new NotFoundException(String.format(Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, post.getProducingChannelId())));
 
             // Login to instagram account
             InstaClient client = instaService.getClient(producingChannel);
@@ -92,7 +93,7 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
 
     private MediaResponse publishImage(List<String> hashtags, String postId, InstaClient client) throws ExecutionException, InterruptedException {
         Post imagePost = postService.findById(postId)
-                .orElseThrow(() -> new org.union.common.exception.NotFoundException(String.format(IMAGE_POST_NOT_FOUND_ERROR_MSG, postId)));
+                .orElseThrow(() -> new NotFoundException(String.format(IMAGE_POST_NOT_FOUND_ERROR_MSG, postId)));
 
         File imageFile = cloudService.getImageFileByCode(imagePost.getCode());
 

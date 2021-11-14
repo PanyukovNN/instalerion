@@ -1,7 +1,5 @@
 package org.union.common.exception;
 
-import lombok.NoArgsConstructor;
-
 /**
  * Exception while request processing
  */

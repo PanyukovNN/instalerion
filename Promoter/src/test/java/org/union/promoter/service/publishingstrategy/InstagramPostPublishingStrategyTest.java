@@ -1,15 +1,14 @@
 package org.union.promoter.service.publishingstrategy;
 
-import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.union.common.model.InstaClient;
 import org.union.common.service.*;
+import org.union.instalerion.service.*;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 

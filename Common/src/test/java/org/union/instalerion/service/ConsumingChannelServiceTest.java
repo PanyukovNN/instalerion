@@ -1,4 +1,4 @@
-package org.union.common.service;
+package org.union.instalerion.service;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.union.common.model.ConsumingChannel;
 import org.union.common.repository.ConsumingChannelRepository;
+import org.union.common.service.ConsumingChannelService;
 
 import java.util.Collections;
 import java.util.List;

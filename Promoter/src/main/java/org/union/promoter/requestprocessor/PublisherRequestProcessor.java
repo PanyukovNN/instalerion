@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.union.common.model.post.Post;
 import org.union.common.model.request.PublishingRequest;
 import org.union.promoter.requestprocessor.useaspect.ProducingChannelUse;
-import org.union.promoter.service.StrategyResolver;
+import org.union.promoter.service.StrategyFactory;
 import org.union.promoter.service.publishingstrategy.PublishingStrategy;
 import org.union.promoter.service.publishingstrategy.postdefiningstrategy.PostDefiningStrategy;
 
@@ -17,7 +17,7 @@ import org.union.promoter.service.publishingstrategy.postdefiningstrategy.PostDe
 @RequiredArgsConstructor
 public class PublisherRequestProcessor {
 
-    private final StrategyResolver strategyResolver;
+    private final StrategyFactory strategyFactory;
 
     /**
      * Load posts from consuming channels to database and cloud
@@ -28,10 +28,10 @@ public class PublisherRequestProcessor {
     @Transactional
     @ProducingChannelUse
     public void processPublishRequest(PublishingRequest request) throws Exception {
-        PostDefiningStrategy postDefiningStrategy = strategyResolver.getPostDefiningStrategy(request.getPostDefiningStrategyType());
+        PostDefiningStrategy postDefiningStrategy = strategyFactory.getPostDefiningStrategy(request.getPostDefiningStrategyType());
         Post post = postDefiningStrategy.definePost(request.getProducingChannelId());
 
-        PublishingStrategy publishingStrategy = strategyResolver.getPublishingStrategy(request.getPublishingStrategyType());
+        PublishingStrategy publishingStrategy = strategyFactory.getPublishingStrategy(request.getPublishingStrategyType());
         publishingStrategy.publish(post);
     }
 }

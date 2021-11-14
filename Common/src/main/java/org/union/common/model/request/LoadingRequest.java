@@ -4,8 +4,6 @@ import lombok.*;
 import org.union.common.service.loadingstrategy.LoadingStrategyType;
 import org.union.common.service.loadingstrategy.LoadingVolume;
 
-import java.io.Serializable;
-
 import static org.union.common.Constants.STANDARD_LOADING_VOLUME;
 
 /**

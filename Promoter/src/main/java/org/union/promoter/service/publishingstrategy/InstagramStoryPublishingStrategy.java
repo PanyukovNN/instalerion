@@ -3,15 +3,13 @@ package org.union.promoter.service.publishingstrategy;
 import com.github.instagram4j.instagram4j.models.media.reel.item.ReelMetadataItem;
 import com.github.instagram4j.instagram4j.models.media.reel.item.StoryHashtagsItem;
 import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.Post;
 import org.union.common.model.post.PublicationType;
 import org.union.common.service.*;
+import org.union.instalerion.service.*;
 
 import java.io.File;
 import java.time.LocalDateTime;
@@ -28,8 +26,6 @@ import static org.union.common.Constants.STORY_SUCCESSFULLY_PUBLISHED_MSG;
 /**
  * Strategy to publish story in an instagram
  */
-@Service
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class InstagramStoryPublishingStrategy extends InstagramBasePublishingStrategy {
 
     private final InstaService instaService;

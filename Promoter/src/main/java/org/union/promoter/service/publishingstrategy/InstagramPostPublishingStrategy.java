@@ -1,15 +1,13 @@
 package org.union.promoter.service.publishingstrategy;
 
 import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.Post;
 import org.union.common.model.post.PublicationType;
 import org.union.common.service.*;
+import org.union.instalerion.service.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,8 +24,6 @@ import static org.union.common.Constants.*;
 /**
  * Strategy to publish a post in an instagram feed
  */
-@Service
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class InstagramPostPublishingStrategy extends InstagramBasePublishingStrategy {
 
     private final InstaService instaService;
