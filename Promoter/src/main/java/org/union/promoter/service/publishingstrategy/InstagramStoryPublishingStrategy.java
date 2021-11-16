@@ -3,13 +3,14 @@ package org.union.promoter.service.publishingstrategy;
 import com.github.instagram4j.instagram4j.models.media.reel.item.ReelMetadataItem;
 import com.github.instagram4j.instagram4j.models.media.reel.item.StoryHashtagsItem;
 import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
+import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.Post;
 import org.union.common.model.post.PublicationType;
 import org.union.common.service.*;
-import org.union.instalerion.service.*;
+import org.union.common.service.publishingstrategy.PublishingStrategyType;
 
 import java.io.File;
 import java.time.LocalDateTime;
@@ -26,6 +27,7 @@ import static org.union.common.Constants.STORY_SUCCESSFULLY_PUBLISHED_MSG;
 /**
  * Strategy to publish story in an instagram
  */
+@Service
 public class InstagramStoryPublishingStrategy extends InstagramBasePublishingStrategy {
 
     private final InstaService instaService;
@@ -90,5 +92,10 @@ public class InstagramStoryPublishingStrategy extends InstagramBasePublishingStr
     @Override
     protected void logSuccessPublishing(String postId, String producingChannelId) {
         logger.info(String.format(STORY_SUCCESSFULLY_PUBLISHED_MSG, postId, producingChannelId));
+    }
+
+    @Override
+    public PublishingStrategyType getType() {
+        return PublishingStrategyType.INSTAGRAM_STORY;
     }
 }

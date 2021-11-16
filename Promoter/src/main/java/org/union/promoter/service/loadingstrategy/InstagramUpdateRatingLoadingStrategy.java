@@ -6,6 +6,7 @@ import com.github.instagram4j.instagram4j.models.media.timeline.TimelineVideoMed
 import com.github.instagram4j.instagram4j.responses.media.MediaInfoResponse;
 import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
@@ -16,18 +17,25 @@ import org.union.common.model.request.LoadingRequest;
 import org.union.common.service.InstaService;
 import org.union.common.service.PostService;
 import org.union.common.service.ProducingChannelService;
+import org.union.common.service.loadingstrategy.LoadingStrategyType;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static org.union.common.Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG;
 
+@Service
 @RequiredArgsConstructor
 public class InstagramUpdateRatingLoadingStrategy implements LoadingStrategy {
 
     private final PostService postService;
     private final InstaService instaService;
     private final ProducingChannelService producingChannelService;
+
+    @Override
+    public LoadingStrategyType getType() {
+        return LoadingStrategyType.UPDATE_RATING;
+    }
 
     @Override
     public void load(LoadingRequest request) throws Exception {

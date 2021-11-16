@@ -13,18 +13,18 @@ import org.union.common.service.InstaService;
 import org.union.common.service.ProducingChannelService;
 
 @EnableScheduling
-@EnableMongoRepositories(basePackages = "org.union.instalerion.repository")
-@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class}, scanBasePackages = {"org.union.instalerion", "org.union.instalerion"})
+@EnableMongoRepositories(basePackages = "org.union.common.repository")
+@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class}, scanBasePackages = {"org.union.common", "org.union.common"})
 public class InstalerionApplication implements CommandLineRunner {
 
     @Autowired
-    InstaService instaService;
+    private InstaService instaService;
 
     @Autowired
-    ProducingChannelService producingChannelService;
+    private ProducingChannelService producingChannelService;
 
     @Autowired
-    CustomerRepository customerRepository;
+    private CustomerRepository customerRepository;
 
     public static void main(String[] args) {
         SpringApplication.run(InstalerionApplication.class);

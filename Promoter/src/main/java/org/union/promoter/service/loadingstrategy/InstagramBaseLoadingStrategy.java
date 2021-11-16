@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 import org.union.common.exception.RequestException;
 import org.union.common.model.ConsumingChannel;
 import org.union.common.model.InstaClient;
@@ -20,7 +21,7 @@ import org.union.common.model.post.Post;
 import org.union.common.model.post.PublicationType;
 import org.union.common.model.request.LoadingRequest;
 import org.union.common.service.*;
-import org.union.instalerion.service.*;
+import org.union.common.service.loadingstrategy.LoadingStrategyType;
 import org.union.common.service.loadingstrategy.LoadingVolume;
 import org.union.promoter.service.LoaderService;
 
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 import static org.apache.logging.log4j.util.Strings.EMPTY;
 import static org.union.common.Constants.*;
 
+@Service
 @RequiredArgsConstructor
 public class InstagramBaseLoadingStrategy implements LoadingStrategy {
 
@@ -45,6 +47,11 @@ public class InstagramBaseLoadingStrategy implements LoadingStrategy {
     private final DateTimeHelper dateTimeHelper;
     private final ProducingChannelService producingChannelService;
     private final ConsumingChannelService consumingChannelService;
+
+    @Override
+    public LoadingStrategyType getType() {
+        return LoadingStrategyType.INSTAGRAM_POSTS;
+    }
 
     @Override
     public void load(LoadingRequest request) throws Exception {

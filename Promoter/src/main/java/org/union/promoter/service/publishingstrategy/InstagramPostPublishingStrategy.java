@@ -1,13 +1,14 @@
 package org.union.promoter.service.publishingstrategy;
 
 import com.github.instagram4j.instagram4j.responses.media.MediaResponse;
+import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.Post;
 import org.union.common.model.post.PublicationType;
 import org.union.common.service.*;
-import org.union.instalerion.service.*;
+import org.union.common.service.publishingstrategy.PublishingStrategyType;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +25,7 @@ import static org.union.common.Constants.*;
 /**
  * Strategy to publish a post in an instagram feed
  */
+@Service
 public class InstagramPostPublishingStrategy extends InstagramBasePublishingStrategy {
 
     private final InstaService instaService;
@@ -83,5 +85,10 @@ public class InstagramPostPublishingStrategy extends InstagramBasePublishingStra
                 .limit(POST_HASHTAG_NUMBER)
                 .map(tag -> "#" + tag)
                 .collect(Collectors.joining(" "));
+    }
+
+    @Override
+    public PublishingStrategyType getType() {
+        return PublishingStrategyType.INSTAGRAM_POST;
     }
 }

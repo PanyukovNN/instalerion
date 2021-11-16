@@ -5,8 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
-@EnableMongoRepositories(basePackages = "org.union.instalerion.repository")
-@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class}, scanBasePackages = {"org.union.promoter", "org.union.instalerion"})
+@EnableMongoRepositories(basePackages = "org.union.common.repository")
+@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class}, scanBasePackages = {"org.union.promoter", "org.union.common"})
 public class PromoterApplication {
 
     public static void main(String[] args) {

@@ -13,7 +13,6 @@ import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.MediaType;
 import org.union.common.model.post.Post;
 import org.union.common.service.*;
-import org.union.instalerion.service.*;
 
 import java.io.File;
 import java.io.IOException;
