@@ -17,7 +17,7 @@ public class UseContext {
 
     private final Set<String> inUseIds = new CopyOnWriteArraySet<>();
 
-    public synchronized boolean checkInUseAndSet(String id) {
+    public boolean checkInUseAndSet(String id) {
         if (!StringUtils.hasText(id)) {
             throw new InUseException(ID_CANT_BE_NULL_ERROR_MSG);
         }
@@ -31,7 +31,7 @@ public class UseContext {
         return false;
     }
 
-    public synchronized void release(String id) {
+    public void release(String id) {
         if (!StringUtils.hasText(id)) {
             throw new InUseException(ID_CANT_BE_NULL_ERROR_MSG);
         }
@@ -39,7 +39,7 @@ public class UseContext {
         inUseIds.remove(id);
     }
 
-    public synchronized void setInUse(String id) {
+    public void setInUse(String id) {
         inUseIds.add(id);
     }
 }
