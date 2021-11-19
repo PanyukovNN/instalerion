@@ -39,9 +39,9 @@ import java.nio.file.Files;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -57,7 +57,7 @@ public class InstaService {
     private static final String CHANNEL_SESSIONS_PATH = "channel_sessions/";
     private static final String COOKIE_POSTFIX = "_cookie";
     private static final String TXT_FORMAT = ".txt";
-    private final Map<String, InstaClient> clientContext = new HashMap<>();
+    private final Map<String, InstaClient> clientContext = new ConcurrentHashMap<>();
 
     private final ProxyService proxyService;
     private final DateTimeHelper dateTimeHelper;
@@ -80,7 +80,7 @@ public class InstaService {
      * @return logged in instagram client
      * @throws IGLoginException exception while log in
      */
-    public synchronized InstaClient getClient(ProducingChannel producingChannel) throws Exception {
+    public InstaClient getClient(ProducingChannel producingChannel) throws Exception {
         if (producingChannelService.isBlocked(producingChannel)) {
             throw new RequestException(String.format(Constants.PRODUCING_CHANNEL_TEMPORARY_BLOCKED_MSG,
                     producingChannel.getId(),
@@ -297,8 +297,7 @@ public class InstaService {
                 .proxyAuthenticator(createProxyAuthenticator(proxyServer))
                 .cookieJar(new SerializableCookieJar());
 
-        if (clientFile.exists()
-                && cookieFile.exists()) {
+        if (clientFile.exists() && cookieFile.exists()) {
             IGClient igClient = IGClient.deserialize(clientFile, cookieFile, httpClientBuilder);
             logger.info(String.format(Constants.LOGIN_SESSION_DESERIALIZED_MSG, login));
 
