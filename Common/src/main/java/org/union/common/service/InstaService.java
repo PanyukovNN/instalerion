@@ -132,9 +132,8 @@ public class InstaService {
                 .toLocalDateTime();
     }
 
-    //TODO вынести в instaClient класс
     /**
-     * Uploads image post
+     * Upload image post
      *
      * @param client    instagram client
      * @param imageFile file of image
