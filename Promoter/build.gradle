@@ -1,7 +1,5 @@
 
 dependencies {
-    implementation rootProject.ext.library.jImageHash
-
     implementation project(':Common')
 }
 

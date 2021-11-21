@@ -4,11 +4,12 @@ plugins {
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 }
 
-apply from: 'ext.gradle'
 
 allprojects {
     group 'org.union'
     version '1.0'
+
+    apply from: "$rootProject.projectDir/ext.gradle"
 
     repositories {
         mavenCentral()
