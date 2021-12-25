@@ -1,8 +1,8 @@
 package org.union.common.model.request;
 
 import lombok.*;
-import org.union.common.service.publishingstrategy.PostDefiningStrategyType;
-import org.union.common.service.publishingstrategy.PublishingStrategyType;
+import org.union.common.model.post.PublicationType;
+import org.union.common.service.publishingstrategy.PostSortingStrategyType;
 
 /**
  * Request to run publisher module
@@ -15,6 +15,6 @@ import org.union.common.service.publishingstrategy.PublishingStrategyType;
 public class PublishingRequest extends KafkaRequest implements ProducingChannelRequest {
 
     private String producingChannelId;
-    private PublishingStrategyType publishingStrategyType;
-    private PostDefiningStrategyType postDefiningStrategyType;
+    private PublicationType publicationType;
+    private PostSortingStrategyType postSortingStrategyType;
 }

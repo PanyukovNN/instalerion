@@ -22,6 +22,8 @@ ext.library = [
 
         'jImageHash':'com.github.kilianB:JImageHash:3.0.0',
         'commonsIo':'commons-io:commons-io:2.8.0',
+
+        'guava':'com.google.guava:guava:31.0.1-jre'
 ]
 
 ext.libraryTest = [

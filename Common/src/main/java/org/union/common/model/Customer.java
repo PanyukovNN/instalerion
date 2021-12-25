@@ -29,7 +29,6 @@ public class Customer implements Persistable<String> {
     /**
      * User name
      */
-    @Column
     private String username;
 
     /**

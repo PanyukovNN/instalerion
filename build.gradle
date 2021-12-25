@@ -4,7 +4,6 @@ plugins {
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 }
 
-
 allprojects {
     group 'org.union'
     version '1.0'
@@ -39,6 +38,7 @@ allprojects {
 
         implementation library.mongo
         implementation library.jasypt
+        implementation library.guava
         implementation rootProject.ext.library.springKafka
         implementation rootProject.ext.library.springBootWeb
         implementation rootProject.ext.library.springSecurity

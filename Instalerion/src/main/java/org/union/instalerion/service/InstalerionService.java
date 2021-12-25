@@ -15,7 +15,7 @@ import org.union.common.service.DateTimeHelper;
 import org.union.common.service.ProducingChannelService;
 import org.union.common.service.loadingstrategy.LoadingStrategyType;
 import org.union.common.service.publishingstrategy.PostDefiningStrategyType;
-import org.union.common.service.publishingstrategy.PublishingStrategyType;
+import org.union.common.service.publishingstrategy.PublicationType;
 import org.union.instalerion.kafka.LoaderKafkaSender;
 import org.union.instalerion.kafka.PublisherKafkaSender;
 
@@ -107,10 +107,10 @@ public class InstalerionService {
     private void sendPublishingRequests(ProducingChannel producingChannel) {
         if (producingChannelService.isPostPublishingTime(producingChannel)) {
             PostDefiningStrategyType postDefiningStrategyType = PostDefiningStrategyType.MOST_RECENT_POST;
-            PublishingStrategyType publishingStrategyType = PublishingStrategyType.INSTAGRAM_POST;
+            PublicationType publicationType = PublicationType.INSTAGRAM_POST;
 
             PublishingRequest request = new PublishingRequest(producingChannel.getId(),
-                    publishingStrategyType, postDefiningStrategyType);
+                    publicationType, postDefiningStrategyType);
 
             publisherKafkaSender.send(request);
         }

@@ -1,14 +1,14 @@
 package org.union.promoter.service.publishingstrategy;
 
 import org.union.common.model.post.Post;
-import org.union.common.service.publishingstrategy.PublishingStrategyType;
+import org.union.common.model.post.PublicationType;
 
 /**
  * Publishing strategy
  */
 public interface PublishingStrategy {
 
-    PublishingStrategyType getType();
+    PublicationType getType();
 
     /**
      * Publish story to producing channel

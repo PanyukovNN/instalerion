@@ -11,3 +11,4 @@ build/
 /DockerfilePromoter
 /cloud/
 /channel_sessions/
+**.txt

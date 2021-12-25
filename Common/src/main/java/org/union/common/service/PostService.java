@@ -68,44 +68,6 @@ public class PostService {
     }
 
     /**
-     * Returns unpublished post with highest rating
-     *
-     * @param producingChannelId id of producing channel
-     * @return optional of post
-     */
-    public Optional<Post> findMostRatedPost(String producingChannelId) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "rating.value");
-        Pageable pageable = PageRequest.of(0, 1, sort);
-
-        List<Post> content = postRepository.findMostRated(
-                producingChannelId,
-                PublicationType.INSTAGRAM_POST,
-                Constants.PUBLISHING_ERROR_COUNT_LIMIT,
-                pageable).getContent();
-
-        return !content.isEmpty() ? Optional.of(content.get(0)) : Optional.empty();
-    }
-
-    /**
-     * Returns unpublished post most recently downloaded
-     *
-     * @param producingChannelId id of producing channel
-     * @return optional of post
-     */
-    public Optional<Post> findMostRecentPost(String producingChannelId) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "takenAt");
-        Pageable pageable = PageRequest.of(0, 1, sort);
-
-        List<Post> content = postRepository.findMostRecentPost(
-                producingChannelId,
-                PublicationType.INSTAGRAM_POST,
-                Constants.PUBLISHING_ERROR_COUNT_LIMIT,
-                pageable).getContent();
-
-        return !content.isEmpty() ? Optional.of(content.get(0)) : Optional.empty();
-    }
-
-    /**
      * Returns unrated posts, which were published not earlier than last 24 hours,
      * Max amount of posts defined in property LAST_UNRATED_POSTS_SCAN_LIMIT
      *
@@ -122,18 +84,19 @@ public class PostService {
     }
 
     /**
-     * Returns unpublished post most recently downloaded
+     * Returns unpublished post/story most recently downloaded
      *
      * @param producingChannelId id of producing channel
+     * @param publicationType type of publication
+     * @param sort sorting strategy
      * @return optional of post
      */
-    public Optional<Post> findMostRecentStory(String producingChannelId) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "takenAt");
+    public Optional<Post> findByPublicationType(String producingChannelId, PublicationType publicationType, Sort sort) {
         Pageable pageable = PageRequest.of(0, 1, sort);
 
         List<Post> content = postRepository.findMostRecentStory(
                 producingChannelId,
-                PublicationType.INSTAGRAM_STORY,
+                publicationType,
                 Constants.PUBLISHING_ERROR_COUNT_LIMIT,
                 pageable).getContent();
 

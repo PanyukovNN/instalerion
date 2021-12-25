@@ -1,20 +1,22 @@
 package org.union.promoter.service.publishingstrategy.postdefiningstrategy;
 
+import org.springframework.data.domain.Sort;
 import org.union.common.model.post.Post;
-import org.union.common.service.publishingstrategy.PostDefiningStrategyType;
+import org.union.common.model.post.PublicationType;
 
 /**
- * Strategy to define post
+ * Post defining strategy
  */
 public interface PostDefiningStrategy {
-
-    PostDefiningStrategyType getType();
 
     /**
      * Defines post for special strategy
      *
      * @param producingChannelId id of producing channel
+     * @param postSortingStrategy strategy of post sorting
      * @return post instance
      */
-    Post definePost(String producingChannelId);
+    Post definePost(String producingChannelId, Sort postSortingStrategy);
+
+    PublicationType getType();
 }

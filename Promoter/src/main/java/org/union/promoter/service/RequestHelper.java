@@ -79,7 +79,7 @@ public class RequestHelper {
             throw new IllegalArgumentException(PRODUCING_CHANNEL_NULL_ID_ERROR_MSG);
         }
 
-        if (request.getPublishingStrategyType() == null) {
+        if (request.getPublicationType() == null) {
             throw new IllegalArgumentException(LOADING_STRATEGY_TYPE_NULL_ID_ERROR_MSG);
         }
 

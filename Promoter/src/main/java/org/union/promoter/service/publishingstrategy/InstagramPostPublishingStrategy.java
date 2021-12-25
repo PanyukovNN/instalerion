@@ -8,7 +8,6 @@ import org.union.common.model.ProducingChannel;
 import org.union.common.model.post.Post;
 import org.union.common.model.post.PublicationType;
 import org.union.common.service.*;
-import org.union.common.service.publishingstrategy.PublishingStrategyType;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,12 +59,12 @@ public class InstagramPostPublishingStrategy extends InstagramBasePublishingStra
 
     @Override
     protected void setPostPublicationDateTime(Post post, LocalDateTime now) {
-        post.getPublishedTimeByType().put(PublicationType.INSTAGRAM_POST, now);
+        post.getPublishedTimeByType().put(org.union.common.model.post.PublicationType.INSTAGRAM_POST, now);
     }
 
     @Override
     protected void setLastPublicationDateTime(ProducingChannel producingChannel, LocalDateTime now) {
-        producingChannel.getPublicationTimeMap().put(PublicationType.INSTAGRAM_POST, now);
+        producingChannel.getPublicationTimeMap().put(org.union.common.model.post.PublicationType.INSTAGRAM_POST, now);
     }
 
     @Override
@@ -88,7 +87,7 @@ public class InstagramPostPublishingStrategy extends InstagramBasePublishingStra
     }
 
     @Override
-    public PublishingStrategyType getType() {
-        return PublishingStrategyType.INSTAGRAM_POST;
+    public PublicationType getType() {
+        return PublicationType.INSTAGRAM_POST;
     }
 }
