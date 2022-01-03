@@ -39,24 +39,25 @@ allprojects {
         implementation library.mongo
         implementation library.jasypt
         implementation library.guava
-        implementation rootProject.ext.library.springKafka
-        implementation rootProject.ext.library.springBootWeb
-        implementation rootProject.ext.library.springSecurity
-        implementation rootProject.ext.library.springBootDataJpa
-        implementation rootProject.ext.library.springBootActuator
-        implementation rootProject.ext.library.springBootDevTools
-        implementation (rootProject.ext.library.instagram4j) {
+        implementation library.springKafka
+        implementation library.springBootWeb
+        implementation library.springSecurity
+        implementation library.springBootDataJpa
+        implementation library.springBootActuator
+        implementation library.springBootDevTools
+        implementation library.springBootValidation
+        implementation (library.instagram4j) {
             exclude group: 'com.squareup.okhttp3', module: 'okhttp'
         }
         implementation library.okhttp
 
-        testImplementation rootProject.ext.libraryTest.junit4
-        testImplementation rootProject.ext.libraryTest.junit5api
-        testImplementation rootProject.ext.libraryTest.junit5engine
-        testImplementation rootProject.ext.libraryTest.mockito
-        testImplementation rootProject.ext.libraryTest.powerMockito
-        testImplementation rootProject.ext.libraryTest.powerMockitoJunit
-        testImplementation rootProject.ext.libraryTest.springBootTest
+        testImplementation libraryTest.junit4
+        testImplementation libraryTest.junit5api
+        testImplementation libraryTest.junit5engine
+        testImplementation libraryTest.mockito
+        testImplementation libraryTest.powerMockito
+        testImplementation libraryTest.powerMockitoJunit
+        testImplementation libraryTest.springBootTest
     }
 
     test {

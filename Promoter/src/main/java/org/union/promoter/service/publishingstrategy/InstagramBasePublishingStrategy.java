@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.union.common.Constants;
 import org.union.common.exception.NotFoundException;
+import org.union.common.exception.PublishingException;
 import org.union.common.exception.RequestException;
 import org.union.common.model.InstaClient;
 import org.union.common.model.ProducingChannel;
@@ -37,10 +38,11 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
     private final ProducingChannelService producingChannelService;
 
     @Override
-    public void publish(Post post) throws Exception {
+    public void publish(Post post) {
         String producingChannelId = post.getProducingChannelId();
 
         logStartPublishing(post.getId(), producingChannelId);
+
         try {
             ProducingChannel producingChannel = producingChannelService.findById(post.getProducingChannelId())
                     .orElseThrow(() -> new NotFoundException(String.format(Constants.PRODUCING_CHANNEL_NOT_FOUND_ERROR_MSG, post.getProducingChannelId())));
@@ -63,7 +65,7 @@ public abstract class InstagramBasePublishingStrategy implements PublishingStrat
             post.setPublishingErrorMsg(e.getMessage());
             postService.save(post);
 
-            throw e;
+            throw new PublishingException(e);
         }
     }
 

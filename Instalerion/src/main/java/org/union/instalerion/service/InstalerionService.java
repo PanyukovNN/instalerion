@@ -8,14 +8,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.union.common.model.Customer;
 import org.union.common.model.ProducingChannel;
+import org.union.common.model.post.PublicationType;
 import org.union.common.model.request.LoadingRequest;
 import org.union.common.model.request.PublishingRequest;
 import org.union.common.service.CustomerService;
 import org.union.common.service.DateTimeHelper;
 import org.union.common.service.ProducingChannelService;
 import org.union.common.service.loadingstrategy.LoadingStrategyType;
-import org.union.common.service.publishingstrategy.PostDefiningStrategyType;
-import org.union.common.service.publishingstrategy.PublicationType;
+import org.union.common.service.publishingstrategy.PostSortingStrategyType;
 import org.union.instalerion.kafka.LoaderKafkaSender;
 import org.union.instalerion.kafka.PublisherKafkaSender;
 
@@ -67,7 +67,7 @@ public class InstalerionService {
         List<ProducingChannel> producingChannels = producingChannelService.findByConsumer(customer);
 
         if (CollectionUtils.isEmpty(producingChannels)) {
-            logger.info(String.format(PRODUCING_CHANNELS_NOT_FOUND_MSG, customer.getUsername()));
+            logger.info(PRODUCING_CHANNELS_NOT_FOUND_MSG, customer.getUsername());
 
             return;
         }
@@ -106,11 +106,11 @@ public class InstalerionService {
 
     private void sendPublishingRequests(ProducingChannel producingChannel) {
         if (producingChannelService.isPostPublishingTime(producingChannel)) {
-            PostDefiningStrategyType postDefiningStrategyType = PostDefiningStrategyType.MOST_RECENT_POST;
             PublicationType publicationType = PublicationType.INSTAGRAM_POST;
+            PostSortingStrategyType postSortingStrategyType = PostSortingStrategyType.MOST_RECENT;
 
             PublishingRequest request = new PublishingRequest(producingChannel.getId(),
-                    publicationType, postDefiningStrategyType);
+                    publicationType, postSortingStrategyType);
 
             publisherKafkaSender.send(request);
         }
@@ -130,7 +130,7 @@ public class InstalerionService {
         }
 
         if (!producingChannel.isEnabled()) {
-            logger.info(String.format(PRODUCING_CHANNEL_DISABLED_MSG, producingChannel.getId()));
+            logger.info(PRODUCING_CHANNEL_DISABLED_MSG, producingChannel.getId());
 
             return true;
         }

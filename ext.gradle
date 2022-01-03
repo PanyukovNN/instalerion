@@ -4,6 +4,7 @@ ext.library = [
 
         'springBootWeb':'org.springframework.boot:spring-boot-starter-web',
         'springBootDevTools':'org.springframework.boot:spring-boot-devtools',
+        'springBootValidation':'org.springframework.boot:spring-boot-starter-validation',
         'springBootActuator':'org.springframework.boot:spring-boot-starter-actuator',
         'springBootDataJpa':'org.springframework.boot:spring-boot-starter-data-jpa',
         'springBootDataMongo':'org.springframework.boot:spring-boot-starter-data-mongodb',

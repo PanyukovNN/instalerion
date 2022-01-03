@@ -83,8 +83,8 @@ public class RequestHelper {
             throw new IllegalArgumentException(LOADING_STRATEGY_TYPE_NULL_ID_ERROR_MSG);
         }
 
-        if (request.getPostDefiningStrategyType() == null) {
-            throw new IllegalArgumentException(POST_DEFINING_STRATEGY_NULL_ERROR_MSG);
+        if (request.getPostSortingStrategyType() == null) {
+            throw new IllegalArgumentException(POST_SORTING_STRATEGY_NULL_ERROR_MSG);
         }
     }
 }

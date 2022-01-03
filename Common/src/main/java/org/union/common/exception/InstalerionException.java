@@ -24,4 +24,10 @@ public abstract class InstalerionException extends RuntimeException {
         LOG.error(message);
         System.out.println();
     }
+
+    public InstalerionException(Exception e) {
+        super(e);
+        LOG.error(e.getMessage(), e);
+        System.out.println();
+    }
 }

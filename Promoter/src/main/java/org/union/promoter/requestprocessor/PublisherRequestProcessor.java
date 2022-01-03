@@ -13,6 +13,8 @@ import org.union.promoter.service.publishingstrategy.postdefiningstrategy.PostDe
 import org.union.promoter.service.publishingstrategy.postdefiningstrategy.PostDefiningStrategyResolver;
 import org.union.promoter.service.publishingstrategy.sortingstrategy.PostSortingResolver;
 
+import javax.validation.Valid;
+
 /**
  * Request processor for post publishing
  */
@@ -32,7 +34,7 @@ public class PublisherRequestProcessor {
      */
     @Transactional
     @ProducingChannelUse
-    public void processPublishRequest(PublishingRequest request) throws Exception {
+    public void processPublishRequest(@Valid PublishingRequest request) {
         Sort sort = postSortingResolver.resolveStrategy(request.getPostSortingStrategyType());
 
         PostDefiningStrategy postDefiningStrategy = postDefiningStrategyResolver.resolveStrategy(request.getPublicationType());

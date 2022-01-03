@@ -1,5 +1,6 @@
 package org.union.promoter.kafka;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -35,7 +36,7 @@ public class PublisherKafkaListener implements Listener {
 
     @ListenerChecker
     @KafkaListener(topics = "${kafka.publisher.topic}", groupId = "${kafka.group}")
-    public void listenPublisher(String rawRequest) throws Exception {
+    public void listenPublisher(String rawRequest) throws JsonProcessingException {
         if (!PromoterProperties.publishingEnabled) {
             logger.info(PUBLISHER_DISABLED_MSG);
 

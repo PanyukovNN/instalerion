@@ -45,7 +45,7 @@ public class Constants {
     public static final String PUBLISHING_STRATEGY_RESOLVING_ERROR_MSG = "Ошибка при получении стратегии публикации из контекста.";
     public static final String POST_DEFINING_STRATEGY_RESOLVING_ERROR_MSG = "Ошибка при получении стратегии определения поста для публикации из контекста.";
     public static final String POST_DEFINING_STRATEGY_NOT_SET_ERROR_MSG = "Не задана стратегия определения поста для публикации.";
-    public static final String POST_DEFINING_STRATEGY_NULL_ERROR_MSG = "В запросе отсутсвуте стратегия определения поста для публикации.";
+    public static final String POST_SORTING_STRATEGY_NULL_ERROR_MSG = "В запросе отсутсвуте стратегия сортировки публикаций.";
     public static final String POSTS_LOADING_SUCCESS_MSG = "Загрузка постов прошла успешно.";
     public static final String NOT_FOUND_UNATTACHED_PROXY_SERVER_ERROR_MSG = "Not found unattached proxy server.";
     public static final String PROXY_SERVER_IS_NULL_ERROR_MSG = "Прокси сервер не может быть null.";
@@ -64,10 +64,10 @@ public class Constants {
     public static final String PUBLISHER_REQUEST_SUCCESSFULLY_SENT = "Запрос на публикацию поста успешно отправлен: %s";
     public static final String SAVED_IMAGES_FROM_CHANNEL_MSG = "Сохранено %d фото с канала %s";
     public static final String SAVED_VIDEOS_FROM_CHANNEL_MSG = "Сохранено %d видео с канала %s";
-    public static final String PRODUCING_CHANNEL_DISABLED_MSG = "Канал публикации %s отключен.";
+    public static final String PRODUCING_CHANNEL_DISABLED_MSG = "Канал публикации {} отключен.";
     public static final String PRODUCING_CHANNEL_TEMPORARY_BLOCKED_MSG = "Канал публикации %s временно заблокирован инстаграммом, работа будет продолжена %s.";
     public static final String CUSTOMERS_NOT_FOUND_MSG = "Не найдено ни одного пользователя.";
-    public static final String PRODUCING_CHANNELS_NOT_FOUND_MSG = "Не найдено ни одного канала публикации для пользователя %s.";
+    public static final String PRODUCING_CHANNELS_NOT_FOUND_MSG = "Не найдено ни одного канала публикации для пользователя {}.";
     public static final String LOADER_DISABLED_MSG = "Loader disabled.";
     public static final String PUBLISHER_DISABLED_MSG = "Publisher disabled.";
     public static final String POST_SUCCESSFULLY_PUBLISHED_MSG = "Пост %s успешно опубликован в канале %s.";

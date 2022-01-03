@@ -59,12 +59,12 @@ public class InstagramPostPublishingStrategy extends InstagramBasePublishingStra
 
     @Override
     protected void setPostPublicationDateTime(Post post, LocalDateTime now) {
-        post.getPublishedTimeByType().put(org.union.common.model.post.PublicationType.INSTAGRAM_POST, now);
+        post.getPublishedTimeByType().put(PublicationType.INSTAGRAM_POST, now);
     }
 
     @Override
     protected void setLastPublicationDateTime(ProducingChannel producingChannel, LocalDateTime now) {
-        producingChannel.getPublicationTimeMap().put(org.union.common.model.post.PublicationType.INSTAGRAM_POST, now);
+        producingChannel.getPublicationTimeMap().put(PublicationType.INSTAGRAM_POST, now);
     }
 
     @Override
