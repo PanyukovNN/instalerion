@@ -66,5 +66,15 @@ allprojects {
     }
 }
 
+project(":Instalerion") {
+    dependencies {
+        implementation library.kafkaCommon
+        implementation library.kafkaClients
+
+        implementation project(':Common')
+    }
+}
+
+
 build.enabled = false
 bootJar.enabled = false

@@ -1,10 +1,10 @@
 
-dependencies {
-    implementation library.kafkaCommon
-    implementation library.kafkaClients
-
-    implementation project(':Common')
-}
+//dependencies {
+//    implementation library.kafkaCommon
+//    implementation library.kafkaClients
+//
+//    implementation project(':Common')
+//}
 
 bootJar {
     archiveVersion = ''
