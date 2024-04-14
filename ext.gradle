@@ -13,7 +13,7 @@ ext.library = [
 
         'jasypt':'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.3',
 
-        'instagram4j':'com.github.instagram4j:instagram4j:2.0.5',
+        'instagram4j':'com.github.instagram4j:instagram4j:2.0.7',
         'okhttp':'com.squareup.okhttp3:okhttp:4.9.1',
 
         'kafkaClients':'org.apache.kafka:kafka-clients:2.8.0',
